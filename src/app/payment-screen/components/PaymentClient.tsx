@@ -130,27 +130,27 @@ export default function PaymentClient() {
 
   if (isPaid) {
     return (
-      <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
+      <div className="screen-container flex flex-col items-center justify-center min-h-screen px-6" style={{ background: '#0F1A14' }} dir="rtl">
         <div className="text-center">
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1B5E20' }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: 'linear-gradient(135deg, #1B6B5A, #23896F)' }}>
             <Icon name="CheckIcon" size={44} className="text-white" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">تم الدفع بنجاح!</h2>
-          <p className="text-gray-500 text-sm mb-6">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: '#F0EAD6' }}>تم الدفع بنجاح!</h2>
+          <p className="text-sm mb-6" style={{ color: '#8A9E8E' }}>
             تم تأكيد حجزك مع {craftsmanName}
           </p>
-          <div className="bg-green-50 rounded-2xl p-4 mb-8 text-right border border-green-100">
+          <div className="rounded-2xl p-4 mb-8 text-right" style={{ background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.2)' }}>
             <div className="flex justify-between items-center">
-              <span className="text-xl font-black text-primary font-tabular">
+              <span className="text-xl font-black font-tabular" style={{ color: '#C9A84C' }}>
                 {amount} ر.س
               </span>
-              <span className="text-sm text-gray-500">المبلغ المدفوع</span>
+              <span className="text-sm" style={{ color: '#8A9E8E' }}>المبلغ المدفوع</span>
             </div>
           </div>
           <button
             onClick={() => router.push('/home-screen')}
-            className="w-full py-4 rounded-2xl font-bold text-white text-base"
-            style={{ background: '#1B5E20' }}
+            className="w-full py-4 rounded-2xl font-bold text-base"
+            style={{ background: 'linear-gradient(135deg, #1B6B5A, #23896F)', color: '#FFFFFF' }}
           >
             العودة للرئيسية
           </button>
@@ -160,26 +160,27 @@ export default function PaymentClient() {
   }
 
   return (
-    <div className="screen-container bg-gray-50" dir="rtl">
+    <div className="screen-container" style={{ background: '#0F1A14' }} dir="rtl">
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-12 pb-4 bg-white border-b border-gray-100">
+      <div className="flex items-center gap-3 px-4 pt-12 pb-4" style={{ background: '#162219', borderBottom: '1px solid #243B2C' }}>
         <button
           onClick={() => router.back()}
-          className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center"
+          className="w-9 h-9 rounded-full flex items-center justify-center"
+          style={{ background: '#1A2E24' }}
         >
-          <Icon name="ChevronRightIcon" size={20} className="text-gray-700" />
+          <Icon name="ChevronRightIcon" size={20} style={{ color: '#F0EAD6' }} />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">الدفع</h1>
+        <h1 className="text-lg font-bold" style={{ color: '#F0EAD6' }}>الدفع</h1>
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-32">
         {/* Service summary */}
-        <div className="bg-white rounded-2xl border border-gray-100 p-4">
+        <div className="rounded-2xl p-4" style={{ background: '#162219', border: '1.5px solid #243B2C' }}>
           {isLoading ? (
-            <div className="h-16 bg-gray-100 rounded-xl animate-pulse" />
+            <div className="h-16 rounded-xl animate-pulse" style={{ background: '#1A2E24' }} />
           ) : (
             <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0" style={{ background: '#1A2E24' }}>
                 {avatarUrl ? (
                   <AppImage
                     src={avatarUrl}
@@ -190,23 +191,23 @@ export default function PaymentClient() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Icon name="UserCircleIcon" size={32} className="text-gray-300" />
+                    <Icon name="UserCircleIcon" size={32} style={{ color: '#3A5A40' }} />
                   </div>
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{serviceName}</p>
-                <p className="text-xs text-gray-500 mb-1">{craftsmanName}</p>
+                <p className="text-sm font-bold leading-tight mb-1" style={{ color: '#F0EAD6' }}>{serviceName}</p>
+                <p className="text-xs mb-1" style={{ color: '#8A9E8E' }}>{craftsmanName}</p>
                 <div className="flex items-center gap-1">
-                  <Icon name="StarIcon" size={12} variant="solid" className="text-yellow-500" />
-                  <span className="text-xs text-gray-500 font-tabular">{rating}</span>
+                  <Icon name="StarIcon" size={12} variant="solid" style={{ color: '#C9A84C' }} />
+                  <span className="text-xs font-tabular" style={{ color: '#8A9E8E' }}>{rating}</span>
                 </div>
               </div>
               <div className="text-left flex-shrink-0">
-                <p className="text-xs text-gray-400 mb-0.5">المطلوب دفعه</p>
+                <p className="text-xs mb-0.5" style={{ color: '#5A7A60' }}>المطلوب دفعه</p>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-gray-900 font-tabular">{amount}</span>
-                  <span className="text-sm text-gray-500">ر.س</span>
+                  <span className="text-2xl font-black font-tabular" style={{ color: '#F0EAD6' }}>{amount}</span>
+                  <span className="text-sm" style={{ color: '#8A9E8E' }}>ر.س</span>
                 </div>
               </div>
             </div>
@@ -218,23 +219,29 @@ export default function PaymentClient() {
           {/* Credit Card */}
           <button
             onClick={() => setMethod('card')}
-            className={`w-full text-right rounded-2xl border-2 p-4 transition-all ${
-              method === 'card' ? 'border-primary bg-green-50' : 'border-gray-200 bg-white'
-            }`}
+            className="w-full text-right rounded-2xl border-2 p-4 transition-all"
+            style={{
+              borderColor: method === 'card' ? '#C9A84C' : '#243B2C',
+              background: method === 'card' ? 'rgba(201,168,76,0.08)' : '#162219',
+            }}
           >
             <div className="flex items-center justify-between">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                method === 'card' ? 'border-primary bg-primary' : 'border-gray-300'
-              }`}>
-                {method === 'card' && <div className="w-2 h-2 bg-white rounded-full" />}
+              <div
+                className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+                style={{
+                  borderColor: method === 'card' ? '#C9A84C' : '#3A5A40',
+                  background: method === 'card' ? '#C9A84C' : 'transparent',
+                }}
+              >
+                {method === 'card' && <div className="w-2 h-2 rounded-full" style={{ background: '#0F1A14' }} />}
               </div>
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">بطاقة إلكترونية</p>
-                  <p className="text-xs text-gray-500">فيزا / ماستركارد</p>
+                  <p className="text-sm font-semibold" style={{ color: '#F0EAD6' }}>بطاقة إلكترونية</p>
+                  <p className="text-xs" style={{ color: '#8A9E8E' }}>فيزا / ماستركارد</p>
                 </div>
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <Icon name="CreditCardIcon" size={22} className="text-blue-600" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.15)' }}>
+                  <Icon name="CreditCardIcon" size={22} className="text-blue-400" />
                 </div>
               </div>
             </div>
@@ -243,23 +250,29 @@ export default function PaymentClient() {
           {/* Cash */}
           <button
             onClick={() => setMethod('cash')}
-            className={`w-full text-right rounded-2xl border-2 p-4 transition-all ${
-              method === 'cash' ? 'border-primary bg-green-50' : 'border-gray-200 bg-white'
-            }`}
+            className="w-full text-right rounded-2xl border-2 p-4 transition-all"
+            style={{
+              borderColor: method === 'cash' ? '#C9A84C' : '#243B2C',
+              background: method === 'cash' ? 'rgba(201,168,76,0.08)' : '#162219',
+            }}
           >
             <div className="flex items-center justify-between">
-              <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                method === 'cash' ? 'border-primary bg-primary' : 'border-gray-300'
-              }`}>
-                {method === 'cash' && <div className="w-2 h-2 bg-white rounded-full" />}
+              <div
+                className="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all"
+                style={{
+                  borderColor: method === 'cash' ? '#C9A84C' : '#3A5A40',
+                  background: method === 'cash' ? '#C9A84C' : 'transparent',
+                }}
+              >
+                {method === 'cash' && <div className="w-2 h-2 rounded-full" style={{ background: '#0F1A14' }} />}
               </div>
               <div className="flex items-center gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">كاش</p>
-                  <p className="text-xs text-gray-500">عند إتمام الخدمة</p>
+                  <p className="text-sm font-semibold" style={{ color: '#F0EAD6' }}>كاش</p>
+                  <p className="text-xs" style={{ color: '#8A9E8E' }}>عند إتمام الخدمة</p>
                 </div>
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <Icon name="BanknotesIcon" size={22} className="text-green-600" />
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'rgba(27,107,90,0.15)' }}>
+                  <Icon name="BanknotesIcon" size={22} style={{ color: '#23896F' }} />
                 </div>
               </div>
             </div>
@@ -268,52 +281,58 @@ export default function PaymentClient() {
 
         {/* Card details */}
         {method === 'card' && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-4">رقم البطاقة</h3>
-            <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-4 mb-4 text-white">
+          <div className="rounded-2xl p-4" style={{ background: '#162219', border: '1.5px solid #243B2C' }}>
+            <h3 className="text-sm font-bold mb-4" style={{ color: '#F0EAD6' }}>رقم البطاقة</h3>
+            <div className="rounded-2xl p-4 mb-4 text-white" style={{ background: 'linear-gradient(135deg, #1A2E24 0%, #0F1A14 100%)', border: '1px solid rgba(201,168,76,0.2)' }}>
               <div className="flex items-center justify-between mb-5">
-                <div className="w-8 h-5 bg-yellow-400 rounded-sm opacity-80" />
-                <span className="text-sm font-bold opacity-70">VISA</span>
+                <div className="w-8 h-5 rounded-sm opacity-80" style={{ background: '#C9A84C' }} />
+                <span className="text-sm font-bold" style={{ color: '#C9A84C' }}>VISA</span>
               </div>
-              <div className="text-base font-tabular tracking-widest mb-4">
+              <div className="text-base font-tabular tracking-widest mb-4" style={{ color: '#F0EAD6' }}>
                 4532 **** **** {CARD_DATA.last4}
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-xs opacity-50 mb-0.5">تاريخ الانتهاء</div>
-                  <div className="text-sm font-semibold font-tabular">{CARD_DATA.expiry}</div>
+                  <div className="text-xs mb-0.5" style={{ color: '#5A7A60' }}>تاريخ الانتهاء</div>
+                  <div className="text-sm font-semibold font-tabular" style={{ color: '#F0EAD6' }}>{CARD_DATA.expiry}</div>
                 </div>
                 <div>
-                  <div className="text-xs opacity-50 mb-0.5">CVC</div>
-                  <div className="text-sm font-semibold">•••</div>
+                  <div className="text-xs mb-0.5" style={{ color: '#5A7A60' }}>CVC</div>
+                  <div className="text-sm font-semibold" style={{ color: '#F0EAD6' }}>•••</div>
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b border-gray-100">
-              <span className="text-sm text-gray-800 font-semibold">{CARD_DATA.holder}</span>
-              <span className="text-xs text-gray-500">اسم حامل البطاقة</span>
+            <div className="flex items-center justify-between py-2" style={{ borderBottom: '1px solid #243B2C' }}>
+              <span className="text-sm font-semibold" style={{ color: '#F0EAD6' }}>{CARD_DATA.holder}</span>
+              <span className="text-xs" style={{ color: '#8A9E8E' }}>اسم حامل البطاقة</span>
             </div>
             <div className="flex items-center gap-2 mt-3">
-              <Icon name="ShieldCheckIcon" size={14} className="text-primary flex-shrink-0" />
-              <p className="text-xs text-gray-500">دفع مشفر وآمن — ضمان الضمان حتى إتمام الخدمة</p>
+              <Icon name="ShieldCheckIcon" size={14} style={{ color: '#1B6B5A' }} className="flex-shrink-0" />
+              <p className="text-xs" style={{ color: '#8A9E8E' }}>دفع مشفر وآمن — ضمان الضمان حتى إتمام الخدمة</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Pay button - fixed bottom */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3 bg-white border-t border-gray-100">
+      <div className="fixed bottom-0 left-0 right-0 px-4 pb-6 pt-3" style={{ background: '#0F1A14', borderTop: '1px solid #243B2C' }}>
         <button
           onClick={handlePay}
           disabled={isProcessing}
-          className="w-full py-4 rounded-2xl font-bold text-white text-base mb-3 transition-all"
-          style={{ background: '#1B5E20', opacity: isProcessing ? 0.7 : 1 }}
+          className="w-full py-4 rounded-2xl font-bold text-base mb-3 transition-all"
+          style={{
+            background: 'linear-gradient(135deg, #1B6B5A, #23896F)',
+            color: '#FFFFFF',
+            opacity: isProcessing ? 0.7 : 1,
+            boxShadow: isProcessing ? 'none' : '0 4px 20px rgba(27,107,90,0.4)',
+          }}
         >
           {isProcessing ? 'جاري المعالجة...' : `ادفع ${amount} ر.س الآن`}
         </button>
         <button
           onClick={() => setMethod('apple')}
-          className="w-full py-3.5 rounded-2xl font-bold text-gray-800 text-sm border border-gray-200 bg-white flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2"
+          style={{ background: '#162219', color: '#F0EAD6', border: '1px solid #243B2C' }}
         >
           <span>🍎</span>
           أو الدفع عبر Apple Pay

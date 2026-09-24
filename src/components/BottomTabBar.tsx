@@ -25,8 +25,8 @@ const TABS: Tab[] = [
 export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white border-t border-gray-200"
-      style={{ height: '64px', paddingBottom: '0px' }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
+      style={{ height: '64px', background: '#0F1A14', borderTop: '1px solid rgba(201,168,76,0.15)' }}
     >
       {TABS.map((tab) => {
         const isActive = tab.id === activeTab;
@@ -41,7 +41,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
                 name={tab.icon as never}
                 size={22}
                 variant={isActive ? 'solid' : 'outline'}
-                className={isActive ? 'text-primary' : 'text-gray-400'}
+                style={{ color: isActive ? '#C9A84C' : '#5A7A60' }}
               />
               {tab.badge && tab.badge > 0 && (
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
@@ -50,7 +50,8 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
               )}
             </div>
             <span
-              className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-400'}`}
+              className="text-xs font-medium"
+              style={{ color: isActive ? '#C9A84C' : '#5A7A60' }}
             >
               {tab.label}
             </span>

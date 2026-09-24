@@ -10,23 +10,23 @@ export default function OnboardingClient() {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
 
   return (
-    <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
+    <div className="screen-container flex flex-col min-h-screen" style={{ background: 'linear-gradient(160deg, #0F1A14 0%, #162219 60%, #0F1A14 100%)' }} dir="rtl">
       {/* Logo area */}
       <div className="flex flex-col items-center pt-16 pb-6 px-6">
-        {/* Logo image */}
-        <div className="w-40 h-40 mb-4 flex items-center justify-center">
+        <div className="w-40 h-40 mb-4 flex items-center justify-center relative">
+          <div className="absolute inset-0 rounded-full blur-2xl opacity-20" style={{ background: '#C9A84C' }} />
           <img
             src="/assets/images/__________________24_-1790287739442.png"
             alt="شعار صنايعي"
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain relative z-10"
           />
         </div>
       </div>
 
       {/* Welcome text */}
       <div className="text-center px-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في صنايعي</h2>
-        <p className="text-sm text-gray-500">كيف تريد استخدام التطبيق؟</p>
+        <h2 className="text-xl font-bold mb-1" style={{ color: '#F0EAD6' }}>مرحباً بك في صنايعي</h2>
+        <p className="text-sm" style={{ color: '#8A9E8E' }}>كيف تريد استخدام التطبيق؟</p>
       </div>
 
       {/* Role Cards */}
@@ -37,14 +37,17 @@ export default function OnboardingClient() {
           className="w-full text-right"
         >
           <div
-            className={`relative rounded-2xl border-2 p-4 transition-all duration-200 ${
-              selectedRole === 'customer' ?'border-primary bg-green-50' :'border-gray-200 bg-white'
-            }`}
+            className="relative rounded-2xl border-2 p-4 transition-all duration-200"
+            style={{
+              borderColor: selectedRole === 'customer' ? '#C9A84C' : '#243B2C',
+              background: selectedRole === 'customer' ? 'rgba(201,168,76,0.08)' : '#162219',
+            }}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                selectedRole === 'customer' ? 'bg-primary' : 'bg-gray-100'
-              }`}>
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: selectedRole === 'customer' ? '#1B6B5A' : '#1A2E24' }}
+              >
                 <Icon
                   name="UserIcon"
                   size={24}
@@ -53,24 +56,26 @@ export default function OnboardingClient() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-base font-bold text-gray-900">أنا زبون</h3>
+                  <h3 className="text-base font-bold" style={{ color: '#F0EAD6' }}>أنا زبون</h3>
                   {selectedRole === 'customer' && (
-                    <span className="text-xs px-2 py-0.5 bg-primary text-white rounded-full font-medium">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#C9A84C', color: '#0F1A14' }}>
                       ★ الأكثر استخداماً
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs" style={{ color: '#8A9E8E' }}>
                   أبحث عن صنايعي موثوق بالقرب مني
                 </p>
               </div>
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                  selectedRole === 'customer' ?'border-primary bg-primary' :'border-gray-300'
-                }`}
+                className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                style={{
+                  borderColor: selectedRole === 'customer' ? '#C9A84C' : '#3A5A40',
+                  background: selectedRole === 'customer' ? '#C9A84C' : 'transparent',
+                }}
               >
                 {selectedRole === 'customer' && (
-                  <div className="w-2 h-2 bg-white rounded-full" />
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#0F1A14' }} />
                 )}
               </div>
             </div>
@@ -83,14 +88,17 @@ export default function OnboardingClient() {
           className="w-full text-right"
         >
           <div
-            className={`relative rounded-2xl border-2 p-4 transition-all duration-200 ${
-              selectedRole === 'craftsman' ?'border-primary bg-green-50' :'border-gray-200 bg-white'
-            }`}
+            className="relative rounded-2xl border-2 p-4 transition-all duration-200"
+            style={{
+              borderColor: selectedRole === 'craftsman' ? '#C9A84C' : '#243B2C',
+              background: selectedRole === 'craftsman' ? 'rgba(201,168,76,0.08)' : '#162219',
+            }}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                selectedRole === 'craftsman' ? 'bg-primary' : 'bg-gray-100'
-              }`}>
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                style={{ background: selectedRole === 'craftsman' ? '#1B6B5A' : '#1A2E24' }}
+              >
                 <Icon
                   name="WrenchScrewdriverIcon"
                   size={24}
@@ -99,24 +107,26 @@ export default function OnboardingClient() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-base font-bold text-gray-900">أنا صنايعي</h3>
+                  <h3 className="text-base font-bold" style={{ color: '#F0EAD6' }}>أنا صنايعي</h3>
                   {selectedRole === 'craftsman' && (
-                    <span className="text-xs px-2 py-0.5 bg-yellow-500 text-white rounded-full font-medium">
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#C9A84C', color: '#0F1A14' }}>
                       ✓ انضم إلينا
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs" style={{ color: '#8A9E8E' }}>
                   أعرض خدماتي وأستقبل طلبات العملاء
                 </p>
               </div>
               <div
-                className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                  selectedRole === 'craftsman' ?'border-primary bg-primary' :'border-gray-300'
-                }`}
+                className="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all"
+                style={{
+                  borderColor: selectedRole === 'craftsman' ? '#C9A84C' : '#3A5A40',
+                  background: selectedRole === 'craftsman' ? '#C9A84C' : 'transparent',
+                }}
               >
                 {selectedRole === 'craftsman' && (
-                  <div className="w-2 h-2 bg-white rounded-full" />
+                  <div className="w-2 h-2 rounded-full" style={{ background: '#0F1A14' }} />
                 )}
               </div>
             </div>
@@ -131,10 +141,12 @@ export default function OnboardingClient() {
       <div className="px-5 pb-4">
         <Link href="/phone-login-otp-verification">
           <button
-            className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
+            className="w-full py-4 rounded-2xl font-bold text-base transition-all"
             style={{
-              background: selectedRole ? '#1B5E20' : '#9CA3AF',
+              background: selectedRole ? 'linear-gradient(135deg, #1B6B5A 0%, #23896F 100%)' : '#1A2E24',
+              color: selectedRole ? '#FFFFFF' : '#5A7A60',
               opacity: selectedRole ? 1 : 0.7,
+              boxShadow: selectedRole ? '0 4px 20px rgba(27,107,90,0.4)' : 'none',
             }}
             disabled={!selectedRole}
           >
@@ -144,13 +156,13 @@ export default function OnboardingClient() {
       </div>
 
       {/* Terms */}
-      <p className="text-center text-xs text-gray-400 pb-8 px-6 leading-relaxed">
+      <p className="text-center text-xs pb-8 px-6 leading-relaxed" style={{ color: '#5A7A60' }}>
         بالمتابعة أنت توافق على{' '}
-        <span className="text-primary font-semibold cursor-pointer">
+        <span className="font-semibold cursor-pointer" style={{ color: '#C9A84C' }}>
           الشروط والأحكام
         </span>{' '}
         و{' '}
-        <span className="text-primary font-semibold cursor-pointer">
+        <span className="font-semibold cursor-pointer" style={{ color: '#C9A84C' }}>
           سياسة الخصوصية
         </span>
       </p>
