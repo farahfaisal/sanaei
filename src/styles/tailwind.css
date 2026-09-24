@@ -3,27 +3,27 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
+  --background: #F8F9FA;
   --foreground: #1A1A1A;
-  --primary: #1B6B5A;
-  --primary-dark: #124A3E;
-  --primary-light: #23896F;
+  --primary: #1B5E20;
+  --primary-dark: #0D3B10;
+  --primary-light: #2E7D32;
   --primary-foreground: #FFFFFF;
-  --secondary: #F5F5F5;
-  --secondary-foreground: #C9A84C;
-  --accent: #C9A84C;
-  --accent-foreground: #0F1A14;
-  --muted: #F0F0F0;
-  --muted-foreground: #6B7280;
+  --secondary: #F1F8E9;
+  --secondary-foreground: #1B5E20;
+  --accent: #F59E0B;
+  --accent-foreground: #FFFFFF;
+  --muted: #F5F5F5;
+  --muted-foreground: #757575;
   --card: #FFFFFF;
   --card-foreground: #1A1A1A;
   --border: #E5E7EB;
-  --input: #F5F5F5;
-  --ring: #C9A84C;
+  --input: #F3F4F6;
+  --ring: #1B5E20;
   --radius: 12px;
   --font-sans: var(--font-noto-arabic), var(--font-plus-jakarta), sans-serif;
   --success: #22C55E;
-  --warning: #C9A84C;
+  --warning: #F59E0B;
   --danger: #EF4444;
   --nav-height: 64px;
 }
@@ -85,7 +85,7 @@
   }
 
   .gradient-gold {
-    background: linear-gradient(135deg, #A8872E 0%, #C9A84C 50%, #E2C97E 100%);
+    background: linear-gradient(135deg, #D97706 0%, #F59E0B 50%, #FCD34D 100%);
   }
 
   .shadow-card {
@@ -120,14 +120,14 @@
   }
 
   .otp-input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.2);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(27, 94, 32, 0.15);
   }
 
   .otp-input.filled {
-    border-color: var(--accent);
+    border-color: var(--primary);
     background: var(--secondary);
-    color: var(--accent);
+    color: var(--primary);
   }
 
   .category-icon-card {
@@ -145,10 +145,10 @@
   }
 
   .category-icon-card:hover {
-    border-color: var(--accent);
+    border-color: var(--primary);
     background: var(--secondary);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(201, 168, 76, 0.15);
+    box-shadow: 0 4px 12px rgba(27, 94, 32, 0.15);
   }
 
   .craftsman-card {
@@ -161,8 +161,8 @@
   }
 
   .craftsman-card:hover {
-    border-color: var(--accent);
-    box-shadow: 0 4px 20px rgba(201, 168, 76, 0.12);
+    border-color: var(--primary);
+    box-shadow: 0 4px 20px rgba(27, 94, 32, 0.12);
   }
 
   .tab-bar {
@@ -171,8 +171,8 @@
     left: 0;
     right: 0;
     height: var(--nav-height);
-    background: #FFFFFF;
-    border-top: 1px solid rgba(201, 168, 76, 0.15);
+    background: var(--foreground);
+    border-top: 1px solid rgba(255,255,255,0.1);
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -193,7 +193,7 @@
   }
 
   .tab-item.active {
-    color: #C9A84C;
+    color: #4ADE80;
   }
 
   .tab-item:not(.active) {
@@ -201,7 +201,7 @@
   }
 
   .tab-item:hover:not(.active) {
-    color: #8A9E8E;
+    color: #D1D5DB;
   }
 
   .badge-verified {
@@ -209,8 +209,8 @@
     align-items: center;
     gap: 3px;
     padding: 2px 8px;
-    background: linear-gradient(135deg, #A8872E 0%, #C9A84C 100%);
-    color: #FFFFFF;
+    background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%);
+    color: white;
     border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
@@ -222,11 +222,11 @@
     gap: 3px;
     padding: 2px 8px;
     background: var(--secondary);
-    color: var(--primary-light);
+    color: var(--primary);
     border-radius: 20px;
     font-size: 11px;
     font-weight: 600;
-    border: 1px solid var(--primary);
+    border: 1px solid var(--primary-light);
   }
 
   .stat-card {

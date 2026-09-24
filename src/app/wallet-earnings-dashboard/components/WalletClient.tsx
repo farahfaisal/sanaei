@@ -129,32 +129,32 @@ export default function WalletClient() {
   };
 
   return (
-    <div className="screen-container" style={{ background: '#0F1A14' }} dir="rtl">
+    <div className="screen-container bg-gray-50" dir="rtl">
       {/* Header */}
-      <div style={{ background: 'linear-gradient(160deg, #124A3E 0%, #1B6B5A 100%)' }} className="px-4 pt-12 pb-5">
+      <div style={{ background: '#1B5E20' }} className="px-4 pt-12 pb-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-2">
-            <button className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <button className="w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
               <Icon name="UserCircleIcon" size={20} className="text-white" />
             </button>
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <button className="relative w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
               <Icon name="BellIcon" size={20} className="text-white" />
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: '#C9A84C' }} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-yellow-400 rounded-full" />
             </button>
           </div>
           <h1 className="text-xl font-bold text-white">محفظتي</h1>
         </div>
 
         {/* Balance card */}
-        <div className="rounded-2xl p-4" style={{ background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(201,168,76,0.2)' }}>
+        <div className="bg-white/10 rounded-2xl p-4 border border-white/20">
           <div className="flex items-start justify-between mb-3">
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ background: 'rgba(201,168,76,0.15)' }}>
-              <Icon name="ShieldCheckIcon" size={22} style={{ color: '#C9A84C' }} />
+            <div className="w-11 h-11 bg-white/15 rounded-xl flex items-center justify-center">
+              <Icon name="ShieldCheckIcon" size={22} className="text-yellow-400" />
             </div>
             <div className="text-right">
-              <p className="text-xs mb-1" style={{ color: '#A8D5C8' }}>الرصيد الحالي</p>
+              <p className="text-xs text-green-200 mb-1">الرصيد الحالي</p>
               <div className="flex items-end gap-2">
-                <span className="text-sm font-semibold" style={{ color: '#A8D5C8' }}>ر.س</span>
+                <span className="text-sm font-semibold text-green-200">ر.س</span>
                 <span className="text-4xl font-black text-white font-tabular">
                   {isLoading ? '...' : formatAmount(wallet?.balance || 0)}
                 </span>
@@ -163,17 +163,17 @@ export default function WalletClient() {
           </div>
 
           {wallet?.locked_balance && wallet.locked_balance > 0 ? (
-            <div className="flex items-center gap-2 rounded-xl px-3 py-2 mb-3" style={{ background: 'rgba(201,168,76,0.1)' }}>
-              <Icon name="LockClosedIcon" size={13} style={{ color: '#C9A84C' }} className="flex-shrink-0" />
-              <span className="text-xs" style={{ color: '#E2C97E' }}>
+            <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-3">
+              <Icon name="LockClosedIcon" size={13} className="text-yellow-300 flex-shrink-0" />
+              <span className="text-xs text-green-100">
                 مبلغ معلق {formatAmount(wallet.locked_balance)} ريال — يُفرج عنه بعد 48 ساعة
               </span>
             </div>
           ) : null}
 
-          <div className="flex gap-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div className="flex gap-4 pt-3 border-t border-white/15">
             <div className="text-right">
-              <p className="text-xs mb-0.5" style={{ color: '#A8D5C8' }}>الرصيد المتاح</p>
+              <p className="text-xs text-green-300 mb-0.5">الرصيد المتاح</p>
               <p className="text-base font-bold text-white font-tabular">
                 {isLoading ? '...' : formatAmount((wallet?.balance || 0) - (wallet?.locked_balance || 0))} ريال
               </p>
@@ -185,42 +185,40 @@ export default function WalletClient() {
         <button
           onClick={handleWithdraw}
           disabled={isWithdrawing}
-          className="w-full mt-3 py-3.5 font-bold rounded-2xl flex items-center justify-center gap-2"
-          style={{ background: '#C9A84C', color: '#0F1A14' }}
+          className="w-full mt-3 py-3.5 bg-white text-primary font-bold rounded-2xl flex items-center justify-center gap-2"
         >
-          <Icon name="BuildingLibraryIcon" size={18} style={{ color: '#0F1A14' }} />
+          <Icon name="BuildingLibraryIcon" size={18} className="text-primary" />
           <span>{isWithdrawing ? 'جاري التحويل...' : 'سحب على الحساب البنكي'}</span>
           {wallet?.bank_account && (
-            <span className="text-xs font-normal opacity-70">{wallet.bank_account}</span>
+            <span className="text-xs text-gray-400 font-normal">{wallet.bank_account}</span>
           )}
         </button>
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-24">
         {/* Earnings chart section */}
-        <div className="rounded-2xl p-4" style={{ background: '#162219', border: '1.5px solid #243B2C' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="text-left">
-              <span className="text-lg font-black font-tabular" style={{ color: '#C9A84C' }}>
+              <span className="text-lg font-black text-primary font-tabular">
                 {getTabTotal()} ريال
               </span>
-              <p className="text-xs" style={{ color: '#8A9E8E' }}>أرباح {EARNING_TABS.find(t => t.id === activeTab)?.label}</p>
+              <p className="text-xs text-gray-400">أرباح {EARNING_TABS.find(t => t.id === activeTab)?.label}</p>
             </div>
-            <h2 className="text-sm font-bold" style={{ color: '#F0EAD6' }}>أرباحي</h2>
+            <h2 className="text-sm font-bold text-gray-900">أرباحي</h2>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 rounded-xl p-1 mb-4" style={{ background: '#1A2E24' }}>
+          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
             {EARNING_TABS.map((tab) => (
               <button
                 key={`tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all"
-                style={{
-                  background: activeTab === tab.id ? '#162219' : 'transparent',
-                  color: activeTab === tab.id ? '#C9A84C' : '#8A9E8E',
-                  boxShadow: activeTab === tab.id ? '0 1px 4px rgba(0,0,0,0.3)' : 'none',
-                }}
+                className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                  activeTab === tab.id
+                    ? 'bg-white text-primary shadow-sm'
+                    : 'text-gray-500'
+                }`}
               >
                 {tab.label}
               </button>
@@ -232,20 +230,20 @@ export default function WalletClient() {
         </div>
 
         {/* Recent transactions */}
-        <div className="rounded-2xl p-4" style={{ background: '#162219', border: '1.5px solid #243B2C' }}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-3">
-            <button className="text-xs font-semibold" style={{ color: '#C9A84C' }}>عرض الكل</button>
-            <h2 className="text-sm font-bold" style={{ color: '#F0EAD6' }}>آخر الحركات</h2>
+            <button className="text-primary text-xs font-semibold">عرض الكل</button>
+            <h2 className="text-sm font-bold text-gray-900">آخر الحركات</h2>
           </div>
 
           {isLoading ? (
             <div className="space-y-3">
               {[1,2,3].map((i) => (
-                <div key={i} className="h-12 rounded-xl animate-pulse" style={{ background: '#1A2E24' }} />
+                <div key={i} className="h-12 bg-gray-100 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : transactions.length === 0 ? (
-            <p className="text-center text-sm py-4" style={{ color: '#5A7A60' }}>لا توجد معاملات بعد</p>
+            <p className="text-center text-gray-400 text-sm py-4">لا توجد معاملات بعد</p>
           ) : (
             <div className="space-y-3">
               {transactions.slice(0, 10).map((txn) => {
@@ -256,28 +254,30 @@ export default function WalletClient() {
                   <div key={txn.id} className="flex items-center gap-3">
                     <div className="text-left flex-shrink-0">
                       <span
-                        className="text-sm font-bold font-tabular"
-                        style={{ color: isIncome ? '#23896F' : isLocked ? '#C9A84C' : '#EF4444' }}
+                        className={`text-sm font-bold font-tabular ${
+                          isIncome ? 'text-green-600' : isLocked ? 'text-yellow-600' : 'text-red-500'
+                        }`}
                       >
                         {txn.amount > 0 ? '+' : ''}{txn.amount} ريال
                       </span>
                     </div>
 
                     <div className="flex-1 min-w-0 text-right">
-                      <p className="text-sm font-semibold leading-tight truncate" style={{ color: '#F0EAD6' }}>
+                      <p className="text-sm font-semibold text-gray-800 leading-tight truncate">
                         {txn.label}
                       </p>
-                      <p className="text-xs mt-0.5" style={{ color: '#5A7A60' }}>{formatTime(txn.created_at)}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{formatTime(txn.created_at)}</p>
                     </div>
 
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                      style={{ background: isIncome ? 'rgba(27,107,90,0.15)' : isLocked ? 'rgba(201,168,76,0.15)' : 'rgba(239,68,68,0.15)' }}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                        isIncome ? 'bg-green-50' : isLocked ? 'bg-yellow-50' : 'bg-red-50'
+                      }`}
                     >
                       <Icon
                         name={isIncome ? 'ArrowDownLeftIcon' : isLocked ? 'LockClosedIcon' : 'ArrowUpRightIcon'}
                         size={16}
-                        style={{ color: isIncome ? '#23896F' : isLocked ? '#C9A84C' : '#EF4444' }}
+                        className={isIncome ? 'text-green-600' : isLocked ? 'text-yellow-600' : 'text-red-500'}
                       />
                     </div>
                   </div>

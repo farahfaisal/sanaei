@@ -74,19 +74,20 @@ export default function HomeScreenClient() {
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'مرحباً';
 
   return (
-    <div className="screen-container" style={{ background: '#0F1A14' }} dir="rtl">
-      {/* Header */}
-      <div style={{ background: 'linear-gradient(160deg, #124A3E 0%, #1B6B5A 100%)' }} className="px-4 pt-12 pb-5">
+    <div className="screen-container bg-gray-50" dir="rtl">
+      {/* Header - dark green */}
+      <div style={{ background: '#1B5E20' }} className="px-4 pt-12 pb-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs mb-0.5" style={{ color: '#C9A84C' }}>🌟 مرحباً بك</p>
+            <p className="text-xs text-green-300 mb-0.5">🌟 مرحباً بك</p>
             <h1 className="text-lg font-bold text-white">{displayName}</h1>
             <div className="flex items-center gap-1 mt-0.5">
-              <Icon name="MapPinIcon" size={12} style={{ color: '#A8D5C8' }} />
-              <span className="text-xs" style={{ color: '#A8D5C8' }}>{profile?.location || 'الرياض، السعودية'}</span>
+              <Icon name="MapPinIcon" size={12} className="text-green-300" />
+              <span className="text-xs text-green-200">{profile?.location || 'الرياض، السعودية'}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* App Logo */}
             <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
               <img
                 src="/assets/images/__________________24_-1790287739442.png"
@@ -94,10 +95,10 @@ export default function HomeScreenClient() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <button className="relative w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <button className="relative w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
               <Icon name="BellIcon" size={18} className="text-white" />
             </button>
-            <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center" style={{ border: '2px solid rgba(201,168,76,0.4)', background: 'rgba(255,255,255,0.1)' }}>
+            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/30 bg-white/20 flex items-center justify-center">
               {profile?.avatar_url ? (
                 <AppImage
                   src={profile.avatar_url}
@@ -116,15 +117,14 @@ export default function HomeScreenClient() {
         {/* Search bar */}
         <div className="relative">
           <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
-            <Icon name="MagnifyingGlassIcon" size={17} style={{ color: '#8A9E8E' }} />
+            <Icon name="MagnifyingGlassIcon" size={17} className="text-gray-400" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e?.target?.value)}
             placeholder="ما الخدمة التي تحتاجها؟"
-            className="w-full rounded-xl py-3 pr-10 pl-4 text-sm outline-none"
-            style={{ background: 'rgba(15,26,20,0.7)', color: '#F0EAD6', border: '1px solid rgba(201,168,76,0.2)' }}
+            className="w-full bg-white rounded-xl py-3 pr-10 pl-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
             dir="rtl"
           />
         </div>
@@ -134,13 +134,13 @@ export default function HomeScreenClient() {
         {/* Service Categories */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-sm font-semibold" style={{ color: '#C9A84C' }}>عرض الكل</button>
-            <h2 className="text-base font-bold" style={{ color: '#F0EAD6' }}>الخدمات</h2>
+            <button className="text-primary text-sm font-semibold">عرض الكل</button>
+            <h2 className="text-base font-bold text-gray-900">الخدمات</h2>
           </div>
           {isLoading ? (
             <div className="grid grid-cols-4 gap-2">
               {[1,2,3,4,5,6,7,8].map((i) => (
-                <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: '#1A2E24' }} />
+                <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
               ))}
             </div>
           ) : (
@@ -149,14 +149,13 @@ export default function HomeScreenClient() {
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-                  className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all"
-                  style={{
-                    borderColor: activeCategory === cat.id ? '#C9A84C' : '#243B2C',
-                    background: activeCategory === cat.id ? 'rgba(201,168,76,0.1)' : '#162219',
-                  }}
+                  className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${
+                    activeCategory === cat.id
+                      ? 'border-primary bg-green-50' :'border-gray-200 bg-white'
+                  }`}
                 >
                   <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-xs font-medium text-center leading-tight" style={{ color: activeCategory === cat.id ? '#C9A84C' : '#8A9E8E' }}>
+                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">
                     {cat.name}
                   </span>
                 </button>
@@ -168,14 +167,14 @@ export default function HomeScreenClient() {
         {/* Promo Banner */}
         <div
           className="rounded-2xl p-4 overflow-hidden relative"
-          style={{ background: 'linear-gradient(135deg, #124A3E 0%, #1B6B5A 100%)', border: '1px solid rgba(201,168,76,0.2)' }}
+          style={{ background: 'linear-gradient(135deg, #1B5E20 0%, #2E7D32 100%)' }}
         >
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <div className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 mb-2" style={{ background: 'rgba(201,168,76,0.15)' }}>
-                <span className="text-xs font-bold" style={{ color: '#C9A84C' }}>خصم 20% على خدمات التكييف</span>
+              <div className="inline-flex items-center gap-1 bg-white/15 rounded-lg px-2.5 py-1 mb-2">
+                <span className="text-white text-xs font-bold">خصم 20% على خدمات التكييف</span>
               </div>
-              <button className="mt-2 text-xs font-bold px-4 py-2 rounded-xl" style={{ background: '#C9A84C', color: '#0F1A14' }}>
+              <button className="mt-2 bg-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-xl">
                 اكتشف العرض
               </button>
             </div>
@@ -189,8 +188,8 @@ export default function HomeScreenClient() {
                   className="w-full h-full object-cover"
                 />
               </div>
-              <div className="absolute -top-2 -right-2 w-9 h-9 rounded-full flex items-center justify-center shadow-md" style={{ background: '#C9A84C' }}>
-                <span className="text-xs font-black" style={{ color: '#0F1A14' }}>20%</span>
+              <div className="absolute -top-2 -right-2 w-9 h-9 bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-xs font-black">20%</span>
               </div>
             </div>
           </div>
@@ -199,29 +198,29 @@ export default function HomeScreenClient() {
         {/* Nearby Craftsmen */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-sm font-semibold" style={{ color: '#C9A84C' }}>عرض الكل</button>
-            <h2 className="text-base font-bold" style={{ color: '#F0EAD6' }}>أفضل الصنايعية بالقرب منك</h2>
+            <button className="text-primary text-sm font-semibold">عرض الكل</button>
+            <h2 className="text-base font-bold text-gray-900">أفضل الصنايعية بالقرب منك</h2>
           </div>
 
           {isLoading ? (
             <div className="flex flex-col gap-3">
               {[1,2,3].map((i) => (
-                <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: '#1A2E24' }} />
+                <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : filteredCraftsmen.length === 0 ? (
-            <div className="text-center py-8 text-sm" style={{ color: '#5A7A60' }}>
+            <div className="text-center py-8 text-gray-400 text-sm">
               لا يوجد صنايعية متاحون حالياً
             </div>
           ) : (
             <div className="flex flex-col gap-3">
               {filteredCraftsmen.map((craftsman) => (
                 <Link key={craftsman.id} href={`/craftsman-profile?id=${craftsman.id}`}>
-                  <div className="rounded-2xl p-4" style={{ background: '#162219', border: '1.5px solid #243B2C' }}>
+                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden" style={{ background: '#1A2E24' }}>
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100">
                           {craftsman.avatar_url ? (
                             <AppImage
                               src={craftsman.avatar_url}
@@ -232,39 +231,39 @@ export default function HomeScreenClient() {
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <Icon name="UserCircleIcon" size={32} style={{ color: '#3A5A40' }} />
+                              <Icon name="UserCircleIcon" size={32} className="text-gray-300" />
                             </div>
                           )}
                         </div>
                         {craftsman.is_online && (
-                          <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2" style={{ borderColor: '#162219' }} />
+                          <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
                         )}
                       </div>
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
-                          <h3 className="text-sm font-bold" style={{ color: '#F0EAD6' }}>
+                          <h3 className="text-sm font-bold text-gray-900">
                             {craftsman.user_profiles?.full_name || 'صنايعي'}
                           </h3>
                           {craftsman.is_verified && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'linear-gradient(135deg, #A8872E, #C9A84C)', color: '#0F1A14' }}>
-                              <Icon name="CheckBadgeIcon" size={10} style={{ color: '#0F1A14' }} />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}>
+                              <Icon name="CheckBadgeIcon" size={10} className="text-white" />
                               موثوق
                             </span>
                           )}
                           {craftsman.is_online && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold" style={{ background: 'rgba(27,107,90,0.2)', color: '#23896F', border: '1px solid #1B6B5A' }}>
-                              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#23896F' }} />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-primary bg-green-50 border border-green-200">
+                              <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                               متاح الآن
                             </span>
                           )}
                         </div>
-                        <p className="text-xs mb-1.5" style={{ color: '#8A9E8E' }}>{craftsman.specialty}</p>
+                        <p className="text-xs text-gray-500 mb-1.5">{craftsman.specialty}</p>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-1">
-                            <Icon name="BriefcaseIcon" size={12} style={{ color: '#5A7A60' }} />
-                            <span className="text-xs font-tabular" style={{ color: '#5A7A60' }}>{craftsman.completed_jobs} مهمة مكتملة</span>
+                            <Icon name="BriefcaseIcon" size={12} className="text-gray-400" />
+                            <span className="text-xs text-gray-500 font-tabular">{craftsman.completed_jobs} مهمة مكتملة</span>
                           </div>
                         </div>
                       </div>
@@ -272,10 +271,10 @@ export default function HomeScreenClient() {
                       {/* Rating + Button */}
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
                         <div className="flex items-center gap-1">
-                          <span className="text-sm font-bold font-tabular" style={{ color: '#F0EAD6' }}>{craftsman.rating}</span>
-                          <Icon name="StarIcon" size={13} variant="solid" style={{ color: '#C9A84C' }} />
+                          <span className="text-sm font-bold text-gray-900 font-tabular">{craftsman.rating}</span>
+                          <Icon name="StarIcon" size={13} variant="solid" className="text-yellow-500" />
                         </div>
-                        <button className="px-3 py-1.5 rounded-lg text-xs font-semibold" style={{ border: '1px solid #1B6B5A', color: '#23896F', background: 'rgba(27,107,90,0.1)' }}>
+                        <button className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold">
                           عرض الملف
                         </button>
                       </div>
