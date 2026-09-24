@@ -137,7 +137,14 @@ export default function PhoneLoginClient() {
           <>
             {/* Welcome */}
             <div className="text-center mb-8 mt-4">
-              <div className="text-5xl mb-4">👋</div>
+              <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
+                <img
+                  src="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae__1_-1790287483376.jpg"
+                  alt="شعار صنايعي"
+                  className="w-full h-full object-contain"
+                  style={{ mixBlendMode: 'multiply' }}
+                />
+              </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-1">أهلاً بك</h2>
               <p className="text-sm text-gray-500">أدخل رقم جوالك للمتابعة</p>
             </div>

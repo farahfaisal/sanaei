@@ -13,17 +13,14 @@ export default function OnboardingClient() {
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
       {/* Logo area */}
       <div className="flex flex-col items-center pt-16 pb-6 px-6">
-        {/* Logo icon */}
-        <div className="w-24 h-24 mb-4 flex items-center justify-center">
-          <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-            {/* Wrench */}
-            <path d="M20 76 L52 44" stroke="#1B5E20" strokeWidth="5" strokeLinecap="round"/>
-            <circle cx="18" cy="78" r="8" fill="#1B5E20"/>
-            <path d="M52 44 C52 44 60 30 70 28 C72 36 68 44 60 48 L52 44Z" fill="#1B5E20"/>
-            {/* Handshake */}
-            <path d="M48 52 C54 46 64 44 72 48 L80 56 C76 62 68 64 62 60 L56 56 L48 52Z" fill="#F9A825"/>
-            <path d="M44 56 C38 62 36 70 40 76 L48 68 L52 60 L44 56Z" fill="#F9A825"/>
-          </svg>
+        {/* Logo image */}
+        <div className="w-32 h-32 mb-4 flex items-center justify-center">
+          <img
+            src="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae__1_-1790287483376.jpg"
+            alt="شعار صنايعي"
+            className="w-full h-full object-contain"
+            style={{ mixBlendMode: 'multiply' }}
+          />
         </div>
         {/* App name */}
         <h1 className="text-4xl font-black text-primary mb-1">صنايعي</h1>

@@ -87,6 +87,15 @@ export default function HomeScreenClient() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {/* App Logo */}
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+              <img
+                src="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae__1_-1790287483376.jpg"
+                alt="شعار صنايعي"
+                className="w-full h-full object-contain"
+                style={{ mixBlendMode: 'multiply' }}
+              />
+            </div>
             <button className="relative w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
               <Icon name="BellIcon" size={18} className="text-white" />
             </button>
