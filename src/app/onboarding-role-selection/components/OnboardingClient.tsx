@@ -14,17 +14,13 @@ export default function OnboardingClient() {
       {/* Logo area */}
       <div className="flex flex-col items-center pt-16 pb-6 px-6">
         {/* Logo image */}
-        <div className="w-32 h-32 mb-4 flex items-center justify-center">
+        <div className="w-40 h-40 mb-4 flex items-center justify-center">
           <img
-            src="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae__1_-1790287483376.jpg"
+            src="/assets/images/__________________24_-1790287739442.png"
             alt="شعار صنايعي"
             className="w-full h-full object-contain"
-            style={{ mixBlendMode: 'multiply' }}
           />
         </div>
-        {/* App name */}
-        <h1 className="text-4xl font-black text-primary mb-1">صنايعي</h1>
-        <p className="text-sm font-medium" style={{ color: '#F9A825' }}>نبني ثقة، ونصنع فرق</p>
       </div>
 
       {/* Welcome text */}
