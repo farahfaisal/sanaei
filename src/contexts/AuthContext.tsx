@@ -38,12 +38,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
-        // Auto-subscribe to push if permission already granted
+        // Auto-subscribe to Web Push if permission already granted
         if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
           import('@/lib/pushNotifications').then(({ subscribeToPush }) => {
             subscribeToPush(session.user.id);
           });
         }
+        // Register FCM token for WebView (JS-Native bridge)
+        import('@/lib/fcm').then(({ isWebView, registerFCM }) => {
+          if (isWebView()) {
+            registerFCM(session.user.id);
+          }
+        });
       } else {
         setProfile(null);
         setLoading(false);

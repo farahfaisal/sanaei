@@ -1,5 +1,6 @@
 // Supabase Edge Function: send-push-notification
-// Triggered by the app to send Web Push to a user's subscriptions
+// Supports both Web Push (VAPID) and Firebase Cloud Messaging (FCM)
+// FCM is used for WebView apps via JS-Native bridge
 
 declare const Deno: {
   serve: (handler: (req: Request) => Promise<Response>) => void;
@@ -13,7 +14,126 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Minimal VAPID Web Push implementation using Web Crypto API
+// ─────────────────────────────────────────────────────────────────────────────
+// FCM: Send via Firebase HTTP v1 API
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function getGoogleAccessToken(serviceAccountJson: string): Promise<string> {
+  const sa = JSON.parse(serviceAccountJson);
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = { alg: "RS256", typ: "JWT" };
+  const payload = {
+    iss: sa.client_email,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token",
+    iat: now,
+    exp: now + 3600,
+  };
+
+  const enc = new TextEncoder();
+  const b64url = (str: string) =>
+    btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+
+  const headerB64 = b64url(JSON.stringify(header));
+  const payloadB64 = b64url(JSON.stringify(payload));
+  const signingInput = `${headerB64}.${payloadB64}`;
+
+  // Import RSA private key
+  const pemBody = sa.private_key
+    .replace(/-----BEGIN PRIVATE KEY-----/, "")
+    .replace(/-----END PRIVATE KEY-----/, "")
+    .replace(/\s/g, "");
+  const keyBytes = Uint8Array.from(atob(pemBody), (c) => c.charCodeAt(0));
+
+  const privateKey = await crypto.subtle.importKey(
+    "pkcs8",
+    keyBytes,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const sig = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    privateKey,
+    enc.encode(signingInput)
+  );
+
+  const sigB64 = b64url(String.fromCharCode(...new Uint8Array(sig)));
+  const jwt = `${signingInput}.${sigB64}`;
+
+  // Exchange JWT for access token
+  const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${jwt}`,
+  });
+
+  const tokenData = await tokenRes.json();
+  return tokenData.access_token;
+}
+
+async function sendFCMNotification(
+  fcmToken: string,
+  title: string,
+  body: string,
+  data: Record<string, string>,
+  projectId: string,
+  accessToken: string
+): Promise<{ success: boolean; expired: boolean }> {
+  const message = {
+    message: {
+      token: fcmToken,
+      notification: { title, body },
+      data,
+      android: {
+        priority: "high",
+        notification: {
+          sound: "default",
+          channel_id: "sanaei_notifications",
+          click_action: "FLUTTER_NOTIFICATION_CLICK",
+        },
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            badge: 1,
+          },
+        },
+      },
+    },
+  };
+
+  const res = await fetch(
+    `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(message),
+    }
+  );
+
+  if (res.ok) return { success: true, expired: false };
+
+  const errBody = await res.json().catch(() => ({}));
+  const errCode = errBody?.error?.details?.[0]?.errorCode || "";
+  const expired =
+    errCode === "UNREGISTERED" ||
+    errCode === "INVALID_ARGUMENT" ||
+    res.status === 404;
+
+  return { success: false, expired };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Web Push (VAPID) — existing implementation
+// ─────────────────────────────────────────────────────────────────────────────
+
 async function sendWebPush(
   subscription: { endpoint: string; p256dh: string; auth: string },
   payload: string,
@@ -24,7 +144,6 @@ async function sendWebPush(
   const endpoint = new URL(subscription.endpoint);
   const audience = `${endpoint.protocol}//${endpoint.host}`;
 
-  // Build VAPID JWT
   const header = { typ: "JWT", alg: "ES256" };
   const claims = {
     aud: audience,
@@ -43,7 +162,6 @@ async function sendWebPush(
   const claimsB64 = btoa(JSON.stringify(claims)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   const signingInput = `${headerB64}.${claimsB64}`;
 
-  // Import private key
   const privKeyBytes = Uint8Array.from(atob(vapidPrivateKey.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
   const privKey = await crypto.subtle.importKey(
     "raw",
@@ -61,14 +179,10 @@ async function sendWebPush(
 
   const jwt = `${signingInput}.${b64url(sig)}`;
 
-  // Encrypt payload using Web Push encryption (RFC 8291)
   const payloadBytes = enc.encode(payload);
-
-  // Decode subscription keys
   const p256dhBytes = Uint8Array.from(atob(subscription.p256dh.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
   const authBytes = Uint8Array.from(atob(subscription.auth.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 
-  // Import recipient public key
   const recipientPublicKey = await crypto.subtle.importKey(
     "raw",
     p256dhBytes,
@@ -77,30 +191,22 @@ async function sendWebPush(
     []
   );
 
-  // Generate sender key pair
   const senderKeyPair = await crypto.subtle.generateKey(
     { name: "ECDH", namedCurve: "P-256" },
     true,
     ["deriveBits"]
   );
 
-  // Derive shared secret
   const sharedSecret = await crypto.subtle.deriveBits(
     { name: "ECDH", public: recipientPublicKey },
     senderKeyPair.privateKey,
     256
   );
 
-  // Export sender public key
   const senderPublicKeyRaw = await crypto.subtle.exportKey("raw", senderKeyPair.publicKey);
-
-  // Generate salt
   const salt = crypto.getRandomValues(new Uint8Array(16));
-
-  // HKDF for content encryption key and nonce
   const prk = await crypto.subtle.importKey("raw", sharedSecret, { name: "HKDF" }, false, ["deriveBits"]);
 
-  // Build info strings per RFC 8291
   const authInfo = enc.encode("Content-Encoding: auth\0");
   const keyInfo = buildInfo("aesgcm", p256dhBytes, new Uint8Array(senderPublicKeyRaw));
   const nonceInfo = buildInfo("nonce", p256dhBytes, new Uint8Array(senderPublicKeyRaw));
@@ -125,10 +231,8 @@ async function sendWebPush(
     96
   );
 
-  // Encrypt
   const aesKey = await crypto.subtle.importKey("raw", contentKey, { name: "AES-GCM" }, false, ["encrypt"]);
 
-  // Pad payload
   const padded = new Uint8Array(payloadBytes.length + 2);
   padded.set(payloadBytes, 2);
 
@@ -138,13 +242,11 @@ async function sendWebPush(
     padded
   );
 
-  // Build request
   const vapidPublicKeyBytes = Uint8Array.from(atob(vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
 
   const body = new Uint8Array(salt.length + 4 + 1 + vapidPublicKeyBytes.length + encrypted.byteLength);
   let offset = 0;
   body.set(salt, offset); offset += salt.length;
-  // rs = 4096
   body[offset++] = 0; body[offset++] = 0; body[offset++] = 16; body[offset++] = 0;
   body[offset++] = vapidPublicKeyBytes.length;
   body.set(vapidPublicKeyBytes, offset); offset += vapidPublicKeyBytes.length;
@@ -179,13 +281,17 @@ function buildInfo(type: string, clientPublicKey: Uint8Array, serverPublicKey: U
   return info;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Main handler
+// ─────────────────────────────────────────────────────────────────────────────
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { userId, title, body, url, orderId } = await req.json();
+    const { userId, title, body, url, orderId, channel } = await req.json();
 
     if (!userId || !title || !body) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -196,75 +302,144 @@ Deno.serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY")!;
-    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY")!;
     const siteUrl = Deno.env.get("NEXT_PUBLIC_SITE_URL") || "https://sanaei1489.builtwithrocket.new";
 
-    // Fetch user's push subscriptions
-    const subsRes = await fetch(
-      `${supabaseUrl}/rest/v1/push_subscriptions?user_id=eq.${userId}`,
-      {
-        headers: {
-          apikey: serviceRoleKey,
-          Authorization: `Bearer ${serviceRoleKey}`,
-        },
-      }
-    );
+    // FCM credentials
+    const fcmServiceAccountJson = Deno.env.get("FCM_SERVICE_ACCOUNT_JSON") || "";
+    const fcmProjectId = Deno.env.get("FCM_PROJECT_ID") || "";
 
-    const subscriptions = await subsRes.json();
+    // VAPID credentials
+    const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY") || "";
+    const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY") || "";
 
-    if (!subscriptions || subscriptions.length === 0) {
-      return new Response(JSON.stringify({ sent: 0, message: "No subscriptions found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    let totalSent = 0;
 
-    const payload = JSON.stringify({
-      title,
-      body,
-      url: url || "/home-screen",
-      orderId: orderId || null,
-      tag: orderId ? `order-${orderId}` : "sanaei-notification",
-    });
-
-    let sent = 0;
-    const expired: string[] = [];
-
-    for (const sub of subscriptions) {
-      try {
-        const res = await sendWebPush(
-          { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-          payload,
-          vapidPublicKey,
-          vapidPrivateKey,
-          `mailto:admin@${new URL(siteUrl).hostname}`
-        );
-
-        if (res.status === 201 || res.status === 200 || res.status === 202) {
-          sent++;
-        } else if (res.status === 410 || res.status === 404) {
-          expired.push(sub.id);
-        }
-      } catch {
-        // ignore individual send failures
-      }
-    }
-
-    // Clean up expired subscriptions
-    if (expired.length > 0) {
-      await fetch(
-        `${supabaseUrl}/rest/v1/push_subscriptions?id=in.(${expired.join(",")})`,
+    // ── FCM path (WebView / native apps) ──────────────────────────────────────
+    if (fcmServiceAccountJson && fcmProjectId) {
+      const fcmRes = await fetch(
+        `${supabaseUrl}/rest/v1/fcm_tokens?user_id=eq.${userId}`,
         {
-          method: "DELETE",
           headers: {
             apikey: serviceRoleKey,
             Authorization: `Bearer ${serviceRoleKey}`,
           },
         }
       );
+
+      const fcmTokens: { id: string; token: string }[] = await fcmRes.json().catch(() => []);
+
+      if (fcmTokens && fcmTokens.length > 0) {
+        let accessToken: string;
+        try {
+          accessToken = await getGoogleAccessToken(fcmServiceAccountJson);
+        } catch {
+          accessToken = "";
+        }
+
+        if (accessToken) {
+          const expiredFcmIds: string[] = [];
+          const notifData: Record<string, string> = {
+            url: url || "/home-screen",
+            orderId: orderId || "",
+          };
+
+          for (const row of fcmTokens) {
+            const result = await sendFCMNotification(
+              row.token,
+              title,
+              body,
+              notifData,
+              fcmProjectId,
+              accessToken
+            ).catch(() => ({ success: false, expired: false }));
+
+            if (result.success) {
+              totalSent++;
+            } else if (result.expired) {
+              expiredFcmIds.push(row.id);
+            }
+          }
+
+          // Remove expired FCM tokens
+          if (expiredFcmIds.length > 0) {
+            await fetch(
+              `${supabaseUrl}/rest/v1/fcm_tokens?id=in.(${expiredFcmIds.join(",")})`,
+              {
+                method: "DELETE",
+                headers: {
+                  apikey: serviceRoleKey,
+                  Authorization: `Bearer ${serviceRoleKey}`,
+                },
+              }
+            );
+          }
+        }
+      }
     }
 
-    return new Response(JSON.stringify({ sent }), {
+    // ── Web Push path (browser / PWA) ─────────────────────────────────────────
+    if (vapidPublicKey && vapidPrivateKey) {
+      const subsRes = await fetch(
+        `${supabaseUrl}/rest/v1/push_subscriptions?user_id=eq.${userId}`,
+        {
+          headers: {
+            apikey: serviceRoleKey,
+            Authorization: `Bearer ${serviceRoleKey}`,
+          },
+        }
+      );
+
+      const subscriptions: { id: string; endpoint: string; p256dh: string; auth: string }[] =
+        await subsRes.json().catch(() => []);
+
+      if (subscriptions && subscriptions.length > 0) {
+        const payload = JSON.stringify({
+          title,
+          body,
+          url: url || "/home-screen",
+          orderId: orderId || null,
+          tag: orderId ? `order-${orderId}` : "sanaei-notification",
+        });
+
+        const expired: string[] = [];
+
+        for (const sub of subscriptions) {
+          try {
+            const res = await sendWebPush(
+              { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+              payload,
+              vapidPublicKey,
+              vapidPrivateKey,
+              `mailto:admin@${new URL(siteUrl).hostname}`
+            );
+
+            if (res.status === 201 || res.status === 200 || res.status === 202) {
+              totalSent++;
+            } else if (res.status === 410 || res.status === 404) {
+              expired.push(sub.id);
+            }
+          } catch {
+            // ignore individual send failures
+          }
+        }
+
+        // Clean up expired Web Push subscriptions
+        if (expired.length > 0) {
+          await fetch(
+            `${supabaseUrl}/rest/v1/push_subscriptions?id=in.(${expired.join(",")})`,
+            {
+              method: "DELETE",
+              headers: {
+                apikey: serviceRoleKey,
+                Authorization: `Bearer ${serviceRoleKey}`,
+              },
+            }
+          );
+        }
+      }
+    }
+
+    return new Response(JSON.stringify({ sent: totalSent }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
