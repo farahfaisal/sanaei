@@ -1,7 +1,12 @@
-import Deno from "https://deno.land/std@0.168.0/node/module.ts";
-
 // Supabase Edge Function: send-push-notification
 // Triggered by the app to send Web Push to a user's subscriptions
+
+declare const Deno: {
+  serve: (handler: (req: Request) => Promise<Response>) => void;
+  env: {
+    get: (key: string) => string | undefined;
+  };
+};
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
