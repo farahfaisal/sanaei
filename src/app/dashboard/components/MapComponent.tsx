@@ -52,22 +52,35 @@ export default function MapComponent({ craftsmen, onCraftsmanSelect, onAssignOrd
         if (craftsman.lat === null || craftsman.lng === null) return;
 
         const isOnline = craftsman.is_online;
-        const color = isOnline ? '#10b981' : '#6b7280';
+        const bgColor = isOnline ? '#059669' : '#6b7280';
+        const borderColor = isOnline ? '#34d399' : '#9ca3af';
 
+        // Worker/craftsman SVG icon with hard hat
         const svgIcon = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="40" viewBox="0 0 32 40">
-            <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 24 16 24s16-14 16-24C32 7.163 24.837 0 16 0z" fill="${color}" stroke="white" stroke-width="2"/>
-            <circle cx="16" cy="16" r="8" fill="white" opacity="0.9"/>
-            <text x="16" y="20" text-anchor="middle" font-size="10" fill="${color}">🔧</text>
+          <svg xmlns="http://www.w3.org/2000/svg" width="44" height="54" viewBox="0 0 44 54">
+            <!-- Pin shape -->
+            <path d="M22 0C10.954 0 2 8.954 2 20c0 13 20 34 20 34s20-21 20-34C42 8.954 33.046 0 22 0z" fill="${bgColor}" stroke="${borderColor}" stroke-width="2"/>
+            <!-- White circle background -->
+            <circle cx="22" cy="19" r="13" fill="white"/>
+            <!-- Worker body (torso) -->
+            <rect x="15" y="25" width="14" height="8" rx="3" fill="${bgColor}"/>
+            <!-- Worker head -->
+            <circle cx="22" cy="20" r="5" fill="${bgColor}"/>
+            <!-- Hard hat brim -->
+            <rect x="13" y="15" width="18" height="3" rx="1.5" fill="${bgColor}"/>
+            <!-- Hard hat dome -->
+            <path d="M16 15 Q22 9 28 15" fill="${bgColor}" stroke="${bgColor}" stroke-width="1"/>
+            <!-- Online indicator dot -->
+            <circle cx="33" cy="9" r="4" fill="${isOnline ? '#22c55e' : '#9ca3af'}" stroke="white" stroke-width="1.5"/>
           </svg>
         `;
 
         const icon = L.divIcon({
           html: svgIcon,
           className: '',
-          iconSize: [32, 40],
-          iconAnchor: [16, 40],
-          popupAnchor: [0, -40],
+          iconSize: [44, 54],
+          iconAnchor: [22, 54],
+          popupAnchor: [0, -54],
         });
 
         const marker = L.marker([craftsman.lat!, craftsman.lng!], { icon });
@@ -75,7 +88,7 @@ export default function MapComponent({ craftsmen, onCraftsmanSelect, onAssignOrd
         const popupContent = `
           <div style="font-family: 'Cairo', sans-serif; direction: rtl; min-width: 180px; padding: 4px;">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
-              <div style="width:8px; height:8px; border-radius:50%; background:${color}; flex-shrink:0;"></div>
+              <div style="width:8px; height:8px; border-radius:50%; background:${bgColor}; flex-shrink:0;"></div>
               <strong style="font-size:13px; color:#111;">${craftsman.full_name}</strong>
             </div>
             ${craftsman.specialty ? `<p style="font-size:11px; color:#555; margin:2px 0;">التخصص: ${craftsman.specialty}</p>` : ''}
