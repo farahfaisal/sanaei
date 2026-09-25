@@ -7,6 +7,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import NotificationBell from '@/components/NotificationBell';
 
 interface ServiceCategory {
   id: string;
@@ -95,9 +96,7 @@ export default function HomeScreenClient() {
                 className="w-full h-full object-contain"
               />
             </div>
-            <button className="relative w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
-              <Icon name="BellIcon" size={18} className="text-white" />
-            </button>
+            <NotificationBell />
             <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/30 bg-white/20 flex items-center justify-center">
               {profile?.avatar_url ? (
                 <AppImage
