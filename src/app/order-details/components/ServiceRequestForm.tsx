@@ -7,6 +7,7 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { sendPushToUser } from '@/lib/pushNotifications';
+import BookingSuccessScreen from './BookingSuccessScreen';
 
 const BRAND = {
   primary:  '#1B5E20',
@@ -58,6 +59,12 @@ export default function ServiceRequestForm({
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Booking success state
+  const [bookingSuccess, setBookingSuccess] = useState<{
+    orderId: string;
+    paymentParams: string;
+  } | null>(null);
 
   // Image upload
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
@@ -250,11 +257,13 @@ export default function ServiceRequestForm({
         );
       }
 
-      // Navigate to payment screen
+      // Build payment params
       const paymentParams = new URLSearchParams({ order_id: order.id });
       if (finalServiceId) paymentParams.set('service_id', finalServiceId);
       else paymentParams.set('craftsman_id', craftsmanProfileId);
-      router.push(`/payment-screen?${paymentParams.toString()}`);
+
+      // Show booking success screen instead of navigating directly
+      setBookingSuccess({ orderId: order.id, paymentParams: paymentParams.toString() });
     } catch (e: any) {
       setError(e?.message || 'حدث خطأ، يرجى المحاولة مجدداً');
       setUploadingImages(false);
@@ -262,6 +271,36 @@ export default function ServiceRequestForm({
       setIsSubmitting(false);
     }
   };
+
+  // ── Show booking success screen after submission ──
+  if (bookingSuccess) {
+    const svc = services.find((s) => s.id === selectedServiceId) || services[0] || null;
+    const estimatedCost = svc?.price_label
+      ? svc.price_label
+      : svc?.base_price
+      ? `${svc.base_price} ₪`
+      : null;
+
+    return (
+      <BookingSuccessScreen
+        orderId={bookingSuccess.orderId}
+        craftsman={{
+          name: craftsman?.name || 'الصنايعي',
+          specialty: craftsman?.specialty || null,
+          rating: craftsman?.rating || 0,
+          avatarUrl: craftsman?.avatarUrl || null,
+        }}
+        serviceName={svc?.name || null}
+        serviceEmoji={svc?.emoji || null}
+        scheduledDate={scheduledDate}
+        scheduledTime={scheduledTime}
+        estimatedCost={estimatedCost}
+        location={location}
+        onGoToPayment={() => router.push(`/payment-screen?${bookingSuccess.paymentParams}`)}
+        onViewOrder={() => router.push(`/order-details?order_id=${bookingSuccess.orderId}`)}
+      />
+    );
+  }
 
   const isFormReady = notes.trim().length > 0 && location.trim().length > 0;
 
