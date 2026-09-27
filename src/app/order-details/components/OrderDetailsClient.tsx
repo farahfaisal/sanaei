@@ -6,6 +6,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import BottomTabBar from '@/components/BottomTabBar';
 
 // ── Brand palette (matches app's primary green) ──────────────────────────────
 const BRAND = {
@@ -75,27 +76,208 @@ interface OrderData {
     price_label: string | null;
     description: string | null;
   } | null;
+  customer?: {
+    user_profiles: { full_name: string; phone?: string | null } | null;
+  } | null;
 }
 
-export default function OrderDetailsClient() {
+// ── Craftsman Orders List View ────────────────────────────────────────────────
+function CraftsmanOrdersList() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const supabase = createClient();
 
-  const orderId = searchParams?.get('order_id');
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
+
+  useEffect(() => {
+    if (user) loadCraftsmanOrders();
+  }, [user]);
+
+  const loadCraftsmanOrders = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const { data } = await supabase
+        .from('orders')
+        .select(`
+          id, status, description, address, amount,
+          payment_method, payment_status, notes,
+          created_at, updated_at, scheduled_at,
+          service:service_id(id, name, emoji, base_price, price_label, description),
+          customer:customer_id(user_profiles(full_name, phone))
+        `)
+        .eq('craftsman_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      setOrders((data as unknown as OrderData[]) || []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activeOrders = orders.filter(o => ['pending', 'accepted', 'in_progress'].includes(o.status));
+  const completedOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
+  const displayedOrders = activeTab === 'active' ? activeOrders : completedOrders;
+
+  const craftsmanName = profile?.full_name || 'الصنايعي';
+
+  return (
+    <div className="screen-container" style={{ background: 'var(--background)' }} dir="rtl">
+      {/* Header */}
+      <div
+        className="relative overflow-hidden"
+        style={{ background: BRAND.gradient, paddingTop: '2.75rem', paddingBottom: '4.5rem' }}
+      >
+        <div className="absolute -top-6 -left-6 w-36 h-36 rounded-full opacity-10" style={{ background: '#fff' }} />
+        <div className="absolute top-6 right-6 w-16 h-16 rounded-full opacity-10" style={{ background: '#fff' }} />
+        <div className="relative px-4">
+          <p className="text-xs font-medium text-white opacity-75 mb-0.5">مرحباً،</p>
+          <h1 className="text-xl font-bold text-white leading-tight">{craftsmanName}</h1>
+          <p className="text-xs text-white opacity-60 mt-1">إدارة طلباتك</p>
+        </div>
+      </div>
+
+      {/* Stats strip */}
+      <div className="px-4 -mt-8 relative z-10 mb-4">
+        <div
+          className="rounded-2xl p-4 shadow-xl grid grid-cols-3 gap-3"
+          style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
+        >
+          {[
+            { label: 'إجمالي', value: orders.length, color: BRAND.primary },
+            { label: 'نشطة', value: activeOrders.length, color: '#D97706' },
+            { label: 'مكتملة', value: completedOrders.length, color: '#059669' },
+          ].map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center">
+              <p className="text-2xl font-black" style={{ color: stat.color }}>{stat.value}</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-4 mb-4">
+        <div className="flex gap-2 p-1 rounded-xl" style={{ background: 'var(--muted)' }}>
+          {[
+            { key: 'active', label: `الطلبات النشطة (${activeOrders.length})` },
+            { key: 'completed', label: `المكتملة (${completedOrders.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as 'active' | 'completed')}
+              className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all"
+              style={{
+                background: activeTab === tab.key ? BRAND.primary : 'transparent',
+                color: activeTab === tab.key ? '#fff' : 'var(--muted-foreground)',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Orders list */}
+      <div className="px-4 pb-24 space-y-3">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل الطلبات...</p>
+          </div>
+        ) : displayedOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: BRAND.light }}>
+              <Icon name="ClipboardDocumentListIcon" size={28} style={{ color: BRAND.primary }} />
+            </div>
+            <p className="font-bold text-base" style={{ color: 'var(--foreground)' }}>
+              {activeTab === 'active' ? 'لا توجد طلبات نشطة' : 'لا توجد طلبات مكتملة'}
+            </p>
+            <p className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+              {activeTab === 'active' ? 'ستظهر هنا الطلبات الجديدة عند وصولها' : 'ستظهر هنا الطلبات المكتملة'}
+            </p>
+          </div>
+        ) : (
+          displayedOrders.map((order) => {
+            const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+            const service = Array.isArray(order.service) ? order.service[0] : order.service;
+            const customer = Array.isArray(order.customer) ? order.customer[0] : order.customer;
+            const customerName = (customer as any)?.user_profiles?.full_name || 'زبون';
+            const serviceName = service?.name || 'خدمة صيانة';
+            const serviceEmoji = service?.emoji || '🔧';
+            const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+
+            return (
+              <button
+                key={order.id}
+                onClick={() => router.push(`/order-details?order_id=${order.id}`)}
+                className="w-full text-right rounded-2xl p-4 transition-all active:scale-[0.98]"
+                style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
+              >
+                <div className="flex items-start gap-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl"
+                    style={{ background: BRAND.light }}
+                  >
+                    {serviceEmoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>{serviceName}</p>
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1"
+                        style={{ background: statusInfo.bg, color: statusInfo.color }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusInfo.dot }} />
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <p className="text-xs mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                      الزبون: {customerName}
+                    </p>
+                    {order.address && (
+                      <p className="text-xs truncate mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                        📍 {order.address}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{createdDate}</p>
+                      {order.amount && order.amount > 0 && (
+                        <p className="text-sm font-black" style={{ color: BRAND.primary }}>
+                          {order.amount.toLocaleString()} ر.س
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </button>
+            );
+          })
+        )}
+      </div>
+
+      <BottomTabBar />
+    </div>
+  );
+}
+
+// ── Single Order Detail View ──────────────────────────────────────────────────
+function SingleOrderDetail({ orderId }: { orderId: string }) {
+  const router = useRouter();
+  const { user } = useAuth();
+  const supabase = createClient();
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (orderId) {
-      loadOrder(orderId);
-    } else {
-      setError('لم يتم تحديد رقم الطلب');
-      setIsLoading(false);
-    }
+    loadOrder(orderId);
   }, [orderId]);
 
   const loadOrder = async (id: string) => {
@@ -132,7 +314,7 @@ export default function OrderDetailsClient() {
       } as OrderData;
 
       setOrder(normalized);
-    } catch (e) {
+    } catch {
       setError('حدث خطأ أثناء تحميل تفاصيل الطلب');
     } finally {
       setIsLoading(false);
@@ -164,7 +346,7 @@ export default function OrderDetailsClient() {
     ? new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
     : '';
 
-  const shortId = orderId ? `#${orderId.slice(0, 8).toUpperCase()}` : '';
+  const shortId = `#${orderId.slice(0, 8).toUpperCase()}`;
 
   // ── Loading ───────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -188,11 +370,11 @@ export default function OrderDetailsClient() {
         <p className="font-bold text-base mb-1" style={{ color: 'var(--foreground)' }}>{error || 'خطأ غير متوقع'}</p>
         <p className="text-sm text-center mb-6" style={{ color: 'var(--muted-foreground)' }}>تعذّر تحميل تفاصيل الطلب</p>
         <button
-          onClick={() => router.push('/customer-profile')}
+          onClick={() => router.back()}
           className="px-6 py-3 rounded-2xl font-bold text-white text-sm"
           style={{ background: BRAND.gradient }}
         >
-          العودة لحسابي
+          العودة
         </button>
       </div>
     );
@@ -575,8 +757,8 @@ export default function OrderDetailsClient() {
                 style={{ color: payStatusInfo.color }}
               />
               <p className="text-sm font-semibold" style={{ color: payStatusInfo.color }}>
-                {order.payment_status === 'paid' ?'تم تأكيد الدفع بنجاح'
-                  : order.payment_status === 'pending' ?'الدفع سيتم عند إتمام الخدمة'
+                {order.payment_status === 'paid' ? 'تم تأكيد الدفع بنجاح'
+                  : order.payment_status === 'pending' ? 'الدفع سيتم عند إتمام الخدمة'
                   : payStatusInfo.label}
               </p>
             </div>
@@ -605,4 +787,16 @@ export default function OrderDetailsClient() {
       </div>
     </div>
   );
+}
+
+// ── Main export — routes between list and detail ──────────────────────────────
+export default function OrderDetailsClient() {
+  const searchParams = useSearchParams();
+  const orderId = searchParams?.get('order_id');
+
+  if (orderId) {
+    return <SingleOrderDetail orderId={orderId} />;
+  }
+
+  return <CraftsmanOrdersList />;
 }
