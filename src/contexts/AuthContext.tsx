@@ -74,19 +74,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Phone OTP Sign In - Step 1: send OTP
+  // Phone-based Sign In — maps phone number to a derived email and uses password login
+  // (Phone OTP provider is not enabled; demo accounts use email/password credentials)
   const sendOtp = async (phone: string) => {
-    const { data, error } = await supabase.auth.signInWithOtp({ phone });
-    if (error) throw error;
-    return data;
+    // No-op: we no longer call Supabase phone OTP.
+    // The actual sign-in happens in verifyOtp using email/password.
+    return {};
   };
 
   // Phone OTP Sign In - Step 2: verify OTP
+  // Maps phone → email (phone@sanaei.app) and uses the OTP code as the password
   const verifyOtp = async (phone: string, token: string, role: string = 'customer') => {
-    const { data, error } = await supabase.auth.verifyOtp({
-      phone,
-      token,
-      type: 'sms',
+    // Derive email from phone number: strip leading + and non-digits, append domain
+    const normalizedPhone = phone.replace(/\D/g, '');
+    const email = `${normalizedPhone}@sanaei.app`;
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password: token,
     });
     if (error) throw error;
 

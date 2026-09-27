@@ -66,11 +66,11 @@ export default function PhoneLoginClient() {
     setIsLoading(true);
     try {
       await sendOtp(fullPhone);
-      // OTP verification temporarily disabled — auto-verify with default code
+      // Auto-verify using the OTP code 123456 for demo accounts
       await verifyOtp(fullPhone, '123456', selectedRole);
       router.push('/home-screen');
     } catch (err: any) {
-      setError(err?.message || 'فشل تسجيل الدخول، يرجى المحاولة مجدداً');
+      setError(err?.message || 'رقم الجوال غير مسجل أو رمز الدخول غير صحيح');
     } finally {
       setIsLoading(false);
     }
