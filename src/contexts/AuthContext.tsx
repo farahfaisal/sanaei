@@ -93,7 +93,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       email,
       password: token,
     });
-    if (error) throw error;
+
+    if (error) {
+      // Detect unregistered user — Supabase returns "Invalid login credentials" for unknown email
+      if (
+        error.message?.toLowerCase().includes('invalid login credentials') ||
+        error.message?.toLowerCase().includes('user not found') ||
+        error.status === 400
+      ) {
+        const notRegisteredError = new Error('USER_NOT_REGISTERED');
+        (notRegisteredError as any).code = 'USER_NOT_REGISTERED';
+        throw notRegisteredError;
+      }
+      throw error;
+    }
 
     // Update profile role if provided
     if (data?.user) {
@@ -107,6 +120,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return data;
+  };
+
+  // Register a new user: creates auth account with phone-derived email + password 123456, then saves profile
+  const registerUser = async (phone: string, fullName: string, role: 'customer' | 'craftsman') => {
+    const normalizedPhone = phone.replace(/\D/g, '');
+    const email = `${normalizedPhone}@sanaei.app`;
+    const password = '123456';
+
+    // Create auth user
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName, role },
+      },
+    });
+
+    if (error) throw error;
+    if (!data?.user) throw new Error('فشل إنشاء الحساب');
+
+    // Save profile to user_profiles table
+    const { error: profileError } = await supabase
+      .from('user_profiles')
+      .upsert({
+        id: data.user.id,
+        phone,
+        full_name: fullName,
+        role: role as any,
+      }, { onConflict: 'id' });
+
+    if (profileError) throw profileError;
+
+    // Sign in immediately after registration (signUp may not auto-sign-in without email confirmation)
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) throw signInError;
+
+    return signInData;
   };
 
   // Sign Out
@@ -156,6 +209,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     sendOtp,
     verifyOtp,
+    registerUser,
     signOut,
     signUp,
     signIn,

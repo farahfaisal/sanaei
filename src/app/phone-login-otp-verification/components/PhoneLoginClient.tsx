@@ -15,7 +15,7 @@ const COUNTRY_CODES = [
 
 export default function PhoneLoginClient() {
   const router = useRouter();
-  const { sendOtp, verifyOtp, user, loading } = useAuth();
+  const { sendOtp, verifyOtp, user, loading, registerUser } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -66,10 +66,15 @@ export default function PhoneLoginClient() {
     setIsLoading(true);
     try {
       await sendOtp(fullPhone);
-      // Auto-verify using the OTP code 123456 for demo accounts
+      // Auto-verify using the OTP code 123456 for all users
       await verifyOtp(fullPhone, '123456', selectedRole);
       router.push('/home-screen');
     } catch (err: any) {
+      // If user is not registered, redirect to registration page
+      if (err?.code === 'USER_NOT_REGISTERED' || err?.message === 'USER_NOT_REGISTERED') {
+        router.push(`/register?phone=${encodeURIComponent(fullPhone)}&role=${selectedRole}`);
+        return;
+      }
       setError(err?.message || 'رقم الجوال غير مسجل أو رمز الدخول غير صحيح');
     } finally {
       setIsLoading(false);
