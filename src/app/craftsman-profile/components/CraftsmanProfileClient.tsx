@@ -651,18 +651,18 @@ export default function CraftsmanProfileClient() {
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
       {/* Cover Image */}
-      <div className="relative h-44 overflow-hidden">
+      <div className="relative h-44">
         {craftsman.cover_image_url ? (
           <AppImage
             src={craftsman.cover_image_url}
             alt="صورة غلاف الصنايعي"
             width={430}
             height={176}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover overflow-hidden"
             priority
           />
         ) : (
-          <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, #1a5857 0%, #123d3c 100%)' }} />
+          <div className="w-full h-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a5857 0%, #123d3c 100%)' }} />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
