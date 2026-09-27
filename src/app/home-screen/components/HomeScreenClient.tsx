@@ -8,6 +8,9 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationBell from '@/components/NotificationBell';
+import dynamic from 'next/dynamic';
+
+const NearbyMapSection = dynamic(() => import('./NearbyMapSection'), { ssr: false });
 
 interface ServiceCategory {
   id: string;
@@ -25,6 +28,7 @@ interface CraftsmanCard {
   is_online: boolean;
   is_verified: boolean;
   avatar_url: string | null;
+  location?: string | null;
   user_profiles: {
     full_name: string;
     location: string | null;
@@ -41,6 +45,29 @@ interface PromotionalOffer {
   button_text: string;
   bg_color_from: string;
   bg_color_to: string;
+}
+
+// Parse location string "lat,lng" into coordinates
+function parseLocation(location: string | null): { lat: number; lng: number } | null {
+  if (!location) return null;
+  const parts = location.split(',');
+  if (parts.length === 2) {
+    const lat = parseFloat(parts[0].trim());
+    const lng = parseFloat(parts[1].trim());
+    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
+  }
+  return null;
+}
+
+function generateFallbackPosition(seed: string): { lat: number; lng: number } {
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+    hash |= 0;
+  }
+  const lat = 24.6 + (Math.abs(hash % 1000) / 1000) * 0.4;
+  const lng = 46.5 + (Math.abs((hash >> 8) % 1000) / 1000) * 0.4;
+  return { lat, lng };
 }
 
 // Logo green: #2E7D32 (matches the app logo's green tone)
@@ -81,9 +108,9 @@ export default function HomeScreenClient() {
       supabase.from('service_categories').select('*').eq('is_active', true).order('name'),
       supabase.
       from('craftsman_profiles').
-      select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, user_profiles(full_name, location)').
+      select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)').
       order('rating', { ascending: false }).
-      limit(10),
+      limit(20),
       supabase.
       from('promotional_offers').
       select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to').
@@ -123,6 +150,22 @@ export default function HomeScreenClient() {
     c?.user_profiles?.full_name?.includes(searchQuery) ||
     c?.specialty?.includes(searchQuery)
   );
+
+  const mapCraftsmen = craftsmen.map((c) => {
+    const locStr = c.location || c.user_profiles?.location || null;
+    const parsed = parseLocation(locStr);
+    const fallback = generateFallbackPosition(c.id);
+    return {
+      id: c.id,
+      full_name: c.user_profiles?.full_name || 'صنايعي',
+      specialty: c.specialty || null,
+      is_online: c.is_online,
+      is_verified: c.is_verified,
+      rating: c.rating || 0,
+      lat: parsed?.lat ?? fallback.lat,
+      lng: parsed?.lng ?? fallback.lng,
+    };
+  });
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'مرحباً';
   const activeOffer = offers[activeOfferIndex] || offers[0];
@@ -280,6 +323,9 @@ export default function HomeScreenClient() {
             </div>
           </div> :
         null}
+
+        {/* Nearby Craftsmen Map */}
+        <NearbyMapSection craftsmen={mapCraftsmen} />
 
         {/* Nearby Craftsmen */}
         <div>
