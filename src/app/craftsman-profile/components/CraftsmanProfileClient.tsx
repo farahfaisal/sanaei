@@ -44,6 +44,17 @@ interface PortfolioItem {
   label: string | null;
 }
 
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  customer: {
+    full_name: string;
+    avatar_url: string | null;
+  } | null;
+}
+
 interface ActiveOrder {
   id: string;
   status: string;
@@ -179,6 +190,8 @@ export default function CraftsmanProfileClient() {
   const [requestServiceId, setRequestServiceId] = useState<string | undefined>(undefined);
   const [requestServiceName, setRequestServiceName] = useState<string | undefined>(undefined);
   const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [activeTab, setActiveTab] = useState<'portfolio' | 'reviews'>('portfolio');
 
   useEffect(() => {
     if (craftsmanId) {
@@ -222,7 +235,7 @@ export default function CraftsmanProfileClient() {
   const loadCraftsmanData = async (id: string) => {
     setIsLoading(true);
     try {
-      const [profileRes, servicesRes, portfolioRes] = await Promise.all([
+      const [profileRes, servicesRes, portfolioRes, reviewsRes] = await Promise.all([
         supabase
           .from('craftsman_profiles')
           .select('*, user_profiles(full_name)')
@@ -239,6 +252,12 @@ export default function CraftsmanProfileClient() {
           .eq('craftsman_id', id)
           .order('created_at', { ascending: false })
           .limit(6),
+        supabase
+          .from('reviews')
+          .select('id, rating, comment, created_at, customer:customer_id(full_name, avatar_url)')
+          .eq('craftsman_id', id)
+          .order('created_at', { ascending: false })
+          .limit(20),
       ]);
 
       if (profileRes.data) {
@@ -257,6 +276,12 @@ export default function CraftsmanProfileClient() {
       }
       if (servicesRes.data) setServices(servicesRes.data);
       if (portfolioRes.data) setPortfolio(portfolioRes.data);
+      if (reviewsRes.data) {
+        setReviews(reviewsRes.data.map((r: any) => ({
+          ...r,
+          customer: Array.isArray(r.customer) ? r.customer[0] : r.customer,
+        })));
+      }
     } catch (e) {
       // ignore
     } finally {
@@ -771,27 +796,163 @@ export default function CraftsmanProfileClient() {
           </div>
         )}
 
-        {/* Portfolio */}
-        {portfolio.length > 0 && (
-          <div className="bg-white rounded-2xl p-4">
-            <h3 className="text-sm font-bold text-gray-900 mb-3">أعمالي</h3>
-            <div className="grid grid-cols-3 gap-2">
-              {portfolio.map((item) => (
-                <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
-                  <AppImage
-                    src={item.image_url}
-                    alt={item.label || 'صورة من أعمال الصنايعي'}
-                    width={120}
-                    height={120}
-                    className="w-full h-full object-cover"
-                  />
-                  {item.label && (
-                    <div className="absolute bottom-0 inset-x-0 bg-black/40 px-1.5 py-1">
-                      <p className="text-white text-xs font-medium truncate">{item.label}</p>
+        {/* Portfolio & Reviews Tabs */}
+        {(portfolio.length > 0 || reviews.length > 0) && (
+          <div className="bg-white rounded-2xl overflow-hidden">
+            {/* Tab Header */}
+            <div className="flex border-b border-gray-100">
+              <button
+                onClick={() => setActiveTab('portfolio')}
+                className={`flex-1 py-3 text-sm font-bold transition-colors ${
+                  activeTab === 'portfolio' ?'text-primary border-b-2 border-primary' :'text-gray-400'
+                }`}
+              >
+                الأعمال السابقة
+                {portfolio.length > 0 && (
+                  <span className="mr-1 text-xs font-normal text-gray-400">({portfolio.length})</span>
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('reviews')}
+                className={`flex-1 py-3 text-sm font-bold transition-colors ${
+                  activeTab === 'reviews' ?'text-primary border-b-2 border-primary' :'text-gray-400'
+                }`}
+              >
+                التقييمات
+                {reviews.length > 0 && (
+                  <span className="mr-1 text-xs font-normal text-gray-400">({reviews.length})</span>
+                )}
+              </button>
+            </div>
+
+            <div className="p-4">
+              {/* Portfolio Tab */}
+              {activeTab === 'portfolio' && (
+                <>
+                  {portfolio.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <span className="text-3xl mb-2">🖼️</span>
+                      <p className="text-sm">لا توجد أعمال سابقة بعد</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {portfolio.map((item) => (
+                        <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
+                          <AppImage
+                            src={item.image_url}
+                            alt={item.label || 'صورة من أعمال الصنايعي'}
+                            width={120}
+                            height={120}
+                            className="w-full h-full object-cover"
+                          />
+                          {item.label && (
+                            <div className="absolute bottom-0 inset-x-0 bg-black/40 px-1.5 py-1">
+                              <p className="text-white text-xs font-medium truncate">{item.label}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
-                </div>
-              ))}
+                </>
+              )}
+
+              {/* Reviews Tab */}
+              {activeTab === 'reviews' && (
+                <>
+                  {reviews.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <span className="text-3xl mb-2">⭐</span>
+                      <p className="text-sm">لا توجد تقييمات بعد</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Rating Summary */}
+                      <div className="flex items-center gap-4 p-3 bg-green-50 rounded-xl border border-green-100 mb-4">
+                        <div className="text-center">
+                          <p className="text-3xl font-bold text-primary font-tabular">{craftsman?.rating ?? 0}</p>
+                          <div className="flex gap-0.5 justify-center mt-1">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                              <Icon
+                                key={i}
+                                name="StarIcon"
+                                size={12}
+                                variant="solid"
+                                className={i <= Math.round(Number(craftsman?.rating ?? 0)) ? 'text-yellow-500' : 'text-gray-200'}
+                              />
+                            ))}
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">{craftsman?.total_reviews} تقييم</p>
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          {[5, 4, 3, 2, 1].map((star) => {
+                            const count = reviews.filter((r) => r.rating === star).length;
+                            const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                            return (
+                              <div key={star} className="flex items-center gap-2">
+                                <span className="text-xs text-gray-500 w-3 font-tabular">{star}</span>
+                                <Icon name="StarIcon" size={10} variant="solid" className="text-yellow-400 flex-shrink-0" />
+                                <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-yellow-400 rounded-full transition-all"
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                </div>
+                                <span className="text-xs text-gray-400 w-4 font-tabular">{count}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Individual Reviews */}
+                      {reviews.map((review) => (
+                        <div key={review.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
+                              {review.customer?.avatar_url ? (
+                                <AppImage
+                                  src={review.customer.avatar_url}
+                                  alt={`صورة ${review.customer.full_name}`}
+                                  width={36}
+                                  height={36}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <Icon name="UserCircleIcon" size={22} className="text-gray-400" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <p className="text-sm font-bold text-gray-900 truncate">
+                                  {review.customer?.full_name || 'عميل'}
+                                </p>
+                                <span className="text-xs text-gray-400 flex-shrink-0 mr-2">
+                                  {new Date(review.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </span>
+                              </div>
+                              <div className="flex gap-0.5 mb-1.5">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                  <Icon
+                                    key={i}
+                                    name="StarIcon"
+                                    size={12}
+                                    variant="solid"
+                                    className={i <= review.rating ? 'text-yellow-500' : 'text-gray-200'}
+                                  />
+                                ))}
+                              </div>
+                              {review.comment && (
+                                <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -806,19 +967,6 @@ export default function CraftsmanProfileClient() {
                 <span className="text-xs text-gray-600 text-center leading-tight">{ach.label}</span>
               </div>
             ))}
-          </div>
-          <div className="mt-3 p-3 bg-green-50 rounded-xl border border-green-100">
-            <div className="flex items-start gap-2">
-              <div className="flex gap-1 mt-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Icon key={i} name="StarIcon" size={12} variant="solid" className="text-yellow-500" />
-                ))}
-              </div>
-              <div className="flex-1">
-                <p className="text-xs font-semibold text-gray-800">أفضل الأستاذ الذين استأجرت معهم العمل، وصل من بعد العمل بالاحترافية.</p>
-                <p className="text-xs text-gray-400 mt-1">{craftsman.rating} من {craftsman.total_reviews} تقييم</p>
-              </div>
-            </div>
           </div>
         </div>
       </div>
