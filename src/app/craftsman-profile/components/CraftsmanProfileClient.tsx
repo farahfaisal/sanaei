@@ -207,6 +207,15 @@ export default function CraftsmanProfileClient() {
   const [editError, setEditError] = useState<string | null>(null);
   const [editSuccess, setEditSuccess] = useState(false);
 
+  // ── Add Portfolio State ──
+  const [showAddPortfolioModal, setShowAddPortfolioModal] = useState(false);
+  const [portfolioForm, setPortfolioForm] = useState({ label: '', description: '' });
+  const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
+  const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null);
+  const [portfolioSaving, setPortfolioSaving] = useState(false);
+  const [portfolioError, setPortfolioError] = useState<string | null>(null);
+  const portfolioFileRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -439,6 +448,66 @@ export default function CraftsmanProfileClient() {
     } finally {
       setEditSaving(false);
     }
+  };
+
+  const handleAddPortfolioItem = async () => {
+    if (!craftsman || !portfolioFile) return;
+    setPortfolioSaving(true);
+    setPortfolioError(null);
+    try {
+      // Upload image to portfolio bucket
+      const ext = portfolioFile.name.split('.').pop() || 'jpg';
+      const filePath = `${craftsman.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('portfolio')
+        .upload(filePath, portfolioFile, { upsert: false });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('portfolio').getPublicUrl(filePath);
+      const imageUrl = urlData.publicUrl;
+
+      // Insert into portfolio_items
+      const { data: newItem, error: insertError } = await supabase
+        .from('portfolio_items')
+        .insert({
+          craftsman_id: craftsman.id,
+          image_url: imageUrl,
+          label: portfolioForm.label.trim() || null,
+          description: portfolioForm.description.trim() || null,
+        })
+        .select('id, image_url, label')
+        .single();
+      if (insertError) throw insertError;
+
+      // Update local state
+      setPortfolio((prev) => [newItem, ...prev]);
+      setShowAddPortfolioModal(false);
+      setPortfolioForm({ label: '', description: '' });
+      setPortfolioFile(null);
+      setPortfolioPreview(null);
+      setActiveTab('portfolio');
+    } catch (e: any) {
+      setPortfolioError('حدث خطأ أثناء الرفع، يرجى المحاولة مرة أخرى');
+    } finally {
+      setPortfolioSaving(false);
+    }
+  };
+
+  const handlePortfolioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPortfolioFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setPortfolioPreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const openAddPortfolioModal = () => {
+    setPortfolioForm({ label: '', description: '' });
+    setPortfolioFile(null);
+    setPortfolioPreview(null);
+    setPortfolioError(null);
+    setShowAddPortfolioModal(true);
   };
 
   const handleShowMap = () => {
@@ -920,7 +989,7 @@ export default function CraftsmanProfileClient() {
         )}
 
         {/* Portfolio & Reviews Tabs */}
-        {(portfolio.length > 0 || reviews.length > 0) && (
+        {(portfolio.length > 0 || reviews.length > 0 || isOwnProfile) && (
           <div className="bg-white rounded-2xl overflow-hidden">
             {/* Tab Header */}
             <div className="flex border-b border-gray-100">
@@ -952,6 +1021,16 @@ export default function CraftsmanProfileClient() {
               {/* Portfolio Tab */}
               {activeTab === 'portfolio' && (
                 <>
+                  {/* Add button for own profile */}
+                  {isOwnProfile && (
+                    <button
+                      onClick={openAddPortfolioModal}
+                      className="w-full mb-3 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-primary/40 text-primary text-sm font-semibold hover:bg-green-50 transition-colors"
+                    >
+                      <Icon name="PlusIcon" size={16} className="text-primary" />
+                      إضافة عمل سابق
+                    </button>
+                  )}
                   {portfolio.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                       <span className="text-3xl mb-2">🖼️</span>
@@ -1235,6 +1314,138 @@ export default function CraftsmanProfileClient() {
                   <>
                     <Icon name="CheckIcon" size={18} className="text-white" />
                     حفظ التغييرات
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Add Portfolio Modal ── */}
+      {showAddPortfolioModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" dir="rtl">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !portfolioSaving && setShowAddPortfolioModal(false)}
+          />
+          {/* Sheet */}
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+              <button
+                onClick={() => !portfolioSaving && setShowAddPortfolioModal(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                disabled={portfolioSaving}
+              >
+                <Icon name="XMarkIcon" size={18} className="text-gray-600" />
+              </button>
+              <h2 className="text-base font-bold text-gray-900">إضافة عمل سابق</h2>
+              <div className="w-8" />
+            </div>
+
+            {/* Form */}
+            <div className="px-5 py-4 space-y-4 max-h-[75vh] overflow-y-auto">
+              {/* Image Upload */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">صورة العمل *</label>
+                <input
+                  ref={portfolioFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="hidden"
+                  onChange={handlePortfolioFileChange}
+                  disabled={portfolioSaving}
+                />
+                {portfolioPreview ? (
+                  <div className="relative rounded-xl overflow-hidden aspect-video bg-gray-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={portfolioPreview}
+                      alt="معاينة الصورة"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
+                      onClick={() => { setPortfolioFile(null); setPortfolioPreview(null); }}
+                      className="absolute top-2 left-2 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center"
+                      disabled={portfolioSaving}
+                    >
+                      <Icon name="XMarkIcon" size={14} className="text-white" />
+                    </button>
+                    <button
+                      onClick={() => portfolioFileRef.current?.click()}
+                      className="absolute bottom-2 left-2 px-3 py-1 rounded-lg bg-black/50 text-white text-xs font-semibold"
+                      disabled={portfolioSaving}
+                    >
+                      تغيير
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => portfolioFileRef.current?.click()}
+                    className="w-full h-36 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary hover:text-primary transition-colors"
+                    disabled={portfolioSaving}
+                  >
+                    <Icon name="PhotoIcon" size={32} className="text-gray-300" />
+                    <span className="text-sm font-medium">اضغط لاختيار صورة</span>
+                    <span className="text-xs text-gray-400">JPG, PNG, WEBP</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Label */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">عنوان العمل</label>
+                <input
+                  type="text"
+                  value={portfolioForm.label}
+                  onChange={(e) => setPortfolioForm((f) => ({ ...f, label: e.target.value }))}
+                  placeholder="مثال: تركيب سباكة حمام"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
+                  disabled={portfolioSaving}
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">وصف العمل</label>
+                <textarea
+                  value={portfolioForm.description}
+                  onChange={(e) => setPortfolioForm((f) => ({ ...f, description: e.target.value }))}
+                  placeholder="اكتب وصفاً مختصراً للعمل..."
+                  rows={3}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right resize-none"
+                  disabled={portfolioSaving}
+                />
+              </div>
+
+              {/* Error */}
+              {portfolioError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                  <Icon name="ExclamationCircleIcon" size={16} className="text-red-500 flex-shrink-0" />
+                  <p className="text-sm text-red-600">{portfolioError}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Save Button */}
+            <div className="px-5 pb-6 pt-3 border-t border-gray-100">
+              <button
+                onClick={handleAddPortfolioItem}
+                disabled={portfolioSaving || !portfolioFile}
+                className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
+                style={{ background: '#1B5E20' }}
+              >
+                {portfolioSaving ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    جاري الرفع...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="PlusIcon" size={18} className="text-white" />
+                    إضافة العمل
                   </>
                 )}
               </button>
