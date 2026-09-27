@@ -216,6 +216,10 @@ export default function CraftsmanProfileClient() {
   const [portfolioError, setPortfolioError] = useState<string | null>(null);
   const portfolioFileRef = useRef<HTMLInputElement>(null);
 
+  // ── Avatar Upload State ──
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const avatarFileRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -527,6 +531,50 @@ export default function CraftsmanProfileClient() {
     setOrderSuccess(orderId);
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.replace('/phone-login-otp-verification');
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !craftsman || !user) return;
+    setAvatarUploading(true);
+    try {
+      const ext = file.name.split('.').pop() || 'jpg';
+      const filePath = `${user.id}/avatar.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      const { error: updateError } = await supabase
+        .from('user_profiles')
+        .update({ avatar_url: avatarUrl, updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+      if (updateError) throw updateError;
+
+      setCraftsman((prev) =>
+        prev
+          ? {
+              ...prev,
+              user_profiles: prev.user_profiles
+                ? { ...prev.user_profiles, avatar_url: avatarUrl }
+                : { full_name: '', avatar_url: avatarUrl },
+            }
+          : prev
+      );
+    } catch (e) {
+      // ignore silently
+    } finally {
+      setAvatarUploading(false);
+      if (avatarFileRef.current) avatarFileRef.current.value = '';
+    }
+  };
+
   if (authLoading || (!user && isLoading)) {
     return (
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
@@ -634,6 +682,18 @@ export default function CraftsmanProfileClient() {
               <Icon name={theme === 'dark' ? 'SunIcon' : 'MoonIcon'} size={14} className="text-white" />
               <span>{theme === 'dark' ? 'نهاري' : 'ليلي'}</span>
             </button>
+            {/* Sign out button (own profile only) */}
+            {isOwnProfile && (
+              <button
+                onClick={handleSignOut}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+                style={{ background: 'rgba(220,38,38,0.75)', backdropFilter: 'blur(4px)', color: '#fff' }}
+                aria-label="تسجيل الخروج"
+              >
+                <Icon name="ArrowRightOnRectangleIcon" size={14} className="text-white" />
+                <span>خروج</span>
+              </button>
+            )}
           </div>
           <button
             onClick={() => router?.back()}
@@ -646,7 +706,18 @@ export default function CraftsmanProfileClient() {
         {/* Avatar */}
         <div className="absolute -bottom-8 right-4">
           <div className="relative">
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gray-100">
+            {/* Hidden file input for avatar upload */}
+            <input
+              ref={avatarFileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
+            <div
+              className={`w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gray-100 ${isOwnProfile ? 'cursor-pointer' : ''}`}
+              onClick={() => isOwnProfile && !avatarUploading && avatarFileRef.current?.click()}
+            >
               {craftsman.user_profiles?.avatar_url ? (
                 <AppImage
                   src={craftsman.user_profiles.avatar_url}
@@ -660,8 +731,34 @@ export default function CraftsmanProfileClient() {
                   <Icon name="UserCircleIcon" size={40} className="text-primary" />
                 </div>
               )}
+              {/* Upload overlay */}
+              {isOwnProfile && (
+                <div className="absolute inset-0 rounded-2xl flex items-center justify-center bg-black/30 opacity-0 hover:opacity-100 transition-opacity">
+                  {avatarUploading ? (
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Icon name="CameraIcon" size={22} className="text-white" />
+                  )}
+                </div>
+              )}
             </div>
-            {isOnline && (
+            {/* Camera badge */}
+            {isOwnProfile && (
+              <button
+                onClick={() => !avatarUploading && avatarFileRef.current?.click()}
+                disabled={avatarUploading}
+                className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow"
+                style={{ background: '#1a5857' }}
+                aria-label="تغيير الصورة الشخصية"
+              >
+                {avatarUploading ? (
+                  <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Icon name="CameraIcon" size={12} className="text-white" />
+                )}
+              </button>
+            )}
+            {!isOwnProfile && isOnline && (
               <div className="absolute -bottom-1 -left-1 w-5 h-5 bg-primary rounded-full border-2 border-white" />
             )}
           </div>
