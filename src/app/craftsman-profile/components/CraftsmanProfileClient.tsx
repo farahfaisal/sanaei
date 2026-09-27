@@ -608,7 +608,7 @@ export default function CraftsmanProfileClient() {
                       {order.status === 'in_progress' ? '🔧 جاري التنفيذ' : '✅ مقبول'}
                     </span>
                     {order.amount && (
-                      <span className="text-xs font-bold text-primary">{order.amount} ريال</span>
+                      <span className="text-xs font-bold text-primary">{order.amount} ₪</span>
                     )}
                   </div>
 
@@ -785,7 +785,7 @@ export default function CraftsmanProfileClient() {
                     <div>
                       <p className="text-sm font-semibold text-gray-900 text-right">{svc.name}</p>
                       <p className="text-xs text-gray-500 text-right">
-                        {svc.price_label || (svc.base_price ? `ابتداء من ${svc.base_price} ريال` : '')}
+{svc.price_label || (svc.base_price ? `ابتداء من ${svc.base_price} ₪` : '')}
                       </p>
                     </div>
                     <span className="text-xl">{svc.emoji}</span>

@@ -327,7 +327,7 @@ export default function PaymentClient() {
           className="w-full py-4 rounded-2xl font-bold text-white text-base mb-3 transition-all"
           style={{ background: '#1B5E20', opacity: isProcessing ? 0.7 : 1 }}
         >
-          {isProcessing ? 'جاري المعالجة...' : `ادفع ${amount} ر.س الآن`}
+          {isProcessing ? 'جاري المعالجة...' : `ادفع ${amount} ₪ الآن`}
         </button>
         <button
           onClick={() => setMethod('apple')}

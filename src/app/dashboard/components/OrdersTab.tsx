@@ -178,7 +178,7 @@ export default function OrdersTab() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-emerald-300 text-xs font-semibold">
-                        {order.amount ? `${order.amount.toLocaleString('ar-SA')} ر.س` : '—'}
+                        {order.amount ? `${order.amount.toLocaleString('ar-SA')} ₪` : '—'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
