@@ -241,30 +241,12 @@ export default function CraftsmanProfileClient() {
   const loadCraftsmanData = async (id: string) => {
     setIsLoading(true);
     try {
-      const [profileRes, servicesRes, portfolioRes, reviewsRes] = await Promise.all([
-        supabase
-          .from('craftsman_profiles')
-          .select('*, user_profiles(full_name, avatar_url)')
-          .eq('id', id)
-          .maybeSingle(),
-        supabase
-          .from('craftsman_services')
-          .select('id, name, emoji, price_label, base_price')
-          .eq('craftsman_id', id)
-          .eq('is_active', true),
-        supabase
-          .from('portfolio_items')
-          .select('id, image_url, label')
-          .eq('craftsman_id', id)
-          .order('created_at', { ascending: false })
-          .limit(6),
-        supabase
-          .from('reviews')
-          .select('id, rating, comment, created_at, customer:customer_id(full_name, avatar_url)')
-          .eq('craftsman_id', id)
-          .order('created_at', { ascending: false })
-          .limit(20),
-      ]);
+      // Load profile first — independently so secondary query failures don't block it
+      const profileRes = await supabase
+        .from('craftsman_profiles')
+        .select('*, user_profiles(full_name, avatar_url)')
+        .eq('id', id)
+        .maybeSingle();
 
       if (profileRes.data) {
         const p = profileRes.data as any;
@@ -280,14 +262,48 @@ export default function CraftsmanProfileClient() {
         }
         loadNearbyCraftsmen(id);
       }
-      if (servicesRes.data) setServices(servicesRes.data);
-      if (portfolioRes.data) setPortfolio(portfolioRes.data);
-      if (reviewsRes.data) {
-        setReviews(reviewsRes.data.map((r: any) => ({
-          ...r,
-          customer: Array.isArray(r.customer) ? r.customer[0] : r.customer,
-        })));
-      }
+
+      // Load secondary data independently — failures here won't affect profile display
+      try {
+        const servicesRes = await supabase
+          .from('craftsman_services')
+          .select('id, name, emoji, price_label, base_price')
+          .eq('craftsman_id', id)
+          .eq('is_active', true);
+        if (servicesRes.data) setServices(servicesRes.data);
+      } catch (e) { /* ignore */ }
+
+      try {
+        const portfolioRes = await supabase
+          .from('portfolio_items')
+          .select('id, image_url, label')
+          .eq('craftsman_id', id)
+          .order('created_at', { ascending: false })
+          .limit(6);
+        if (portfolioRes.data) setPortfolio(portfolioRes.data);
+      } catch (e) { /* ignore */ }
+
+      try {
+        const reviewsRes = await supabase
+          .from('reviews')
+          .select('id, rating, comment, created_at, customer_id, customer_name:customer_id(full_name, avatar_url)')
+          .eq('craftsman_id', id)
+          .order('created_at', { ascending: false })
+          .limit(20);
+        if (reviewsRes.data) {
+          setReviews(reviewsRes.data.map((r: any) => {
+            const customerData = Array.isArray(r.customer_name) ? r.customer_name[0] : r.customer_name;
+            return {
+              id: r.id,
+              rating: r.rating,
+              comment: r.comment,
+              created_at: r.created_at,
+              customer: customerData || null,
+            };
+          }));
+        }
+      } catch (e) { /* ignore */ }
+
     } catch (e) {
       // ignore
     } finally {
