@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Icon from '@/components/ui/AppIcon';
+import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { sendPushToUser } from '@/lib/pushNotifications';
-
-type PaymentMethod = 'cash' | 'card' | 'wallet';
+import { useRouter } from 'next/navigation';
 
 interface RequestServiceModalProps {
   craftsmanProfileId: string;
@@ -17,12 +17,6 @@ interface RequestServiceModalProps {
   onClose: () => void;
   onSuccess: (orderId: string) => void;
 }
-
-const PAYMENT_METHODS: { value: PaymentMethod; label: string; icon: string }[] = [
-  { value: 'cash', label: 'نقداً', icon: '💵' },
-  { value: 'card', label: 'بطاقة بنكية', icon: '💳' },
-  { value: 'wallet', label: 'المحفظة', icon: '👛' },
-];
 
 export default function RequestServiceModal({
   craftsmanProfileId,
@@ -35,33 +29,63 @@ export default function RequestServiceModal({
 }: RequestServiceModalProps) {
   const { user } = useAuth();
   const supabase = createClient();
+  const router = useRouter();
 
-  const [step, setStep] = useState<1 | 2>(1);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [description, setDescription] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Image upload
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const today = new Date().toISOString().split('T')[0];
 
-  const handleNext = () => {
-    if (!scheduledDate) {
-      setError('يرجى اختيار تاريخ الخدمة');
-      return;
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    const newFiles = [...selectedImages, ...files].slice(0, 4); // max 4 images
+    setSelectedImages(newFiles);
+    const previews = newFiles.map((f) => URL.createObjectURL(f));
+    setImagePreviews(previews);
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    const newFiles = selectedImages.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setSelectedImages(newFiles);
+    setImagePreviews(newPreviews);
+  };
+
+  const uploadImages = async (orderId: string): Promise<string[]> => {
+    if (selectedImages.length === 0) return [];
+    const urls: string[] = [];
+    for (const file of selectedImages) {
+      const ext = file.name.split('.').pop();
+      const path = `service-requests/${orderId}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('service-media')
+        .upload(path, file, { upsert: true });
+      if (!uploadError) {
+        const { data } = supabase.storage.from('service-media').getPublicUrl(path);
+        urls.push(data.publicUrl);
+      }
     }
-    if (!description.trim()) {
-      setError('يرجى وصف الخدمة المطلوبة');
-      return;
-    }
-    setError(null);
-    setStep(2);
+    return urls;
   };
 
   const handleConfirm = async () => {
     if (!user) {
       setError('يجب تسجيل الدخول أولاً');
+      return;
+    }
+    if (!description.trim()) {
+      setError('يرجى وصف الخدمة المطلوبة');
       return;
     }
     setIsSubmitting(true);
@@ -77,8 +101,8 @@ export default function RequestServiceModal({
         status: 'pending',
         description: description.trim(),
         scheduled_at: scheduledAt,
-        payment_method: paymentMethod,
         payment_status: 'pending',
+        escrow_status: 'none',
       };
       if (serviceId) insertPayload.service_id = serviceId;
 
@@ -90,6 +114,48 @@ export default function RequestServiceModal({
 
       if (insertError) throw insertError;
 
+      // Upload images if any
+      if (selectedImages.length > 0) {
+        setUploadingImages(true);
+        const imageUrls = await uploadImages(order.id);
+        if (imageUrls.length > 0) {
+          await supabase
+            .from('orders')
+            .update({ service_images: imageUrls })
+            .eq('id', order.id);
+        }
+        setUploadingImages(false);
+      }
+
+      // Create conversation linked to this order
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .insert({
+          customer_id: user.id,
+          craftsman_id: craftsmanUserId,
+          order_id: order.id,
+          last_message: `طلب خدمة جديد${serviceName ? ': ' + serviceName : ''}`,
+          last_message_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+
+      if (!convError && conversation) {
+        // Link conversation to order
+        await supabase
+          .from('orders')
+          .update({ conversation_id: conversation.id })
+          .eq('id', order.id);
+
+        // Send initial message in chat
+        await supabase.from('messages').insert({
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: `مرحباً، أحتاج خدمة${serviceName ? ' ' + serviceName : ''}.\n${description.trim()}`,
+          message_type: 'text',
+        });
+      }
+
       // Insert notification record for craftsman
       await supabase.from('notifications').insert({
         user_id: craftsmanUserId,
@@ -99,7 +165,7 @@ export default function RequestServiceModal({
         order_id: order.id,
       });
 
-      // Trigger FCM / Web Push notification to craftsman
+      // Trigger push notification to craftsman
       sendPushToUser(
         craftsmanUserId,
         'طلب خدمة جديد 🔔',
@@ -107,9 +173,16 @@ export default function RequestServiceModal({
         { url: '/craftsman-profile', orderId: order.id }
       );
 
-      onSuccess(order.id);
+      // Navigate to chat
+      if (conversation) {
+        onClose();
+        router.push(`/chat?conversation_id=${conversation.id}`);
+      } else {
+        onSuccess(order.id);
+      }
     } catch (e: any) {
       setError(e?.message || 'حدث خطأ، يرجى المحاولة مجدداً');
+      setUploadingImages(false);
     } finally {
       setIsSubmitting(false);
     }
@@ -121,7 +194,7 @@ export default function RequestServiceModal({
       style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-lg bg-white rounded-t-3xl px-5 pt-5 pb-8" dir="rtl">
+      <div className="w-full max-w-lg bg-white rounded-t-3xl px-5 pt-5 pb-8 max-h-[90vh] overflow-y-auto" dir="rtl">
         {/* Handle */}
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
 
@@ -130,13 +203,8 @@ export default function RequestServiceModal({
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
             <Icon name="XMarkIcon" size={18} className="text-gray-600" />
           </button>
-          <h2 className="text-base font-bold text-gray-900">
-            {step === 1 ? 'تفاصيل الطلب' : 'تأكيد طريقة الدفع'}
-          </h2>
-          <div className="flex gap-1">
-            <div className={`w-2 h-2 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-gray-200'}`} />
-            <div className={`w-2 h-2 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-gray-200'}`} />
-          </div>
+          <h2 className="text-base font-bold text-gray-900">طلب خدمة وبدء محادثة</h2>
+          <div className="w-8" />
         </div>
 
         {/* Craftsman info */}
@@ -151,23 +219,23 @@ export default function RequestServiceModal({
           </div>
         </div>
 
-        {step === 1 ? (
-          <div className="space-y-4">
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                تاريخ الخدمة <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                min={today}
-                value={scheduledDate}
-                onChange={(e) => { setScheduledDate(e.target.value); setError(null); }}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50"
-              />
-            </div>
+        <div className="space-y-4">
+          {/* Date */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              تاريخ الخدمة <span className="text-gray-400 text-xs">(اختياري)</span>
+            </label>
+            <input
+              type="date"
+              min={today}
+              value={scheduledDate}
+              onChange={(e) => { setScheduledDate(e.target.value); setError(null); }}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50"
+            />
+          </div>
 
-            {/* Time */}
+          {/* Time */}
+          {scheduledDate && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 الوقت المفضل <span className="text-gray-400 text-xs">(اختياري)</span>
@@ -179,119 +247,85 @@ export default function RequestServiceModal({
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50"
               />
             </div>
+          )}
 
-            {/* Description */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                وصف المشكلة / الخدمة المطلوبة <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                rows={4}
-                placeholder="اشرح بالتفصيل ما تحتاجه..."
-                value={description}
-                onChange={(e) => { setDescription(e.target.value); setError(null); }}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50 resize-none leading-relaxed"
-              />
-            </div>
-
-            {error && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <Icon name="ExclamationCircleIcon" size={14} className="text-red-500" />
-                {error}
-              </p>
-            )}
-
-            <button
-              onClick={handleNext}
-              className="w-full py-3.5 rounded-2xl font-bold text-white text-sm"
-              style={{ background: '#1B5E20' }}
-            >
-              التالي — اختيار طريقة الدفع
-            </button>
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              وصف المشكلة / الخدمة المطلوبة <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              placeholder="اشرح بالتفصيل ما تحتاجه..."
+              value={description}
+              onChange={(e) => { setDescription(e.target.value); setError(null); }}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50 resize-none leading-relaxed"
+            />
           </div>
-        ) : (
-          <div className="space-y-4">
-            {/* Order summary */}
-            <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-gray-500">التاريخ</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {new Date(scheduledDate).toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </span>
-              </div>
-              {scheduledTime && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-500">الوقت</span>
-                  <span className="text-sm font-semibold text-gray-900">{scheduledTime}</span>
-                </div>
-              )}
-              <div className="border-t border-gray-200 pt-2">
-                <p className="text-xs text-gray-500 mb-1">الوصف</p>
-                <p className="text-sm text-gray-700 leading-relaxed">{description}</p>
-              </div>
-            </div>
 
-            {/* Payment method */}
-            <div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">طريقة الدفع</p>
-              <div className="space-y-2">
-                {PAYMENT_METHODS.map((pm) => (
+          {/* Image upload */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              صور المشكلة <span className="text-gray-400 text-xs">(اختياري — حتى 4 صور)</span>
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {imagePreviews.map((preview, i) => (
+                <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200">
+                  <AppImage src={preview} alt={`صورة ${i + 1}`} width={80} height={80} className="w-full h-full object-cover" />
                   <button
-                    key={pm.value}
-                    onClick={() => setPaymentMethod(pm.value)}
-                    className={`w-full flex items-center gap-3 p-3.5 rounded-2xl border-2 transition-all text-right ${
-                      paymentMethod === pm.value
-                        ? 'border-primary bg-green-50' :'border-gray-200 bg-white'
-                    }`}
+                    onClick={() => removeImage(i)}
+                    className="absolute top-1 left-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center"
                   >
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      paymentMethod === pm.value ? 'border-primary bg-primary' : 'border-gray-300'
-                    }`}>
-                      {paymentMethod === pm.value && <div className="w-2 h-2 bg-white rounded-full" />}
-                    </div>
-                    <span className="text-lg">{pm.icon}</span>
-                    <span className="text-sm font-semibold text-gray-800">{pm.label}</span>
+                    <Icon name="XMarkIcon" size={10} className="text-white" />
                   </button>
-                ))}
-              </div>
+                </div>
+              ))}
+              {selectedImages.length < 4 && (
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center gap-1 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <Icon name="PhotoIcon" size={20} className="text-gray-400" />
+                  <span className="text-xs text-gray-400">إضافة</span>
+                </button>
+              )}
             </div>
-
-            {error && (
-              <p className="text-xs text-red-500 flex items-center gap-1">
-                <Icon name="ExclamationCircleIcon" size={14} className="text-red-500" />
-                {error}
-              </p>
-            )}
-
-            <div className="flex gap-2 pt-1">
-              <button
-                onClick={() => setStep(1)}
-                disabled={isSubmitting}
-                className="flex-1 py-3.5 rounded-2xl font-bold text-gray-700 text-sm bg-gray-100"
-              >
-                رجوع
-              </button>
-              <button
-                onClick={handleConfirm}
-                disabled={isSubmitting}
-                className="flex-[2] py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
-                style={{ background: '#1B5E20' }}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    جاري الإرسال...
-                  </>
-                ) : (
-                  <>
-                    <Icon name="PaperAirplaneIcon" size={16} className="text-white" />
-                    تأكيد الطلب
-                  </>
-                )}
-              </button>
-            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handleImageSelect}
+            />
           </div>
-        )}
+
+          {error && (
+            <p className="text-xs text-red-500 flex items-center gap-1">
+              <Icon name="ExclamationCircleIcon" size={14} className="text-red-500" />
+              {error}
+            </p>
+          )}
+
+          <button
+            onClick={handleConfirm}
+            disabled={isSubmitting || uploadingImages}
+            className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
+            style={{ background: '#1B5E20' }}
+          >
+            {isSubmitting || uploadingImages ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                {uploadingImages ? 'جاري رفع الصور...' : 'جاري الإرسال...'}
+              </>
+            ) : (
+              <>
+                <Icon name="ChatBubbleLeftRightIcon" size={16} className="text-white" />
+                إرسال الطلب وبدء المحادثة
+              </>
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );
