@@ -460,8 +460,9 @@ export default function CraftsmanProfileClient() {
     setPortfolioError(null);
     try {
       // Upload image to portfolio bucket
+      // Path must start with user.id to satisfy RLS: auth.uid()::text = (storage.foldername(name))[1]
       const ext = portfolioFile.name.split('.').pop() || 'jpg';
-      const filePath = `${craftsman.id}/${Date.now()}.${ext}`;
+      const filePath = `${user!.id}/${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage
         .from('portfolio')
         .upload(filePath, portfolioFile, { upsert: false });
