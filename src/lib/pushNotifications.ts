@@ -21,23 +21,67 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
   try {
     const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    // Wait for the service worker to be ready
+    await navigator.serviceWorker.ready;
     return reg;
-  } catch {
+  } catch (err) {
+    console.error('[Push] Service worker registration failed:', err);
     return null;
+  }
+}
+
+// Request notification permission explicitly
+export async function requestNotificationPermission(): Promise<NotificationPermission> {
+  if (typeof window === 'undefined') return 'denied';
+  if (!('Notification' in window)) return 'denied';
+
+  // Already granted or denied
+  if (Notification.permission === 'granted') return 'granted';
+  if (Notification.permission === 'denied') return 'denied';
+
+  try {
+    // Use promise-based API with callback fallback for older browsers
+    const permission = await new Promise<NotificationPermission>((resolve) => {
+      const result = Notification.requestPermission((perm) => resolve(perm));
+      // Modern browsers return a promise
+      if (result && typeof result.then === 'function') {
+        result.then(resolve).catch(() => resolve('denied'));
+      }
+    });
+    return permission;
+  } catch {
+    return 'denied';
   }
 }
 
 // Subscribe to Web Push
 export async function subscribeToPush(userId: string): Promise<boolean> {
-  if (typeof window === 'undefined' || !('PushManager' in window)) return false;
-  if (!VAPID_PUBLIC_KEY) return false;
+  if (typeof window === 'undefined') return false;
+  if (!('PushManager' in window)) {
+    console.warn('[Push] PushManager not supported in this browser');
+    return false;
+  }
+  if (!('Notification' in window)) {
+    console.warn('[Push] Notifications not supported in this browser');
+    return false;
+  }
+  if (!VAPID_PUBLIC_KEY) {
+    console.warn('[Push] VAPID public key is missing');
+    return false;
+  }
 
   try {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') return false;
+    const permission = await requestNotificationPermission();
+    if (permission !== 'granted') {
+      console.warn('[Push] Notification permission not granted:', permission);
+      return false;
+    }
 
     const reg = await registerServiceWorker();
-    if (!reg) return false;
+    if (!reg) {
+      console.warn('[Push] Could not register service worker');
+      return false;
+    }
 
     // Check existing subscription
     let sub = await reg.pushManager.getSubscription();
@@ -53,9 +97,14 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       keys: { p256dh: string; auth: string };
     };
 
+    if (!subJson.keys?.p256dh || !subJson.keys?.auth) {
+      console.warn('[Push] Subscription keys missing');
+      return false;
+    }
+
     // Save to Supabase
     const supabase = createClient();
-    await supabase.from('push_subscriptions').upsert(
+    const { error } = await supabase.from('push_subscriptions').upsert(
       {
         user_id: userId,
         endpoint: subJson.endpoint,
@@ -65,8 +114,14 @@ export async function subscribeToPush(userId: string): Promise<boolean> {
       { onConflict: 'user_id,endpoint' }
     );
 
+    if (error) {
+      console.error('[Push] Failed to save subscription:', error);
+      return false;
+    }
+
     return true;
-  } catch {
+  } catch (err) {
+    console.error('[Push] subscribeToPush error:', err);
     return false;
   }
 }
@@ -104,6 +159,13 @@ export async function isPushSubscribed(): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// Get current notification permission status
+export function getNotificationPermission(): NotificationPermission | 'unsupported' {
+  if (typeof window === 'undefined') return 'unsupported';
+  if (!('Notification' in window)) return 'unsupported';
+  return Notification.permission;
 }
 
 // Send push notification via Edge Function (server-side trigger)

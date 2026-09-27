@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Icon from '@/components/ui/AppIcon';
-import { subscribeToPush, isPushSubscribed } from '@/lib/pushNotifications';
+import { subscribeToPush, isPushSubscribed, getNotificationPermission } from '@/lib/pushNotifications';
 
 interface Notification {
   id: string;
@@ -22,6 +22,8 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushDenied, setPushDenied] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
@@ -76,14 +78,27 @@ export default function NotificationBell() {
   };
 
   const checkPushStatus = async () => {
+    const permission = getNotificationPermission();
+    if (permission === 'denied') {
+      setPushDenied(true);
+      setPushEnabled(false);
+      return;
+    }
     const subscribed = await isPushSubscribed();
     setPushEnabled(subscribed);
+    setPushDenied(false);
   };
 
   const handleEnablePush = async () => {
     if (!user) return;
+    setPushLoading(true);
     const ok = await subscribeToPush(user.id);
     setPushEnabled(ok);
+    if (!ok) {
+      const permission = getNotificationPermission();
+      setPushDenied(permission === 'denied');
+    }
+    setPushLoading(false);
   };
 
   const markAllRead = async () => {
@@ -148,13 +163,19 @@ export default function NotificationBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <h3 className="text-sm font-bold text-gray-900">الإشعارات</h3>
             <div className="flex items-center gap-2">
-              {!pushEnabled && (
+              {!pushEnabled && !pushDenied && (
                 <button
                   onClick={handleEnablePush}
-                  className="text-xs text-primary font-semibold bg-green-50 px-2 py-1 rounded-lg"
+                  disabled={pushLoading}
+                  className="text-xs text-primary font-semibold bg-green-50 px-2 py-1 rounded-lg disabled:opacity-60"
                 >
-                  تفعيل الإشعارات
+                  {pushLoading ? '...' : 'تفعيل الإشعارات'}
                 </button>
+              )}
+              {pushDenied && (
+                <span className="text-xs text-red-500 font-medium px-2 py-1">
+                  الإشعارات محجوبة
+                </span>
               )}
               {unreadCount > 0 && (
                 <button

@@ -303,6 +303,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
   }, [mapReady, userLocation]);
 
   const handleLocate = () => {
+    if (typeof window === 'undefined') return;
     if (!navigator.geolocation) {
       setLocationError('المتصفح لا يدعم تحديد الموقع');
       return;
@@ -314,11 +315,22 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
         setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setIsLocating(false);
       },
-      () => {
-        setLocationError('تعذّر تحديد موقعك، يرجى السماح بالوصول للموقع');
+      (err) => {
         setIsLocating(false);
+        if (err.code === 1) {
+          // PERMISSION_DENIED
+          setLocationError('تم رفض إذن الموقع. يرجى السماح بالوصول للموقع من إعدادات المتصفح ثم المحاولة مجدداً');
+        } else if (err.code === 2) {
+          // POSITION_UNAVAILABLE
+          setLocationError('تعذّر تحديد موقعك، يرجى التحقق من اتصالك بالإنترنت');
+        } else if (err.code === 3) {
+          // TIMEOUT
+          setLocationError('انتهت مهلة تحديد الموقع، يرجى المحاولة مجدداً');
+        } else {
+          setLocationError('تعذّر تحديد موقعك، يرجى المحاولة مجدداً');
+        }
       },
-      { timeout: 10000 }
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
     );
   };
 
