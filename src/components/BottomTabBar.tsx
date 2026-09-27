@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import { useAuth } from '@/contexts/AuthContext';
 
 type TabId = 'home' | 'search' | 'orders' | 'wallet' | 'profile';
 
@@ -14,21 +15,35 @@ interface Tab {
   badge?: number;
 }
 
-const TABS: Tab[] = [
+const BASE_TABS: Tab[] = [
   { id: 'home', label: 'الرئيسية', icon: 'HomeIcon', href: '/home-screen' },
   { id: 'search', label: 'البحث', icon: 'MagnifyingGlassIcon', href: '/home-screen' },
   { id: 'orders', label: 'الطلبات', icon: 'ClipboardDocumentListIcon', href: '/home-screen' },
   { id: 'wallet', label: 'المحفظة', icon: 'WalletIcon', href: '/wallet-earnings-dashboard' },
-  { id: 'profile', label: 'حسابي', icon: 'UserCircleIcon', href: '/craftsman-profile' },
+  { id: 'profile', label: 'حسابي', icon: 'UserCircleIcon', href: '/customer-profile' },
 ];
 
 export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
+  const { profile } = useAuth();
+  const isCraftsman = profile?.role === 'craftsman';
+
+  const tabs = BASE_TABS.map((tab) => {
+    if (tab.id === 'profile') {
+      return { ...tab, href: isCraftsman ? '/craftsman-profile' : '/customer-profile' };
+    }
+    return tab;
+  });
+
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around bg-white border-t border-gray-200"
-      style={{ height: '64px', paddingBottom: '0px' }}
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
+      style={{
+        height: '64px',
+        background: 'var(--card)',
+        borderTop: '1px solid var(--border)',
+      }}
     >
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const isActive = tab.id === activeTab;
         return (
           <Link
