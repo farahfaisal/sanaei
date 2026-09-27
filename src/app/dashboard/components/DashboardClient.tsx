@@ -280,6 +280,64 @@ export default function DashboardClient() {
                 </div>
               </div>
 
+              {/* Demo Credentials Card */}
+              <div className="bg-amber-950/30 border border-amber-800/40 rounded-2xl p-5">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                    <Icon name="KeyIcon" size={16} className="text-amber-400" />
+                  </div>
+                  <h2 className="text-sm font-bold text-amber-300">بيانات الدخول التجريبية</h2>
+                  <span className="mr-auto text-xs text-amber-500/70 bg-amber-900/40 px-2 py-0.5 rounded-full">للاختبار فقط</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Customer Account */}
+                  <div className="bg-gray-900/60 border border-blue-800/30 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">👤</span>
+                      <span className="text-xs font-bold text-blue-300">حساب الزبون</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-white bg-gray-800 px-2 py-1 rounded-lg" dir="ltr">+970599000001</span>
+                        <span className="text-xs text-gray-400">رقم الجوال</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-emerald-400 bg-gray-800 px-2 py-1 rounded-lg" dir="ltr">123456</span>
+                        <span className="text-xs text-gray-400">رمز التحقق</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-300">أحمد الزبون</span>
+                        <span className="text-xs text-gray-400">الاسم</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Craftsman Account */}
+                  <div className="bg-gray-900/60 border border-amber-800/30 rounded-xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-base">🔧</span>
+                      <span className="text-xs font-bold text-amber-300">حساب الصنايعي</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-white bg-gray-800 px-2 py-1 rounded-lg" dir="ltr">+970599000002</span>
+                        <span className="text-xs text-gray-400">رقم الجوال</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono text-emerald-400 bg-gray-800 px-2 py-1 rounded-lg" dir="ltr">123456</span>
+                        <span className="text-xs text-gray-400">رمز التحقق</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-300">محمد الصنايعي</span>
+                        <span className="text-xs text-gray-400">الاسم</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-amber-600/70 mt-3 text-center">
+                  استخدم هذه البيانات لتسجيل الدخول من صفحة تسجيل الدخول بالجوال
+                </p>
+              </div>
+
               {/* Summary table */}
               <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
                 <h2 className="text-sm font-bold text-gray-200 mb-4">ملخص الحالة</h2>
