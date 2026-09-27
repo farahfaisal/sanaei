@@ -194,6 +194,19 @@ export default function CraftsmanProfileClient() {
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [activeTab, setActiveTab] = useState<'portfolio' | 'reviews'>('portfolio');
 
+  // ── Edit Profile State ──
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({
+    full_name: '',
+    bio: '',
+    specialty: '',
+    location: '',
+    experience_years: 0,
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editSuccess, setEditSuccess] = useState(false);
+
   useEffect(() => {
     if (authLoading) return;
     if (!user) {
@@ -362,6 +375,69 @@ export default function CraftsmanProfileClient() {
       // ignore
     } finally {
       setTogglingOnline(false);
+    }
+  };
+
+  const openEditModal = () => {
+    if (!craftsman) return;
+    setEditForm({
+      full_name: craftsman.user_profiles?.full_name || '',
+      bio: craftsman.bio || '',
+      specialty: craftsman.specialty || '',
+      location: craftsman.location || '',
+      experience_years: craftsman.experience_years || 0,
+    });
+    setEditError(null);
+    setEditSuccess(false);
+    setShowEditModal(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!craftsman || !user) return;
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      // Update user_profiles (full_name)
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ full_name: editForm.full_name.trim(), updated_at: new Date().toISOString() })
+        .eq('id', user.id);
+      if (profileError) throw profileError;
+
+      // Update craftsman_profiles
+      const { error: craftsmanError } = await supabase
+        .from('craftsman_profiles')
+        .update({
+          bio: editForm.bio.trim() || null,
+          specialty: editForm.specialty.trim() || null,
+          location: editForm.location.trim() || null,
+          experience_years: Number(editForm.experience_years) || 0,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', craftsman.id);
+      if (craftsmanError) throw craftsmanError;
+
+      // Update local state
+      setCraftsman((prev) =>
+        prev
+          ? {
+              ...prev,
+              bio: editForm.bio.trim() || null,
+              specialty: editForm.specialty.trim() || null,
+              location: editForm.location.trim() || null,
+              experience_years: Number(editForm.experience_years) || 0,
+              user_profiles: prev.user_profiles
+                ? { ...prev.user_profiles, full_name: editForm.full_name.trim() }
+                : { full_name: editForm.full_name.trim(), avatar_url: null },
+            }
+          : prev
+      );
+      setEditSuccess(true);
+      setTimeout(() => setShowEditModal(false), 1000);
+    } catch (e: any) {
+      setEditError('حدث خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى');
+    } finally {
+      setEditSaving(false);
     }
   };
 
@@ -623,9 +699,13 @@ export default function CraftsmanProfileClient() {
             </button>
           )}
           {isOwnProfile && (
-            <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
-              <Icon name="HeartIcon" size={15} className="text-red-500" />
-              حفظ
+            <button
+              onClick={openEditModal}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white"
+              style={{ background: '#1B5E20' }}
+            >
+              <Icon name="PencilSquareIcon" size={15} className="text-white" />
+              تعديل الملف
             </button>
           )}
         </div>
@@ -1027,6 +1107,140 @@ export default function CraftsmanProfileClient() {
           onClose={() => setShowRequestModal(false)}
           onSuccess={handleOrderSuccess}
         />
+      )}
+
+      {/* ── Edit Profile Modal ── */}
+      {showEditModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" dir="rtl">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => !editSaving && setShowEditModal(false)}
+          />
+          {/* Sheet */}
+          <div className="relative w-full max-w-lg bg-white rounded-t-3xl shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100">
+              <button
+                onClick={() => !editSaving && setShowEditModal(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+                disabled={editSaving}
+              >
+                <Icon name="XMarkIcon" size={18} className="text-gray-600" />
+              </button>
+              <h2 className="text-base font-bold text-gray-900">تعديل الملف الشخصي</h2>
+              <div className="w-8" />
+            </div>
+
+            {/* Form */}
+            <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+              {/* Full Name */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">الاسم الكامل</label>
+                <input
+                  type="text"
+                  value={editForm.full_name}
+                  onChange={(e) => setEditForm((f) => ({ ...f, full_name: e.target.value }))}
+                  placeholder="أدخل اسمك الكامل"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
+                  disabled={editSaving}
+                />
+              </div>
+
+              {/* Specialty */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">التخصص</label>
+                <input
+                  type="text"
+                  value={editForm.specialty}
+                  onChange={(e) => setEditForm((f) => ({ ...f, specialty: e.target.value }))}
+                  placeholder="مثال: سباكة، كهرباء، نجارة..."
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
+                  disabled={editSaving}
+                />
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">الموقع</label>
+                <input
+                  type="text"
+                  value={editForm.location}
+                  onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
+                  placeholder="مثال: الرياض، حي النزهة"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
+                  disabled={editSaving}
+                />
+              </div>
+
+              {/* Experience Years */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">سنوات الخبرة</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={50}
+                  value={editForm.experience_years}
+                  onChange={(e) => setEditForm((f) => ({ ...f, experience_years: parseInt(e.target.value) || 0 }))}
+                  placeholder="0"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
+                  disabled={editSaving}
+                />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">نبذة عني</label>
+                <textarea
+                  value={editForm.bio}
+                  onChange={(e) => setEditForm((f) => ({ ...f, bio: e.target.value }))}
+                  placeholder="اكتب نبذة مختصرة عن نفسك وخبراتك..."
+                  rows={4}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right resize-none"
+                  disabled={editSaving}
+                />
+              </div>
+
+              {/* Error */}
+              {editError && (
+                <div className="flex items-center gap-2 p-3 bg-red-50 rounded-xl border border-red-100">
+                  <Icon name="ExclamationCircleIcon" size={16} className="text-red-500 flex-shrink-0" />
+                  <p className="text-sm text-red-600">{editError}</p>
+                </div>
+              )}
+
+              {/* Success */}
+              {editSuccess && (
+                <div className="flex items-center gap-2 p-3 bg-green-50 rounded-xl border border-green-100">
+                  <Icon name="CheckCircleIcon" size={16} className="text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-700">تم حفظ التغييرات بنجاح ✓</p>
+                </div>
+              )}
+            </div>
+
+            {/* Save Button */}
+            <div className="px-5 pb-6 pt-3 border-t border-gray-100">
+              <button
+                onClick={handleSaveProfile}
+                disabled={editSaving || !editForm.full_name.trim()}
+                className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
+                style={{ background: '#1B5E20' }}
+              >
+                {editSaving ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    جاري الحفظ...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="CheckIcon" size={18} className="text-white" />
+                    حفظ التغييرات
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
