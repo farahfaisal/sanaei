@@ -14,6 +14,7 @@ interface CraftsmanMapItem {
   lat: number;
   lng: number;
   distance?: number;
+  status?: 'available' | 'busy' | 'offline';
 }
 
 interface NearbyMapSectionProps {
@@ -216,8 +217,11 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
 
       sorted.forEach((craftsman) => {
         const isOnline = craftsman.is_online;
-        const bgColor = isOnline ? '#059669' : '#6b7280';
-        const borderColor = isOnline ? '#34d399' : '#9ca3af';
+        const isBusy = craftsman.status === 'busy';
+        const bgColor = isBusy ? '#D97706' : isOnline ? '#059669' : '#6b7280';
+        const borderColor = isBusy ? '#FCD34D' : isOnline ? '#34d399' : '#9ca3af';
+        const dotColor = isBusy ? '#F59E0B' : isOnline ? '#22c55e' : '#9ca3af';
+        const statusLabel = isBusy ? '🟡 مشغول' : isOnline ? '🟢 متاح الآن' : '⚫ غير متصل';
 
         const svgIcon = `
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="50" viewBox="0 0 44 54">
@@ -227,7 +231,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
             <circle cx="22" cy="20" r="5" fill="${bgColor}"/>
             <rect x="13" y="15" width="18" height="3" rx="1.5" fill="${bgColor}"/>
             <path d="M16 15 Q22 9 28 15" fill="${bgColor}" stroke="${bgColor}" stroke-width="1"/>
-            <circle cx="33" cy="9" r="4" fill="${isOnline ? '#22c55e' : '#9ca3af'}" stroke="white" stroke-width="1.5"/>
+            <circle cx="33" cy="9" r="4" fill="${dotColor}" stroke="white" stroke-width="1.5"/>
           </svg>
         `;
 
@@ -250,7 +254,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
             ${craftsman.specialty ? `<p style="font-size:11px;color:#555;margin:2px 0;">${craftsman.specialty}</p>` : ''}
             <p style="font-size:11px;color:#555;margin:2px 0;">⭐ ${craftsman.rating.toFixed(1)}</p>
             ${distText}
-            <p style="font-size:11px;color:${isOnline ? '#059669' : '#9ca3af'};margin:4px 0;font-weight:600;">${isOnline ? '🟢 متاح الآن' : '⚫ غير متصل'}</p>
+            <p style="font-size:11px;color:${isBusy ? '#D97706' : isOnline ? '#059669' : '#9ca3af'};margin:4px 0;font-weight:600;">${statusLabel}</p>
             <a href="/craftsman-profile?id=${craftsman.id}" style="display:block;margin-top:8px;padding:6px;background:${LOGO_GREEN};color:white;border-radius:8px;font-size:11px;font-weight:600;text-align:center;text-decoration:none;">عرض الملف</a>
           </div>
         `;
