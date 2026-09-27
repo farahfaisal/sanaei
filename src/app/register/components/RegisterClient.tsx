@@ -14,6 +14,9 @@ function RegisterForm() {
   const role = (searchParams.get('role') as 'customer' | 'craftsman') || 'customer';
 
   const [fullName, setFullName] = useState('');
+  const [city, setCity] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
+  const [street, setStreet] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,10 +25,16 @@ function RegisterForm() {
       setError('يرجى إدخال الاسم الكامل');
       return;
     }
+    if (!city.trim()) {
+      setError('يرجى إدخال المدينة');
+      return;
+    }
     setError('');
     setIsLoading(true);
     try {
-      await registerUser(phone, fullName.trim(), role);
+      const addressParts = [street.trim(), neighborhood.trim(), city.trim()].filter(Boolean);
+      const location = addressParts.join('، ');
+      await registerUser(phone, fullName.trim(), role, location);
       router.replace('/home-screen');
     } catch (err: any) {
       setError(err?.message || 'حدث خطأ أثناء إنشاء الحساب، يرجى المحاولة مجدداً');
@@ -50,9 +59,9 @@ function RegisterForm() {
         <h1 className="text-lg font-bold text-gray-900">إنشاء حساب جديد</h1>
       </div>
 
-      <div className="flex-1 px-5 pt-2 pb-6 flex flex-col">
+      <div className="flex-1 px-5 pt-2 pb-6 flex flex-col overflow-y-auto">
         {/* Welcome */}
-        <div className="text-center mb-8 mt-4">
+        <div className="text-center mb-6 mt-4">
           <div className="w-20 h-20 rounded-2xl bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl">{roleEmoji}</span>
           </div>
@@ -72,7 +81,7 @@ function RegisterForm() {
         </div>
 
         {/* Role display (read-only) */}
-        <div className="mb-5">
+        <div className="mb-4">
           <label className="text-sm font-semibold text-gray-700 block mb-2">نوع الحساب</label>
           <div className="py-3.5 px-4 bg-green-50 border border-green-200 rounded-xl text-sm text-primary font-semibold flex items-center gap-2">
             <span>{roleEmoji}</span>
@@ -81,30 +90,76 @@ function RegisterForm() {
         </div>
 
         {/* Full name input */}
-        <div className="mb-6">
-          <label className="text-sm font-semibold text-gray-700 block mb-2">الاسم الكامل</label>
+        <div className="mb-4">
+          <label className="text-sm font-semibold text-gray-700 block mb-2">
+            الاسم الكامل <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={fullName}
-            onChange={(e) => {
-              setFullName(e.target.value);
-              setError('');
-            }}
+            onChange={(e) => { setFullName(e.target.value); setError(''); }}
             placeholder="أدخل اسمك الكامل"
             className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             autoFocus
           />
-          {error && (
-            <p className="text-red-500 text-xs mt-2">{error}</p>
-          )}
         </div>
+
+        {/* Address Section */}
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Icon name="MapPinIcon" size={16} className="text-primary" />
+            <h3 className="text-sm font-bold text-gray-800">العنوان</h3>
+          </div>
+
+          {/* City */}
+          <div className="mb-3">
+            <label className="text-sm font-semibold text-gray-700 block mb-2">
+              المدينة <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => { setCity(e.target.value); setError(''); }}
+              placeholder="مثال: الرياض، جدة، غزة..."
+              className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
+            />
+          </div>
+
+          {/* Neighborhood */}
+          <div className="mb-3">
+            <label className="text-sm font-semibold text-gray-700 block mb-2">الحي / المنطقة</label>
+            <input
+              type="text"
+              value={neighborhood}
+              onChange={(e) => setNeighborhood(e.target.value)}
+              placeholder="مثال: حي النزهة، الشميساني..."
+              className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
+            />
+          </div>
+
+          {/* Street */}
+          <div className="mb-4">
+            <label className="text-sm font-semibold text-gray-700 block mb-2">الشارع / التفاصيل</label>
+            <input
+              type="text"
+              value={street}
+              onChange={(e) => setStreet(e.target.value)}
+              placeholder="مثال: شارع الملك فهد، بناية رقم 5..."
+              className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+
+        {error && (
+          <p className="text-red-500 text-xs mb-4 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{error}</p>
+        )}
 
         {/* Register button */}
         <button
           onClick={handleRegister}
-          disabled={isLoading || !fullName.trim()}
+          disabled={isLoading || !fullName.trim() || !city.trim()}
           className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-          style={{ background: '#1B5E20', opacity: (!fullName.trim() || isLoading) ? 0.6 : 1 }}
+          style={{ background: '#1B5E20', opacity: (!fullName.trim() || !city.trim() || isLoading) ? 0.6 : 1 }}
         >
           {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
         </button>

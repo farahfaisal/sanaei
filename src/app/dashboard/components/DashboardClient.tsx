@@ -9,8 +9,9 @@ import OrdersTab from './OrdersTab';
 import PaymentsTab from './PaymentsTab';
 import MapTab from './MapTab';
 import BroadcastTab from './BroadcastTab';
+import OffersTab from './OffersTab';
 
-type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast';
+type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast' | 'offers';
 
 interface Stats {
   totalUsers: number;
@@ -31,6 +32,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: string }[] = [
   { id: 'payments', label: 'المدفوعات', icon: 'CreditCardIcon' },
   { id: 'map', label: 'خريطة الحرفيين', icon: 'MapPinIcon' },
   { id: 'broadcast', label: 'إشعار جماعي', icon: 'BellAlertIcon' },
+  { id: 'offers', label: 'العروض والخصومات', icon: 'TagIcon' },
 ];
 
 export default function DashboardClient() {
@@ -367,6 +369,7 @@ export default function DashboardClient() {
           {activeTab === 'payments' && <PaymentsTab />}
           {activeTab === 'map' && <MapTab />}
           {activeTab === 'broadcast' && <BroadcastTab />}
+          {activeTab === 'offers' && <OffersTab />}
         </main>
       </div>
     </div>

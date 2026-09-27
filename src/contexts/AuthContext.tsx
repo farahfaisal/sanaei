@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Register a new user: creates auth account with phone-derived email + password 123456, then saves profile
-  const registerUser = async (phone: string, fullName: string, role: 'customer' | 'craftsman') => {
+  const registerUser = async (phone: string, fullName: string, role: 'customer' | 'craftsman', location?: string) => {
     const normalizedPhone = phone.replace(/\D/g, '');
     const email = `${normalizedPhone}@sanaei.app`;
     const password = '123456';
@@ -148,6 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         phone,
         full_name: fullName,
         role: role as any,
+        ...(location ? { location } : {}),
       }, { onConflict: 'id' });
 
     if (profileError) throw profileError;
