@@ -6,10 +6,10 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 
 const BRAND = {
-  primary:  '#1B5E20',
-  accent:   '#2E7D32',
-  light:    'rgba(27,94,32,0.10)',
-  gradient: 'linear-gradient(145deg, #1B5E20 0%, #2E7D32 55%, #388E3C 100%)',
+  primary:  '#1a5857',
+  accent:   '#123d3c',
+  light:    'rgba(26,88,87,0.10)',
+  gradient: 'linear-gradient(145deg, #1a5857 0%, #123d3c 55%, #267877 100%)',
 };
 
 interface BookingSuccessScreenProps {

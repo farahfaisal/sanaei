@@ -44,7 +44,7 @@ export default function OnboardingClient() {
         >
           <div
             className={`relative rounded-2xl border-2 p-4 transition-all duration-200 ${
-              selectedRole === 'customer' ?'border-primary bg-green-50' :'border-gray-200 bg-white'
+              selectedRole === 'customer' ?'border-primary bg-primary/10' :'border-gray-200 bg-white'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -90,7 +90,7 @@ export default function OnboardingClient() {
         >
           <div
             className={`relative rounded-2xl border-2 p-4 transition-all duration-200 ${
-              selectedRole === 'craftsman' ?'border-primary bg-green-50' :'border-gray-200 bg-white'
+              selectedRole === 'craftsman' ?'border-primary bg-primary/10' :'border-gray-200 bg-white'
             }`}
           >
             <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export default function OnboardingClient() {
           onClick={handleContinue}
           className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
           style={{
-            background: selectedRole ? '#1B5E20' : '#9CA3AF',
+            background: selectedRole ? '#1a5857' : '#9CA3AF',
             opacity: selectedRole ? 1 : 0.7,
           }}
           disabled={!selectedRole}

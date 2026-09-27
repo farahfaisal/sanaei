@@ -176,7 +176,7 @@ export default function PhoneLoginClient() {
               <button
                 onClick={() => setSelectedRole('customer')}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
-                  selectedRole === 'customer' ?'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
+                  selectedRole === 'customer' ?'border-primary bg-primary/10 text-primary' :'border-gray-200 text-gray-500'
                 }`}
               >
                 👤 زبون
@@ -184,7 +184,7 @@ export default function PhoneLoginClient() {
               <button
                 onClick={() => setSelectedRole('craftsman')}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
-                  selectedRole === 'craftsman' ?'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
+                  selectedRole === 'craftsman' ?'border-primary bg-primary/10 text-primary' :'border-gray-200 text-gray-500'
                 }`}
               >
                 🔧 صنايعي
@@ -231,7 +231,7 @@ export default function PhoneLoginClient() {
                             setShowCountryPicker(false);
                           }}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-50 transition-colors text-right ${
-                            c.code === selectedCountry.code ? 'bg-green-50 text-primary font-semibold' : ''
+                            c.code === selectedCountry.code ? 'bg-primary/10 text-primary font-semibold' : ''
                           }`}
                         >
                           <span>{c.flag}</span>
@@ -254,7 +254,7 @@ export default function PhoneLoginClient() {
               onClick={handleSendOtp}
               disabled={isLoading || !phone}
               className="w-full py-4 rounded-2xl font-bold text-white text-base mb-5 transition-all"
-              style={{ background: '#1B5E20', opacity: (!phone || isLoading) ? 0.6 : 1 }}
+              style={{ background: '#1a5857', opacity: (!phone || isLoading) ? 0.6 : 1 }}
             >
               {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
             </button>
@@ -268,7 +268,7 @@ export default function PhoneLoginClient() {
           <>
             {/* OTP step */}
             <div className="text-center mb-8 mt-4">
-              <div className="w-16 h-16 rounded-2xl bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto mb-5">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-5">
                 <Icon name="ShieldCheckIcon" size={32} className="text-primary" />
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">تحقق من رقم جوالك</h2>
@@ -297,7 +297,7 @@ export default function PhoneLoginClient() {
                   onChange={(e) => handleOtpChange(i, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   className={`w-12 h-14 text-center text-xl font-bold rounded-xl border-2 outline-none transition-all ${
-                    digit ? 'border-primary bg-green-50 text-primary' : 'border-gray-200 bg-gray-50 text-gray-900'
+                    digit ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 bg-gray-50 text-gray-900'
                   }`}
                 />
               ))}
@@ -315,13 +315,13 @@ export default function PhoneLoginClient() {
                     <circle cx="16" cy="16" r="13" fill="none" stroke="#E5E7EB" strokeWidth="2.5" />
                     <circle
                       cx="16" cy="16" r="13" fill="none"
-                      stroke="#1B5E20" strokeWidth="2.5"
+                      stroke="#1a5857" strokeWidth="2.5"
                       strokeDasharray={circumference}
                       strokeDashoffset={dashOffset}
                       strokeLinecap="round"
                       transform="rotate(-90 16 16)"
                     />
-                    <text x="16" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#1B5E20">
+                    <text x="16" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#1a5857">
                       {countdown}
                     </text>
                   </svg>
@@ -346,7 +346,7 @@ export default function PhoneLoginClient() {
               onClick={handleVerify}
               disabled={isLoading || otp.join('').length < 6}
               className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-              style={{ background: '#1B5E20', opacity: (isLoading || otp.join('').length < 6) ? 0.6 : 1 }}
+              style={{ background: '#1a5857', opacity: (isLoading || otp.join('').length < 6) ? 0.6 : 1 }}
             >
               {isLoading ? 'جاري التحقق...' : 'تأكيد'}
             </button>

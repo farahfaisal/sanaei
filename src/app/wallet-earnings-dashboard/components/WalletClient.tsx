@@ -133,7 +133,7 @@ export default function WalletClient() {
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
       {/* Header */}
-      <div style={{ background: '#1B5E20' }} className="px-4 pt-12 pb-5">
+      <div style={{ background: '#1a5857' }} className="px-4 pt-12 pb-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-2">
             <button className="w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">
@@ -154,9 +154,9 @@ export default function WalletClient() {
               <Icon name="ShieldCheckIcon" size={22} className="text-yellow-400" />
             </div>
             <div className="text-right">
-              <p className="text-xs text-green-200 mb-1">الرصيد الحالي</p>
+              <p className="text-xs text-white/70 mb-1">الرصيد الحالي</p>
               <div className="flex items-end gap-2">
-                <span className="text-sm font-semibold text-green-200">₪</span>
+                <span className="text-sm font-semibold text-white/70">₪</span>
                 <span className="text-4xl font-black text-white font-tabular">
                   {isLoading ? '...' : formatAmount(wallet?.balance || 0)}
                 </span>
@@ -167,7 +167,7 @@ export default function WalletClient() {
           {wallet?.locked_balance && wallet.locked_balance > 0 ? (
             <div className="flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2 mb-3">
               <Icon name="LockClosedIcon" size={13} className="text-yellow-300 flex-shrink-0" />
-              <span className="text-xs text-green-100">
+              <span className="text-xs text-white/80">
                 مبلغ معلق {formatAmount(wallet.locked_balance)} ₪ — يُفرج عنه بعد 48 ساعة
               </span>
             </div>
@@ -175,7 +175,7 @@ export default function WalletClient() {
 
           <div className="flex gap-4 pt-3 border-t border-white/15">
             <div className="text-right">
-              <p className="text-xs text-green-300 mb-0.5">الرصيد المتاح</p>
+              <p className="text-xs text-white/60 mb-0.5">الرصيد المتاح</p>
               <p className="text-base font-bold text-white font-tabular">
                 {isLoading ? '...' : formatAmount((wallet?.balance || 0) - (wallet?.locked_balance || 0))} ₪
               </p>
@@ -259,7 +259,7 @@ export default function WalletClient() {
                     <div className="text-left flex-shrink-0">
                       <span
                         className={`text-sm font-bold font-tabular ${
-                          isIncome ? 'text-green-600' : isLocked ? 'text-yellow-600' : 'text-red-500'
+                          isIncome ? 'text-primary' : isLocked ? 'text-yellow-600' : 'text-red-500'
                         }`}
                       >
                         {txn.amount > 0 ? '+' : ''}{txn.amount} ₪
@@ -275,13 +275,13 @@ export default function WalletClient() {
 
                     <div
                       className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                        isIncome ? 'bg-green-50' : isLocked ? 'bg-yellow-50' : 'bg-red-50'
+                        isIncome ? 'bg-primary/10' : isLocked ? 'bg-yellow-50' : 'bg-red-50'
                       }`}
                     >
                       <Icon
                         name={isIncome ? 'ArrowDownLeftIcon' : isLocked ? 'LockClosedIcon' : 'ArrowUpRightIcon'}
                         size={16}
-                        className={isIncome ? 'text-green-600' : isLocked ? 'text-yellow-600' : 'text-red-500'}
+                        className={isIncome ? 'text-primary' : isLocked ? 'text-yellow-600' : 'text-red-500'}
                       />
                     </div>
                   </div>

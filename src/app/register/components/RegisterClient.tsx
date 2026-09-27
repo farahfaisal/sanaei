@@ -184,7 +184,7 @@ function RegisterForm() {
       <div className="flex-1 px-5 pt-2 pb-6 flex flex-col overflow-y-auto">
         {/* Welcome */}
         <div className="text-center mb-6 mt-4">
-          <div className="w-20 h-20 rounded-2xl bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl">{roleEmoji}</span>
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-1">أهلاً بك!</h2>
@@ -205,7 +205,7 @@ function RegisterForm() {
         {/* Role display (read-only) */}
         <div className="mb-4">
           <label className="text-sm font-semibold text-gray-700 block mb-2">نوع الحساب</label>
-          <div className="py-3.5 px-4 bg-green-50 border border-green-200 rounded-xl text-sm text-primary font-semibold flex items-center gap-2">
+          <div className="py-3.5 px-4 bg-primary/10 border border-primary/20 rounded-xl text-sm text-primary font-semibold flex items-center gap-2">
             <span>{roleEmoji}</span>
             <span>{roleLabel}</span>
           </div>
@@ -275,7 +275,7 @@ function RegisterForm() {
             {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs font-bold text-primary bg-green-50 px-3 py-1 rounded-full">معلومات الصنايعي</span>
+              <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">معلومات الصنايعي</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 
@@ -295,7 +295,7 @@ function RegisterForm() {
                     onClick={() => { setSpecialty(sp.id); setError(''); }}
                     className={`flex flex-col items-center gap-1 py-2.5 px-1 rounded-xl border-2 transition-all ${
                       specialty === sp.id
-                        ? 'border-primary bg-green-50' :'border-gray-200 bg-white'
+                        ? 'border-primary bg-primary/10' :'border-gray-200 bg-white'
                     }`}
                   >
                     <span className="text-xl">{sp.emoji}</span>
@@ -403,7 +403,7 @@ function RegisterForm() {
                       onClick={() => setServiceRadius(r)}
                       className={`flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
                         serviceRadius === r
-                          ? 'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
+                          ? 'border-primary bg-primary/10 text-primary' :'border-gray-200 text-gray-500'
                       }`}
                     >
                       {r} كم
@@ -424,7 +424,7 @@ function RegisterForm() {
                     onClick={() => setExperienceYears(yr === '10+' ? '10' : yr)}
                     className={`flex-1 py-2 rounded-xl text-xs font-semibold border-2 transition-all ${
                       experienceYears === (yr === '10+' ? '10' : yr)
-                        ? 'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
+                        ? 'border-primary bg-primary/10 text-primary' :'border-gray-200 text-gray-500'
                     }`}
                   >
                     {yr}
@@ -506,7 +506,7 @@ function RegisterForm() {
           onClick={handleRegister}
           disabled={isLoading || !canSubmit}
           className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-          style={{ background: '#1B5E20', opacity: (!canSubmit || isLoading) ? 0.6 : 1 }}
+          style={{ background: '#1a5857', opacity: (!canSubmit || isLoading) ? 0.6 : 1 }}
         >
           {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
         </button>

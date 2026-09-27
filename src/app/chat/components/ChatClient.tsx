@@ -511,7 +511,7 @@ export default function ChatClient() {
         </div>
         <div className="px-4 py-6 space-y-4">
           {/* Amount summary */}
-          <div className="bg-green-50 border border-green-100 rounded-2xl p-4 text-center">
+          <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 text-center">
             <p className="text-sm text-gray-500 mb-1">المبلغ المطلوب</p>
             <p className="text-3xl font-black text-primary">
               {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ₪
@@ -529,7 +529,7 @@ export default function ChatClient() {
               key={pm.value}
               onClick={() => setSelectedPaymentMethod(pm.value)}
               className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-right ${
-                selectedPaymentMethod === pm.value ? 'border-primary bg-green-50' : 'border-gray-200 bg-white'
+                selectedPaymentMethod === pm.value ? 'border-primary bg-primary/10' : 'border-gray-200 bg-white'
               }`}
             >
               <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
@@ -549,7 +549,7 @@ export default function ChatClient() {
             onClick={handlePayment}
             disabled={isProcessingPayment}
             className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2"
-            style={{ background: '#1B5E20' }}
+            style={{ background: '#1a5857' }}
           >
             {isProcessingPayment ? (
               <>
@@ -593,7 +593,7 @@ export default function ChatClient() {
           )}
         </div>
         {chatStep === 'payment_held' && (
-          <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-semibold flex-shrink-0">
+          <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded-full font-semibold flex-shrink-0">
             💰 محجوز
           </span>
         )}
@@ -674,10 +674,10 @@ export default function ChatClient() {
 
       {/* Payment held banner */}
       {chatStep === 'payment_held' && (
-        <div className="mx-4 mt-3 bg-green-50 border border-green-200 rounded-2xl p-3 flex-shrink-0">
+        <div className="mx-4 mt-3 bg-primary/10 border border-primary/20 rounded-2xl p-3 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <Icon name="LockClosedIcon" size={16} className="text-green-600" />
-            <p className="text-xs text-green-700 font-semibold">
+            <Icon name="LockClosedIcon" size={16} className="text-primary" />
+            <p className="text-xs text-primary font-semibold">
               المبلغ محجوز لدى الإدارة — سيُحرَّر للصنايعي عند إتمام الخدمة
             </p>
           </div>
@@ -719,7 +719,7 @@ export default function ChatClient() {
                       : isOwn
                       ? 'text-white' :'bg-white border border-gray-100 text-gray-900'
                   }`}
-                  style={isOwn && msg.message_type !== 'quote' ? { background: '#1B5E20' } : {}}
+                  style={isOwn && msg.message_type !== 'quote' ? { background: '#1a5857' } : {}}
                 >
                   {msg.message_type === 'image' && msg.media_url ? (
                     <div className="w-48 h-48 rounded-xl overflow-hidden">
@@ -765,7 +765,7 @@ export default function ChatClient() {
                 onClick={submitQuote}
                 disabled={isSubmittingQuote || !quoteAmount}
                 className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-1"
-                style={{ background: '#1B5E20' }}
+                style={{ background: '#1a5857' }}
               >
                 {isSubmittingQuote ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -842,7 +842,7 @@ export default function ChatClient() {
             onClick={() => sendMessage(messageText)}
             disabled={isSending || !messageText.trim()}
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-            style={{ background: messageText.trim() ? '#1B5E20' : '#e5e7eb' }}
+            style={{ background: messageText.trim() ? '#1a5857' : '#e5e7eb' }}
           >
             <Icon name="PaperAirplaneIcon" size={18} className={messageText.trim() ? 'text-white' : 'text-gray-400'} />
           </button>

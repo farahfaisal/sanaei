@@ -199,14 +199,14 @@ export default function PaymentClient() {
     return (
       <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
         <div className="text-center">
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1B5E20' }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1a5857' }}>
             <Icon name="CheckIcon" size={44} className="text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">تم الدفع بنجاح!</h2>
           <p className="text-gray-500 text-sm mb-6">
             تم تأكيد حجزك مع {craftsmanName}
           </p>
-          <div className="bg-green-50 rounded-2xl p-4 mb-8 text-right border border-green-100">
+          <div className="bg-primary/10 rounded-2xl p-4 mb-8 text-right border border-primary/20">
             <div className="flex justify-between items-center">
               <span className="text-xl font-black text-primary font-tabular">
                 {amount} ر.س
@@ -219,7 +219,7 @@ export default function PaymentClient() {
               <button
                 onClick={() => router.push(`/order-details?order_id=${orderId}`)}
                 className="w-full py-4 rounded-2xl font-bold text-white text-base"
-                style={{ background: '#1B5E20' }}
+                style={{ background: '#1a5857' }}
               >
                 عرض تفاصيل الطلب
               </button>
@@ -296,7 +296,7 @@ export default function PaymentClient() {
           <button
             onClick={() => setMethod('card')}
             className={`w-full text-right rounded-2xl border-2 p-4 transition-all ${
-              method === 'card' ? 'border-primary bg-green-50' : 'border-gray-200 bg-white'
+              method === 'card' ? 'border-primary bg-primary/10' : 'border-gray-200 bg-white'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -321,7 +321,7 @@ export default function PaymentClient() {
           <button
             onClick={() => setMethod('cash')}
             className={`w-full text-right rounded-2xl border-2 p-4 transition-all ${
-              method === 'cash' ? 'border-primary bg-green-50' : 'border-gray-200 bg-white'
+              method === 'cash' ? 'border-primary bg-primary/10' : 'border-gray-200 bg-white'
             }`}
           >
             <div className="flex items-center justify-between">
@@ -335,8 +335,8 @@ export default function PaymentClient() {
                   <p className="text-sm font-semibold text-gray-900">كاش</p>
                   <p className="text-xs text-gray-500">عند إتمام الخدمة</p>
                 </div>
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <Icon name="BanknotesIcon" size={22} className="text-green-600" />
+                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
+                  <Icon name="BanknotesIcon" size={22} className="text-primary" />
                 </div>
               </div>
             </div>
@@ -384,7 +384,7 @@ export default function PaymentClient() {
           onClick={handlePay}
           disabled={isProcessing}
           className="w-full py-4 rounded-2xl font-bold text-white text-base mb-3 transition-all"
-          style={{ background: '#1B5E20', opacity: isProcessing ? 0.7 : 1 }}
+          style={{ background: '#1a5857', opacity: isProcessing ? 0.7 : 1 }}
         >
           {isProcessing ? 'جاري المعالجة...' : `ادفع ${amount} ₪ الآن`}
         </button>

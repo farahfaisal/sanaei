@@ -70,9 +70,9 @@ function generateFallbackPosition(seed: string): { lat: number; lng: number } {
   return { lat, lng };
 }
 
-// Logo green: #2E7D32 (matches the app logo's green tone)
-const LOGO_GREEN = '#2E7D32';
-const LOGO_GREEN_DARK = '#1B5E20';
+// Logo green: #1a5857 (app primary color)
+const LOGO_GREEN = '#1a5857';
+const LOGO_GREEN_DARK = '#123d3c';
 
 export default function HomeScreenClient() {
   const { user, profile } = useAuth();
@@ -221,11 +221,11 @@ export default function HomeScreenClient() {
       <div style={{ background: `linear-gradient(135deg, ${LOGO_GREEN_DARK} 0%, ${LOGO_GREEN} 100%)` }} className="px-4 pt-12 pb-5">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-xs text-green-300 mb-0.5">🌟 مرحباً بك</p>
+            <p className="text-xs text-primary/70 mb-0.5">🌟 مرحباً بك</p>
             <h1 className="text-lg font-bold text-white">{displayName}</h1>
             <div className="flex items-center gap-1 mt-0.5">
-              <Icon name="MapPinIcon" size={12} className="text-green-300" />
-              <span className="text-xs text-green-200">{profile?.location || 'الرياض، السعودية'}</span>
+              <Icon name="MapPinIcon" size={12} className="text-primary/70" />
+              <span className="text-xs text-primary/50">{profile?.location || 'الرياض، السعودية'}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -291,7 +291,7 @@ export default function HomeScreenClient() {
               onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
               className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${
               activeCategory === cat.id ?
-              'border-primary bg-green-50' : 'border-gray-200 bg-white'}`
+              'border-primary bg-primary/10' : 'border-gray-200 bg-white'}`
               }>
               
                   <span className="text-xl">{cat.emoji}</span>
@@ -413,7 +413,7 @@ export default function HomeScreenClient() {
                       }
                         </div>
                         {craftsman.is_online &&
-                    <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+                    <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-white" />
                     }
                       </div>
 
@@ -430,7 +430,7 @@ export default function HomeScreenClient() {
                             </span>
                       }
                           {craftsman.is_online &&
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-primary bg-green-50 border border-green-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-primary bg-primary/10 border border-primary/30">
                               <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                               متاح الآن
                             </span>
