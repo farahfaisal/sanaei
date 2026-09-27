@@ -66,11 +66,11 @@ export default function PhoneLoginClient() {
     setIsLoading(true);
     try {
       await sendOtp(fullPhone);
-      setStep('otp');
-      setCountdown(42);
-      setCanResend(false);
+      // OTP verification temporarily disabled — auto-verify with default code
+      await verifyOtp(fullPhone, '123456', selectedRole);
+      router.push('/home-screen');
     } catch (err: any) {
-      setError(err?.message || 'فشل إرسال رمز التحقق، يرجى المحاولة مجدداً');
+      setError(err?.message || 'فشل تسجيل الدخول، يرجى المحاولة مجدداً');
     } finally {
       setIsLoading(false);
     }
