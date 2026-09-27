@@ -58,13 +58,15 @@ function formatTime(dateStr: string) {
 }
 
 export default function WalletClient() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const supabase = createClient();
   const [activeTab, setActiveTab] = useState<EarningTab>('week');
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const isCustomer = profile?.role === 'customer';
 
   useEffect(() => {
     if (user) {
@@ -196,7 +198,8 @@ export default function WalletClient() {
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-24">
-        {/* Earnings chart section */}
+        {/* Earnings chart section — only for craftsmen */}
+        {!isCustomer && (
         <div className="bg-white rounded-2xl border border-gray-100 p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="text-left">
@@ -228,6 +231,7 @@ export default function WalletClient() {
           {/* Chart */}
           <EarningsChart activeTab={activeTab} transactions={transactions} />
         </div>
+        )}
 
         {/* Recent transactions */}
         <div className="bg-white rounded-2xl border border-gray-100 p-4">
