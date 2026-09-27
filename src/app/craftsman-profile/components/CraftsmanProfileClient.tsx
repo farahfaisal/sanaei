@@ -8,6 +8,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import RequestServiceModal from './RequestServiceModal';
 
 interface CraftsmanData {
   id: string;
@@ -174,6 +175,10 @@ export default function CraftsmanProfileClient() {
   const [nearbyCraftsmen, setNearbyCraftsmen] = useState<NearbyCraftsman[]>([]);
   const [showMap, setShowMap] = useState(false);
   const [mapMounted, setMapMounted] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestServiceId, setRequestServiceId] = useState<string | undefined>(undefined);
+  const [requestServiceName, setRequestServiceName] = useState<string | undefined>(undefined);
+  const [orderSuccess, setOrderSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     if (craftsmanId) {
@@ -318,6 +323,17 @@ export default function CraftsmanProfileClient() {
     setTimeout(() => setMapMounted(true), 100);
   };
 
+  const handleRequestService = (serviceId?: string, serviceName?: string) => {
+    setRequestServiceId(serviceId);
+    setRequestServiceName(serviceName);
+    setShowRequestModal(true);
+  };
+
+  const handleOrderSuccess = (orderId: string) => {
+    setShowRequestModal(false);
+    setOrderSuccess(orderId);
+  };
+
   if (isLoading) {
     return (
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
@@ -337,6 +353,36 @@ export default function CraftsmanProfileClient() {
           <p className="text-gray-500 text-sm">لم يتم العثور على الصنايعي</p>
           <button onClick={() => router.back()} className="mt-4 text-primary text-sm font-semibold">
             العودة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (orderSuccess) {
+    return (
+      <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
+        <div className="text-center">
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1B5E20' }}>
+            <Icon name="CheckIcon" size={44} className="text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">تم إرسال الطلب!</h2>
+          <p className="text-gray-500 text-sm mb-2">
+            تم إرسال طلبك إلى {craftsman?.user_profiles?.full_name || 'الصنايعي'} بنجاح
+          </p>
+          <p className="text-gray-400 text-xs mb-8">سيتم إشعارك عند قبول الطلب</p>
+          <div className="bg-green-50 rounded-2xl p-4 mb-8 text-right border border-green-100">
+            <div className="flex justify-between items-center">
+              <span className="text-xs text-gray-400 font-tabular">#{orderSuccess.slice(-8).toUpperCase()}</span>
+              <span className="text-sm font-bold text-primary">قيد الانتظار ⏳</span>
+            </div>
+          </div>
+          <button
+            onClick={() => router.push('/home-screen')}
+            className="w-full py-4 rounded-2xl font-bold text-white text-base"
+            style={{ background: '#1B5E20' }}
+          >
+            العودة للرئيسية
           </button>
         </div>
       </div>
@@ -498,10 +544,22 @@ export default function CraftsmanProfileClient() {
             <Icon name="ChatBubbleLeftEllipsisIcon" size={15} className="text-primary" />
             رسالة
           </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
-            <Icon name="HeartIcon" size={15} className="text-red-500" />
-            حفظ
-          </button>
+          {!isOwnProfile && (
+            <button
+              onClick={() => handleRequestService()}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white"
+              style={{ background: '#1B5E20' }}
+            >
+              <Icon name="WrenchScrewdriverIcon" size={15} className="text-white" />
+              طلب خدمة
+            </button>
+          )}
+          {isOwnProfile && (
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
+              <Icon name="HeartIcon" size={15} className="text-red-500" />
+              حفظ
+            </button>
+          )}
         </div>
       </div>
 
@@ -683,11 +741,21 @@ export default function CraftsmanProfileClient() {
             <div className="space-y-3">
               {services.map((svc) => (
                 <div key={svc.id} className="flex items-center justify-between">
-                  <Link href={`/payment-screen?service_id=${svc.id}&craftsman_id=${craftsman.id}`}>
-                    <button className="px-4 py-1.5 rounded-xl text-sm font-bold text-white" style={{ background: '#1B5E20' }}>
+                  {isOwnProfile ? (
+                    <Link href={`/payment-screen?service_id=${svc.id}&craftsman_id=${craftsman.id}`}>
+                      <button className="px-4 py-1.5 rounded-xl text-sm font-bold text-white" style={{ background: '#1B5E20' }}>
+                        طلب
+                      </button>
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={() => handleRequestService(svc.id, svc.name)}
+                      className="px-4 py-1.5 rounded-xl text-sm font-bold text-white"
+                      style={{ background: '#1B5E20' }}
+                    >
                       طلب
                     </button>
-                  </Link>
+                  )}
                   <div className="flex items-center gap-2">
                     <div>
                       <p className="text-sm font-semibold text-gray-900 text-right">{svc.name}</p>
@@ -756,6 +824,18 @@ export default function CraftsmanProfileClient() {
       </div>
 
       <BottomTabBar activeTab="profile" />
+
+      {showRequestModal && craftsman && (
+        <RequestServiceModal
+          craftsmanProfileId={craftsman.id}
+          craftsmanUserId={craftsman.user_id}
+          craftsmanName={craftsman.user_profiles?.full_name || 'الصنايعي'}
+          serviceId={requestServiceId}
+          serviceName={requestServiceName}
+          onClose={() => setShowRequestModal(false)}
+          onSuccess={handleOrderSuccess}
+        />
+      )}
     </div>
   );
 }
