@@ -82,6 +82,221 @@ interface OrderData {
   } | null;
 }
 
+// ── Customer Orders List View ─────────────────────────────────────────────────
+function CustomerOrdersList() {
+  const router = useRouter();
+  const { user, profile } = useAuth();
+  const supabase = createClient();
+
+  const [orders, setOrders] = useState<OrderData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'active' | 'completed'>('active');
+
+  useEffect(() => {
+    if (user) loadCustomerOrders();
+  }, [user]);
+
+  const loadCustomerOrders = async () => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      const { data } = await supabase
+        .from('orders')
+        .select(`
+          id, status, description, address, amount,
+          payment_method, payment_status, notes,
+          created_at, updated_at, scheduled_at,
+          service:service_id(id, name, emoji, base_price, price_label, description),
+          craftsman:craftsman_id(
+            id, specialty, rating, avatar_url,
+            user_profiles:user_id(full_name, phone)
+          )
+        `)
+        .eq('customer_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      setOrders((data as unknown as OrderData[]) || []);
+    } catch {
+      setOrders([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const activeOrders = orders.filter(o => ['pending', 'accepted', 'in_progress'].includes(o.status));
+  const completedOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
+  const displayedOrders = activeTab === 'active' ? activeOrders : completedOrders;
+
+  const customerName = profile?.full_name || 'العميل';
+
+  return (
+    <div className="screen-container" style={{ background: 'var(--background)' }} dir="rtl">
+      {/* Header */}
+      <div
+        className="relative overflow-hidden"
+        style={{ background: BRAND.gradient, paddingTop: '2.75rem', paddingBottom: '4.5rem' }}
+      >
+        <div className="absolute -top-6 -left-6 w-36 h-36 rounded-full opacity-10" style={{ background: '#fff' }} />
+        <div className="absolute top-6 right-6 w-16 h-16 rounded-full opacity-10" style={{ background: '#fff' }} />
+        <div className="relative px-4">
+          <p className="text-xs font-medium text-white opacity-75 mb-0.5">مرحباً،</p>
+          <h1 className="text-xl font-bold text-white leading-tight">{customerName}</h1>
+          <p className="text-xs text-white opacity-60 mt-1">طلباتي</p>
+        </div>
+      </div>
+
+      {/* Stats strip */}
+      <div className="px-4 -mt-8 relative z-10 mb-4">
+        <div
+          className="rounded-2xl p-4 shadow-xl grid grid-cols-3 gap-3"
+          style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
+        >
+          {[
+            { label: 'إجمالي', value: orders.length, color: BRAND.primary },
+            { label: 'نشطة', value: activeOrders.length, color: '#D97706' },
+            { label: 'مكتملة', value: completedOrders.length, color: '#059669' },
+          ].map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center">
+              <p className="text-2xl font-black" style={{ color: stat.color }}>{stat.value}</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{stat.label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="px-4 mb-4">
+        <div className="flex gap-2 p-1 rounded-xl" style={{ background: 'var(--muted)' }}>
+          {[
+            { key: 'active', label: `النشطة (${activeOrders.length})` },
+            { key: 'completed', label: `السابقة (${completedOrders.length})` },
+          ].map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as 'active' | 'completed')}
+              className="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all"
+              style={{
+                background: activeTab === tab.key ? BRAND.primary : 'transparent',
+                color: activeTab === tab.key ? '#fff' : 'var(--muted-foreground)',
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Orders list */}
+      <div className="px-4 pb-24 space-y-3">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+            <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل الطلبات...</p>
+          </div>
+        ) : displayedOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-3">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ background: BRAND.light }}>
+              <Icon name="ClipboardDocumentListIcon" size={28} style={{ color: BRAND.primary }} />
+            </div>
+            <p className="font-bold text-base" style={{ color: 'var(--foreground)' }}>
+              {activeTab === 'active' ? 'لا توجد طلبات نشطة' : 'لا توجد طلبات سابقة'}
+            </p>
+            <p className="text-sm text-center" style={{ color: 'var(--muted-foreground)' }}>
+              {activeTab === 'active' ? 'ستظهر هنا طلباتك النشطة' : 'ستظهر هنا طلباتك المكتملة'}
+            </p>
+          </div>
+        ) : (
+          displayedOrders.map((order) => {
+            const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+            const service = Array.isArray(order.service) ? order.service[0] : order.service;
+            const craftsman = Array.isArray(order.craftsman) ? order.craftsman[0] : order.craftsman;
+            const craftsmanProfiles = Array.isArray((craftsman as any)?.user_profiles)
+              ? (craftsman as any)?.user_profiles[0]
+              : (craftsman as any)?.user_profiles;
+            const craftsmanName = craftsmanProfiles?.full_name || 'الصنايعي';
+            const serviceName = (service as any)?.name || 'خدمة صيانة';
+            const serviceEmoji = (service as any)?.emoji || '🔧';
+            const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+            const isActive = ['pending', 'accepted', 'in_progress'].includes(order.status);
+
+            return (
+              <div
+                key={order.id}
+                className="rounded-2xl p-4 transition-all"
+                style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div
+                    className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 text-2xl"
+                    style={{ background: BRAND.light }}
+                  >
+                    {serviceEmoji}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <p className="font-bold text-sm truncate" style={{ color: 'var(--foreground)' }}>{serviceName}</p>
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1"
+                        style={{ background: statusInfo.bg, color: statusInfo.color }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusInfo.dot }} />
+                        {statusInfo.label}
+                      </span>
+                    </div>
+                    <p className="text-xs mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                      الصنايعي: {craftsmanName}
+                    </p>
+                    {order.address && (
+                      <p className="text-xs truncate mb-1" style={{ color: 'var(--muted-foreground)' }}>
+                        📍 {order.address}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{createdDate}</p>
+                      {order.amount && order.amount > 0 && (
+                        <p className="text-sm font-black" style={{ color: BRAND.primary }}>
+                          {order.amount.toLocaleString()} ر.س
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2 pt-2" style={{ borderTop: '1px solid var(--border)' }}>
+                  {isActive && (
+                    <button
+                      onClick={() => router.push(`/order-live-status?id=${order.id}`)}
+                      className="flex-1 py-2 rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 transition-all"
+                      style={{ background: BRAND.primary, color: '#fff' }}
+                    >
+                      <span className="w-2 h-2 rounded-full bg-white opacity-80 animate-pulse" />
+                      تتبع الطلب مباشرة
+                    </button>
+                  )}
+                  <button
+                    onClick={() => router.push(`/order-details?order_id=${order.id}`)}
+                    className="flex-1 py-2 rounded-xl text-sm font-semibold transition-all"
+                    style={{
+                      background: isActive ? 'var(--muted)' : BRAND.primary,
+                      color: isActive ? 'var(--foreground)' : '#fff',
+                    }}
+                  >
+                    عرض التفاصيل
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      <BottomTabBar activeTab="orders" />
+    </div>
+  );
+}
+
 // ── Craftsman Orders List View ────────────────────────────────────────────────
 function CraftsmanOrdersList() {
   const router = useRouter();
