@@ -7,6 +7,7 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomTabBar from '@/components/BottomTabBar';
+import RatingModal from './RatingModal';
 
 const BRAND = {
   primary: '#1a5857',
@@ -87,6 +88,9 @@ export default function OrderLiveStatusClient() {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [pulse, setPulse] = useState(false);
+  const [showRatingModal, setShowRatingModal] = useState(false);
+  const [alreadyReviewed, setAlreadyReviewed] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
 
   const fetchOrder = useCallback(async () => {
     if (!orderId || !user) return;
@@ -129,6 +133,17 @@ export default function OrderLiveStatusClient() {
       setLastUpdated(new Date());
       setPulse(true);
       setTimeout(() => setPulse(false), 800);
+
+      // Check if already reviewed when order is completed
+      if ((data as any).status === 'completed') {
+        const { data: existingReview } = await supabase
+          .from('reviews')
+          .select('id')
+          .eq('order_id', orderId)
+          .eq('customer_id', user.id)
+          .maybeSingle();
+        setAlreadyReviewed(!!existingReview);
+      }
     } catch {
       // silent
     } finally {
@@ -461,19 +476,58 @@ export default function OrderLiveStatusClient() {
         {/* ── Completed CTA ── */}
         {isCompleted && (
           <div
-            className="rounded-2xl p-4 text-center"
+            className="rounded-2xl p-4"
             style={{ background: 'rgba(5,150,105,0.08)', border: '1.5px solid rgba(5,150,105,0.3)' }}
           >
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(5,150,105,0.15)' }}>
-              <Icon name="CheckBadgeIcon" size={24} style={{ color: '#059669' }} />
+            <div className="flex flex-col items-center text-center mb-4">
+              <div className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto mb-2" style={{ background: 'rgba(5,150,105,0.15)' }}>
+                <Icon name="CheckBadgeIcon" size={24} style={{ color: '#059669' }} />
+              </div>
+              <p className="font-bold text-sm mb-1" style={{ color: '#059669' }}>تم إنجاز الخدمة بنجاح 🎉</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>شكراً لاستخدامك صنايعي</p>
             </div>
-            <p className="font-bold text-sm mb-1" style={{ color: '#059669' }}>تم إنجاز الخدمة بنجاح 🎉</p>
-            <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>شكراً لاستخدامك صنايعي</p>
+
+            {/* Rating CTA */}
+            {reviewSubmitted || alreadyReviewed ? (
+              <div
+                className="flex items-center justify-center gap-2 py-3 rounded-xl"
+                style={{ background: 'rgba(5,150,105,0.12)' }}
+              >
+                <Icon name="StarIcon" size={18} variant="solid" style={{ color: '#F59E0B' }} />
+                <p className="text-sm font-semibold" style={{ color: '#059669' }}>
+                  {reviewSubmitted ? 'شكراً! تم إرسال تقييمك' : 'لقد قيّمت هذا الطلب مسبقاً'}
+                </p>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowRatingModal(true)}
+                className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+                style={{ background: BRAND.primary, color: '#fff' }}
+              >
+                <Icon name="StarIcon" size={18} variant="solid" className="text-yellow-300" />
+                قيّم الصنايعي
+              </button>
+            )}
           </div>
         )}
       </div>
 
       <BottomTabBar activeTab="orders" />
+
+      {/* Rating Modal */}
+      {showRatingModal && order?.craftsman && (
+        <RatingModal
+          orderId={order.id}
+          craftsmanId={order.craftsman.id}
+          craftsmanName={order.craftsman.user_profiles?.full_name ?? 'الصنايعي'}
+          craftsmanAvatar={order.craftsman.user_profiles?.avatar_url ?? null}
+          onClose={() => setShowRatingModal(false)}
+          onSuccess={() => {
+            setShowRatingModal(false);
+            setReviewSubmitted(true);
+          }}
+        />
+      )}
     </div>
   );
 }
