@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import NotificationBell from '@/components/NotificationBell';
 import dynamic from 'next/dynamic';
+import RequestServiceModal from '@/app/craftsman-profile/components/RequestServiceModal';
 
 const NearbyMapSection = dynamic(() => import('./NearbyMapSection'), { ssr: false });
 
@@ -85,6 +86,10 @@ export default function HomeScreenClient() {
   const [activeOfferIndex, setActiveOfferIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const offerTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Booking modal state
+  const [bookingCraftsman, setBookingCraftsman] = useState<CraftsmanCard | null>(null);
+  const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     loadData();
@@ -348,8 +353,7 @@ export default function HomeScreenClient() {
 
           <div className="flex flex-col gap-3">
               {filteredCraftsmen.map((craftsman) =>
-            <Link key={craftsman.id} href={`/craftsman-profile?id=${craftsman.id}`}>
-                  <div className="bg-white rounded-2xl border border-gray-200 p-4">
+            <div key={craftsman.id} className="bg-white rounded-2xl border border-gray-200 p-4">
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
@@ -401,19 +405,27 @@ export default function HomeScreenClient() {
                         </div>
                       </div>
 
-                      {/* Rating + Button */}
+                      {/* Rating + Buttons */}
                       <div className="flex flex-col items-end gap-2 flex-shrink-0">
                         <div className="flex items-center gap-1">
                           <span className="text-sm font-bold text-gray-900 font-tabular">{craftsman.rating}</span>
                           <Icon name="StarIcon" size={13} variant="solid" className="text-yellow-500" />
                         </div>
-                        <button className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold">
-                          عرض الملف
+                        <Link href={`/craftsman-profile?id=${craftsman.id}`}>
+                          <button className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold">
+                            عرض الملف
+                          </button>
+                        </Link>
+                        <button
+                          onClick={(e) => { e.preventDefault(); setBookingCraftsman(craftsman); }}
+                          className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold"
+                          style={{ background: '#1B5E20' }}
+                        >
+                          احجز الآن
                         </button>
                       </div>
                     </div>
                   </div>
-                </Link>
             )}
             </div>
           }
@@ -421,6 +433,21 @@ export default function HomeScreenClient() {
       </div>
 
       <BottomTabBar activeTab="home" />
+
+      {/* Booking Modal */}
+      {bookingCraftsman && (
+        <RequestServiceModal
+          craftsmanProfileId={bookingCraftsman.id}
+          craftsmanUserId={bookingCraftsman.user_id}
+          craftsmanName={bookingCraftsman.user_profiles?.full_name || 'صنايعي'}
+          services={[]}
+          onClose={() => setBookingCraftsman(null)}
+          onSuccess={(orderId) => {
+            setBookingCraftsman(null);
+            setBookingSuccess(orderId);
+          }}
+        />
+      )}
     </div>);
 
 }
