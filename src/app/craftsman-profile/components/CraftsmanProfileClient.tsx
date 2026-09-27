@@ -9,6 +9,7 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import RequestServiceModal from './RequestServiceModal';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface CraftsmanData {
   id: string;
@@ -173,6 +174,7 @@ export default function CraftsmanProfileClient() {
   const craftsmanId = searchParams?.get('id');
   const supabase = createClient();
   const { user, loading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const [craftsman, setCraftsman] = useState<CraftsmanData | null>(null);
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -459,6 +461,16 @@ export default function CraftsmanProfileClient() {
             </button>
             <button className="w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center">
               <Icon name="ShareIcon" size={16} className="text-white" />
+            </button>
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold"
+              style={{ background: 'rgba(0,0,0,0.30)', backdropFilter: 'blur(4px)', color: '#fff' }}
+              aria-label={theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
+            >
+              <Icon name={theme === 'dark' ? 'SunIcon' : 'MoonIcon'} size={14} className="text-white" />
+              <span>{theme === 'dark' ? 'نهاري' : 'ليلي'}</span>
             </button>
           </div>
           <button
