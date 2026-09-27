@@ -42,6 +42,7 @@ interface PortfolioItem {
   id: string;
   image_url: string;
   label: string | null;
+  price: number | null;
 }
 
 interface ReviewItem {
@@ -209,7 +210,7 @@ export default function CraftsmanProfileClient() {
 
   // ── Add Portfolio State ──
   const [showAddPortfolioModal, setShowAddPortfolioModal] = useState(false);
-  const [portfolioForm, setPortfolioForm] = useState({ label: '', description: '' });
+  const [portfolioForm, setPortfolioForm] = useState({ label: '', description: '', price: '' });
   const [portfolioFile, setPortfolioFile] = useState<File | null>(null);
   const [portfolioPreview, setPortfolioPreview] = useState<string | null>(null);
   const [portfolioSaving, setPortfolioSaving] = useState(false);
@@ -302,7 +303,7 @@ export default function CraftsmanProfileClient() {
       try {
         const portfolioRes = await supabase
           .from('portfolio_items')
-          .select('id, image_url, label')
+          .select('id, image_url, label, price')
           .eq('craftsman_id', id)
           .order('created_at', { ascending: false })
           .limit(6);
@@ -479,15 +480,16 @@ export default function CraftsmanProfileClient() {
           image_url: imageUrl,
           label: portfolioForm.label.trim() || null,
           description: portfolioForm.description.trim() || null,
+          price: portfolioForm.price ? parseFloat(portfolioForm.price) : null,
         })
-        .select('id, image_url, label')
+        .select('id, image_url, label, price')
         .single();
       if (insertError) throw insertError;
 
       // Update local state
       setPortfolio((prev) => [newItem, ...prev]);
       setShowAddPortfolioModal(false);
-      setPortfolioForm({ label: '', description: '' });
+      setPortfolioForm({ label: '', description: '', price: '' });
       setPortfolioFile(null);
       setPortfolioPreview(null);
       setActiveTab('portfolio');
@@ -508,7 +510,7 @@ export default function CraftsmanProfileClient() {
   };
 
   const openAddPortfolioModal = () => {
-    setPortfolioForm({ label: '', description: '' });
+    setPortfolioForm({ label: '', description: '', price: '' });
     setPortfolioFile(null);
     setPortfolioPreview(null);
     setPortfolioError(null);
@@ -1146,9 +1148,14 @@ export default function CraftsmanProfileClient() {
                             height={120}
                             className="w-full h-full object-cover"
                           />
-                          {item.label && (
-                            <div className="absolute bottom-0 inset-x-0 bg-black/40 px-1.5 py-1">
-                              <p className="text-white text-xs font-medium truncate">{item.label}</p>
+                          {(item.label || item.price != null) && (
+                            <div className="absolute bottom-0 inset-x-0 bg-black/50 px-1.5 py-1">
+                              {item.label && (
+                                <p className="text-white text-xs font-medium truncate">{item.label}</p>
+                              )}
+                              {item.price != null && (
+                                <p className="text-yellow-300 text-xs font-bold">{item.price} ₪</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1515,6 +1522,21 @@ export default function CraftsmanProfileClient() {
                   placeholder="اكتب وصفاً مختصراً للعمل..."
                   rows={3}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right resize-none"
+                  disabled={portfolioSaving}
+                />
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">سعر العمل (₪) — اختياري</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={portfolioForm.price}
+                  onChange={(e) => setPortfolioForm((f) => ({ ...f, price: e.target.value }))}
+                  placeholder="مثال: 250"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
                   disabled={portfolioSaving}
                 />
               </div>
