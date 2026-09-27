@@ -172,7 +172,7 @@ export default function CraftsmanProfileClient() {
   const searchParams = useSearchParams();
   const craftsmanId = searchParams?.get('id');
   const supabase = createClient();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   const [craftsman, setCraftsman] = useState<CraftsmanData | null>(null);
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -193,12 +193,17 @@ export default function CraftsmanProfileClient() {
   const [activeTab, setActiveTab] = useState<'portfolio' | 'reviews'>('portfolio');
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      router.replace('/phone-login-otp-verification');
+      return;
+    }
     if (craftsmanId) {
       loadCraftsmanData(craftsmanId);
     } else {
       loadDefaultCraftsman();
     }
-  }, [craftsmanId, user]);
+  }, [craftsmanId, user, authLoading]);
 
   const loadDefaultCraftsman = async () => {
     setIsLoading(true);
@@ -357,6 +362,17 @@ export default function CraftsmanProfileClient() {
     setShowRequestModal(false);
     setOrderSuccess(orderId);
   };
+
+  if (authLoading || (!user && isLoading)) {
+    return (
+      <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-sm text-gray-500">جاري التحميل...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
