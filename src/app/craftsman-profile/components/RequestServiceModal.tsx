@@ -8,12 +8,21 @@ import { useAuth } from '@/contexts/AuthContext';
 import { sendPushToUser } from '@/lib/pushNotifications';
 import { useRouter } from 'next/navigation';
 
+interface ServiceOption {
+  id: string;
+  name: string;
+  emoji: string;
+  price_label: string | null;
+  base_price: number | null;
+}
+
 interface RequestServiceModalProps {
   craftsmanProfileId: string;
   craftsmanUserId: string;
   craftsmanName: string;
   serviceId?: string;
   serviceName?: string;
+  services?: ServiceOption[];
   onClose: () => void;
   onSuccess: (orderId: string) => void;
 }
@@ -22,8 +31,9 @@ export default function RequestServiceModal({
   craftsmanProfileId,
   craftsmanUserId,
   craftsmanName,
-  serviceId,
-  serviceName,
+  serviceId: initialServiceId,
+  serviceName: initialServiceName,
+  services = [],
   onClose,
   onSuccess,
 }: RequestServiceModalProps) {
@@ -31,8 +41,10 @@ export default function RequestServiceModal({
   const supabase = createClient();
   const router = useRouter();
 
+  const [selectedServiceId, setSelectedServiceId] = useState<string>(initialServiceId || '');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
+  const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,10 +57,14 @@ export default function RequestServiceModal({
 
   const today = new Date().toISOString().split('T')[0];
 
+  const selectedService = services.find((s) => s.id === selectedServiceId) || null;
+  const displayServiceName =
+    selectedService?.name || initialServiceName || '';
+
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-    const newFiles = [...selectedImages, ...files].slice(0, 4); // max 4 images
+    const newFiles = [...selectedImages, ...files].slice(0, 4);
     setSelectedImages(newFiles);
     const previews = newFiles.map((f) => URL.createObjectURL(f));
     setImagePreviews(previews);
@@ -88,6 +104,10 @@ export default function RequestServiceModal({
       setError('يرجى وصف الخدمة المطلوبة');
       return;
     }
+    if (!location.trim()) {
+      setError('يرجى إدخال موقع الخدمة');
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
     try {
@@ -95,16 +115,19 @@ export default function RequestServiceModal({
         ? new Date(`${scheduledDate}T${scheduledTime || '09:00'}:00`).toISOString()
         : null;
 
+      const finalServiceId = selectedServiceId || initialServiceId || undefined;
+
       const insertPayload: Record<string, any> = {
         customer_id: user.id,
         craftsman_id: craftsmanProfileId,
         status: 'pending',
         description: description.trim(),
+        address: location.trim(),
         scheduled_at: scheduledAt,
         payment_status: 'pending',
         escrow_status: 'none',
       };
-      if (serviceId) insertPayload.service_id = serviceId;
+      if (finalServiceId) insertPayload.service_id = finalServiceId;
 
       const { data: order, error: insertError } = await supabase
         .from('orders')
@@ -128,58 +151,54 @@ export default function RequestServiceModal({
       }
 
       // Create conversation linked to this order
-      const { data: conversation, error: convError } = await supabase
+      const { data: conversation } = await supabase
         .from('conversations')
         .insert({
           customer_id: user.id,
           craftsman_id: craftsmanUserId,
           order_id: order.id,
-          last_message: `طلب خدمة جديد${serviceName ? ': ' + serviceName : ''}`,
+          last_message: `طلب خدمة جديد${displayServiceName ? ': ' + displayServiceName : ''}`,
           last_message_at: new Date().toISOString(),
         })
         .select('id')
         .single();
 
-      if (!convError && conversation) {
-        // Link conversation to order
+      if (conversation) {
         await supabase
           .from('orders')
           .update({ conversation_id: conversation.id })
           .eq('id', order.id);
 
-        // Send initial message in chat
         await supabase.from('messages').insert({
           conversation_id: conversation.id,
           sender_id: user.id,
-          content: `مرحباً، أحتاج خدمة${serviceName ? ' ' + serviceName : ''}.\n${description.trim()}`,
+          content: `مرحباً، أحتاج خدمة${displayServiceName ? ' ' + displayServiceName : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}`,
           message_type: 'text',
         });
       }
 
-      // Insert notification record for craftsman
+      // Notification for craftsman
       await supabase.from('notifications').insert({
         user_id: craftsmanUserId,
         title: 'طلب خدمة جديد 🔔',
-        body: `لديك طلب خدمة جديد${serviceName ? ` - ${serviceName}` : ''} بانتظار موافقتك`,
+        body: `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
         type: 'new_order',
         order_id: order.id,
       });
 
-      // Trigger push notification to craftsman
       sendPushToUser(
         craftsmanUserId,
         'طلب خدمة جديد 🔔',
-        `لديك طلب خدمة جديد${serviceName ? ` - ${serviceName}` : ''} بانتظار موافقتك`,
+        `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
         { url: '/craftsman-profile', orderId: order.id }
       );
 
-      // Navigate to chat
-      if (conversation) {
-        onClose();
-        router.push(`/chat?conversation_id=${conversation.id}`);
-      } else {
-        onSuccess(order.id);
-      }
+      // Navigate to payment screen
+      onClose();
+      const paymentParams = new URLSearchParams({ order_id: order.id });
+      if (finalServiceId) paymentParams.set('service_id', finalServiceId);
+      else paymentParams.set('craftsman_id', craftsmanProfileId);
+      router.push(`/payment-screen?${paymentParams.toString()}`);
     } catch (e: any) {
       setError(e?.message || 'حدث خطأ، يرجى المحاولة مجدداً');
       setUploadingImages(false);
@@ -191,10 +210,10 @@ export default function RequestServiceModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: 'rgba(0,0,0,0.5)' }}
+      style={{ background: 'rgba(0,0,0,0.55)' }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="w-full max-w-lg bg-white rounded-t-3xl px-5 pt-5 pb-8 max-h-[90vh] overflow-y-auto" dir="rtl">
+      <div className="w-full max-w-lg bg-white rounded-t-3xl px-5 pt-5 pb-8 max-h-[92vh] overflow-y-auto" dir="rtl">
         {/* Handle */}
         <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
 
@@ -203,7 +222,7 @@ export default function RequestServiceModal({
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
             <Icon name="XMarkIcon" size={18} className="text-gray-600" />
           </button>
-          <h2 className="text-base font-bold text-gray-900">طلب خدمة وبدء محادثة</h2>
+          <h2 className="text-base font-bold text-gray-900">طلب خدمة</h2>
           <div className="w-8" />
         </div>
 
@@ -215,11 +234,47 @@ export default function RequestServiceModal({
           <div>
             <p className="text-xs text-gray-500">الصنايعي</p>
             <p className="text-sm font-bold text-gray-900">{craftsmanName}</p>
-            {serviceName && <p className="text-xs text-primary">{serviceName}</p>}
+            {displayServiceName && <p className="text-xs text-primary">{displayServiceName}</p>}
           </div>
         </div>
 
         <div className="space-y-4">
+
+          {/* Service choice — show when no pre-selected service and services list is available */}
+          {!initialServiceId && services.length > 0 && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                اختر الخدمة <span className="text-red-500">*</span>
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {services.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => { setSelectedServiceId(s.id); setError(null); }}
+                    className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                      selectedServiceId === s.id
+                        ? 'border-primary bg-green-50' :'border-gray-200 bg-gray-50 hover:border-gray-300'
+                    }`}
+                  >
+                    <span className="text-xl">{s.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-900 truncate">{s.name}</p>
+                      {(s.price_label || s.base_price) && (
+                        <p className="text-xs text-primary">
+                          {s.price_label || `${s.base_price} ر.س`}
+                        </p>
+                      )}
+                    </div>
+                    {selectedServiceId === s.id && (
+                      <Icon name="CheckCircleIcon" size={16} className="text-primary flex-shrink-0" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Date */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
@@ -249,10 +304,29 @@ export default function RequestServiceModal({
             </div>
           )}
 
-          {/* Description */}
+          {/* Location */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-              وصف المشكلة / الخدمة المطلوبة <span className="text-red-500">*</span>
+              موقع الخدمة <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <Icon name="MapPinIcon" size={16} className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="أدخل العنوان أو الحي..."
+                value={location}
+                onChange={(e) => { setLocation(e.target.value); setError(null); }}
+                className="w-full border border-gray-200 rounded-xl pr-9 pl-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50"
+              />
+            </div>
+          </div>
+
+          {/* Notes / Description */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              وصف المشكلة / ملاحظات <span className="text-red-500">*</span>
             </label>
             <textarea
               rows={4}
@@ -307,6 +381,17 @@ export default function RequestServiceModal({
             </p>
           )}
 
+          {/* Summary before payment */}
+          {(selectedServiceId || initialServiceId) && location && description && (
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-xs text-amber-800 space-y-1">
+              <p className="font-semibold text-amber-900 flex items-center gap-1">
+                <Icon name="CreditCardIcon" size={13} className="text-amber-700" />
+                ستنتقل إلى صفحة الدفع بعد إرسال الطلب
+              </p>
+              <p className="text-amber-700">يمكنك اختيار طريقة الدفع المناسبة في الخطوة التالية</p>
+            </div>
+          )}
+
           <button
             onClick={handleConfirm}
             disabled={isSubmitting || uploadingImages}
@@ -320,8 +405,8 @@ export default function RequestServiceModal({
               </>
             ) : (
               <>
-                <Icon name="ChatBubbleLeftRightIcon" size={16} className="text-white" />
-                إرسال الطلب وبدء المحادثة
+                <Icon name="CreditCardIcon" size={16} className="text-white" />
+                تأكيد الطلب والمتابعة للدفع
               </>
             )}
           </button>

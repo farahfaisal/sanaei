@@ -39,23 +39,26 @@ export default function PaymentClient() {
 
   const serviceId = searchParams?.get('service_id');
   const craftsmanId = searchParams?.get('craftsman_id');
+  const existingOrderId = searchParams?.get('order_id');
 
   const [method, setMethod] = useState<PaymentMethod>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [isPaid, setIsPaid] = useState(false);
   const [serviceData, setServiceData] = useState<ServiceData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(existingOrderId || null);
 
   useEffect(() => {
     if (serviceId) {
       loadServiceData(serviceId);
     } else if (craftsmanId) {
       loadCraftsmanDefault(craftsmanId);
+    } else if (existingOrderId) {
+      loadOrderData(existingOrderId);
     } else {
       setIsLoading(false);
     }
-  }, [serviceId, craftsmanId]);
+  }, [serviceId, craftsmanId, existingOrderId]);
 
   const loadServiceData = async (id: string) => {
     setIsLoading(true);
@@ -91,31 +94,78 @@ export default function PaymentClient() {
     }
   };
 
+  const loadOrderData = async (id: string) => {
+    setIsLoading(true);
+    try {
+      const { data: order } = await supabase
+        .from('orders')
+        .select('id, service_id, craftsman_id, description, address, scheduled_at, amount')
+        .eq('id', id)
+        .maybeSingle();
+      if (order) {
+        if (order.service_id) {
+          await loadServiceData(order.service_id);
+        } else if (order.craftsman_id) {
+          await loadCraftsmanDefault(order.craftsman_id);
+        } else {
+          setIsLoading(false);
+        }
+      } else {
+        setIsLoading(false);
+      }
+    } catch (e) {
+      setIsLoading(false);
+    }
+  };
+
   const handlePay = async () => {
     setIsProcessing(true);
     try {
-      if (user && serviceData?.craftsman_profiles?.id) {
-        const { data: order } = await supabase
-          .from('orders')
-          .insert({
-            customer_id: user.id,
-            craftsman_id: serviceData.craftsman_profiles.id,
-            service_id: serviceData.id,
-            status: 'pending',
-            amount: serviceData.base_price || 0,
-            payment_method: method === 'apple' ? 'apple_pay' : method,
-            payment_status: method === 'cash' ? 'pending' : 'paid',
-          })
-          .select()
-          .single();
+      if (user) {
+        let finalOrderId = existingOrderId;
 
-        if (order) {
-          setOrderId(order.id);
-          // Get craftsman user_id to send push notification
+        if (existingOrderId) {
+          // Update existing order with payment info
+          await supabase
+            .from('orders')
+            .update({
+              amount: serviceData?.base_price || 0,
+              payment_method: method === 'apple' ? 'apple_pay' : method,
+              payment_status: method === 'cash' ? 'pending' : 'paid',
+              status: 'pending',
+            })
+            .eq('id', existingOrderId);
+        } else if (serviceData?.craftsman_profiles?.id) {
+          const { data: order } = await supabase
+            .from('orders')
+            .insert({
+              customer_id: user.id,
+              craftsman_id: serviceData.craftsman_profiles.id,
+              service_id: serviceData.id,
+              status: 'pending',
+              amount: serviceData.base_price || 0,
+              payment_method: method === 'apple' ? 'apple_pay' : method,
+              payment_status: method === 'cash' ? 'pending' : 'paid',
+            })
+            .select()
+            .single();
+
+          if (order) {
+            finalOrderId = order.id;
+          }
+        }
+
+        if (finalOrderId) {
+          setOrderId(finalOrderId);
+        }
+
+        // Send push notification to craftsman
+        const craftsmanProfileId = serviceData?.craftsman_profiles?.id;
+        if (craftsmanProfileId) {
           const { data: craftsmanProfile } = await supabase
             .from('craftsman_profiles')
             .select('user_id')
-            .eq('id', serviceData.craftsman_profiles.id)
+            .eq('id', craftsmanProfileId)
             .maybeSingle();
 
           if (craftsmanProfile?.user_id) {
@@ -123,12 +173,11 @@ export default function PaymentClient() {
               craftsmanProfile.user_id,
               'طلب جديد 🔔',
               `لديك طلب جديد بانتظارك`,
-              { url: '/craftsman-profile', orderId: order.id }
+              { url: '/craftsman-profile', orderId: finalOrderId }
             );
           }
         }
       } else {
-        // Simulate for demo
         await new Promise((r) => setTimeout(r, 1500));
       }
       setIsPaid(true);

@@ -1023,6 +1023,7 @@ export default function CraftsmanProfileClient() {
           craftsmanName={craftsman.user_profiles?.full_name || 'الصنايعي'}
           serviceId={requestServiceId}
           serviceName={requestServiceName}
+          services={services}
           onClose={() => setShowRequestModal(false)}
           onSuccess={handleOrderSuccess}
         />
