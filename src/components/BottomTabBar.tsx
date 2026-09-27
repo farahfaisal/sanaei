@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type TabId = 'home' | 'search' | 'orders' | 'wallet' | 'profile';
 
@@ -25,6 +26,7 @@ const BASE_TABS: Tab[] = [
 
 export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
   const { profile } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const isCraftsman = profile?.role === 'craftsman';
 
   const tabs = BASE_TABS.map((tab) => {
@@ -72,6 +74,23 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
           </Link>
         );
       })}
+
+      {/* Theme Toggle */}
+      <button
+        onClick={toggleTheme}
+        className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full"
+        aria-label={theme === 'dark' ? 'تفعيل الوضع النهاري' : 'تفعيل الوضع الليلي'}
+      >
+        <Icon
+          name={theme === 'dark' ? 'SunIcon' : 'MoonIcon'}
+          size={22}
+          variant="outline"
+          className="text-gray-400"
+        />
+        <span className="text-xs font-medium text-gray-400">
+          {theme === 'dark' ? 'نهاري' : 'ليلي'}
+        </span>
+      </button>
     </nav>
   );
 }
