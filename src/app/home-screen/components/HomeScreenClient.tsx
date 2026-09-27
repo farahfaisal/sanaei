@@ -168,50 +168,6 @@ export default function HomeScreenClient() {
     };
   });
 
-  // Demo craftsmen near Ramallah center (31.9038, 35.2034)
-  const demoCraftsmen = [
-    {
-      id: 'demo-craftsman-1',
-      full_name: 'أحمد الكهربائي',
-      specialty: 'كهرباء',
-      is_online: true,
-      is_verified: true,
-      rating: 4.8,
-      lat: 31.9055,
-      lng: 35.2010,
-      status: 'available' as const,
-    },
-    {
-      id: 'demo-craftsman-2',
-      full_name: 'محمد السباك',
-      specialty: 'سباكة',
-      is_online: true,
-      is_verified: true,
-      rating: 4.6,
-      lat: 31.9020,
-      lng: 35.2060,
-      status: 'available' as const,
-    },
-    {
-      id: 'demo-craftsman-3',
-      full_name: 'خالد النجار',
-      specialty: 'نجارة',
-      is_online: true,
-      is_verified: false,
-      rating: 4.3,
-      lat: 31.9045,
-      lng: 35.2080,
-      status: 'busy' as const,
-    },
-  ];
-
-  // Merge demo craftsmen — skip any whose id already exists from DB
-  const existingIds = new Set(mapCraftsmen.map((c) => c.id));
-  const mergedMapCraftsmen = [
-    ...mapCraftsmen,
-    ...demoCraftsmen.filter((d) => !existingIds.has(d.id)),
-  ];
-
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'مرحباً';
   const activeOffer = offers[activeOfferIndex] || offers[0];
 
@@ -370,7 +326,7 @@ export default function HomeScreenClient() {
         null}
 
         {/* Nearby Craftsmen Map */}
-        <NearbyMapSection craftsmen={mergedMapCraftsmen} />
+        <NearbyMapSection craftsmen={mapCraftsmen} />
 
         {/* Nearby Craftsmen */}
         <div>
