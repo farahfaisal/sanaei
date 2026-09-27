@@ -13,12 +13,105 @@ interface CraftsmanMapItem {
   rating: number;
   lat: number;
   lng: number;
-  distance?: number; // km
+  distance?: number;
 }
 
 interface NearbyMapSectionProps {
   craftsmen: CraftsmanMapItem[];
 }
+
+interface Region {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  zoom: number;
+  locations: Location[];
+}
+
+interface Location {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+}
+
+const REGIONS: Region[] = [
+  {
+    id: 'ramallah',
+    name: 'رام الله',
+    lat: 31.9038,
+    lng: 35.2034,
+    zoom: 13,
+    locations: [
+      { id: 'ramallah-center', name: 'وسط رام الله', lat: 31.9038, lng: 35.2034 },
+      { id: 'bireh', name: 'البيرة', lat: 31.9122, lng: 35.2200 },
+      { id: 'beituniya', name: 'بيتونيا', lat: 31.8900, lng: 35.1750 },
+      { id: 'beitunia-industrial', name: 'المنطقة الصناعية', lat: 31.8850, lng: 35.1900 },
+      { id: 'surda', name: 'سردا', lat: 31.9350, lng: 35.2150 },
+    ],
+  },
+  {
+    id: 'nablus',
+    name: 'نابلس',
+    lat: 32.2211,
+    lng: 35.2544,
+    zoom: 13,
+    locations: [
+      { id: 'nablus-center', name: 'وسط نابلس', lat: 32.2211, lng: 35.2544 },
+      { id: 'rafidia', name: 'رفيديا', lat: 32.2300, lng: 35.2400 },
+      { id: 'makhfiyeh', name: 'المخفية', lat: 32.2150, lng: 35.2600 },
+    ],
+  },
+  {
+    id: 'hebron',
+    name: 'الخليل',
+    lat: 31.5326,
+    lng: 35.0998,
+    zoom: 13,
+    locations: [
+      { id: 'hebron-center', name: 'وسط الخليل', lat: 31.5326, lng: 35.0998 },
+      { id: 'halhul', name: 'حلحول', lat: 31.5800, lng: 35.1000 },
+      { id: 'yatta', name: 'يطا', lat: 31.4400, lng: 35.1000 },
+    ],
+  },
+  {
+    id: 'jenin',
+    name: 'جنين',
+    lat: 32.4607,
+    lng: 35.2966,
+    zoom: 13,
+    locations: [
+      { id: 'jenin-center', name: 'وسط جنين', lat: 32.4607, lng: 35.2966 },
+      { id: 'qabatiya', name: 'قباطية', lat: 32.3900, lng: 35.2800 },
+    ],
+  },
+  {
+    id: 'tulkarm',
+    name: 'طولكرم',
+    lat: 32.3104,
+    lng: 35.0289,
+    zoom: 13,
+    locations: [
+      { id: 'tulkarm-center', name: 'وسط طولكرم', lat: 32.3104, lng: 35.0289 },
+      { id: 'anabta', name: 'عنبتا', lat: 32.3200, lng: 35.0600 },
+    ],
+  },
+  {
+    id: 'bethlehem',
+    name: 'بيت لحم',
+    lat: 31.7054,
+    lng: 35.2024,
+    zoom: 13,
+    locations: [
+      { id: 'bethlehem-center', name: 'وسط بيت لحم', lat: 31.7054, lng: 35.2024 },
+      { id: 'beit-jala', name: 'بيت جالا', lat: 31.7150, lng: 35.1850 },
+      { id: 'beit-sahour', name: 'بيت ساحور', lat: 31.7000, lng: 35.2200 },
+    ],
+  },
+];
+
+const DEFAULT_REGION = REGIONS[0]; // رام الله
 
 const LOGO_GREEN = '#2E7D32';
 
@@ -41,6 +134,11 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
   const markersRef = useRef<any[]>([]);
   const userMarkerRef = useRef<any>(null);
 
+  const [selectedRegion, setSelectedRegion] = useState<Region>(DEFAULT_REGION);
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
+  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [isLocating, setIsLocating] = useState(false);
@@ -62,8 +160,8 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       if (!mapRef.current || mapInstanceRef.current) return;
 
       mapInstanceRef.current = L.map(mapRef.current, {
-        center: [24.7136, 46.6753],
-        zoom: 12,
+        center: [DEFAULT_REGION.lat, DEFAULT_REGION.lng],
+        zoom: DEFAULT_REGION.zoom,
         zoomControl: true,
         attributionControl: false,
       });
@@ -83,29 +181,38 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
     };
   }, []);
 
-  // Update craftsmen markers whenever craftsmen or userLocation changes
+  // Pan map when region or location changes
+  useEffect(() => {
+    if (!mapReady || !mapInstanceRef.current) return;
+    const target = selectedLocation
+      ? { lat: selectedLocation.lat, lng: selectedLocation.lng, zoom: 15 }
+      : { lat: selectedRegion.lat, lng: selectedRegion.lng, zoom: selectedRegion.zoom };
+    mapInstanceRef.current.setView([target.lat, target.lng], target.zoom, { animate: true });
+  }, [mapReady, selectedRegion, selectedLocation]);
+
+  // Update craftsmen markers
   useEffect(() => {
     if (!mapReady || !mapInstanceRef.current) return;
 
     import('leaflet').then((L) => {
-      // Remove old craftsman markers
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
 
-      let sorted = [...craftsmen];
+      const refPoint = userLocation
+        ? userLocation
+        : selectedLocation
+        ? { lat: selectedLocation.lat, lng: selectedLocation.lng }
+        : { lat: selectedRegion.lat, lng: selectedRegion.lng };
 
-      if (userLocation) {
-        sorted = sorted
-          .map((c) => ({
-            ...c,
-            distance: haversineDistance(userLocation.lat, userLocation.lng, c.lat, c.lng),
-          }))
-          .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999))
-          .slice(0, 20);
-        setNearbyCraftsmen(sorted);
-      } else {
-        setNearbyCraftsmen(sorted.slice(0, 10));
-      }
+      let sorted = craftsmen
+        .map((c) => ({
+          ...c,
+          distance: haversineDistance(refPoint.lat, refPoint.lng, c.lat, c.lng),
+        }))
+        .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999))
+        .slice(0, 20);
+
+      setNearbyCraftsmen(sorted);
 
       sorted.forEach((craftsman) => {
         const isOnline = craftsman.is_online;
@@ -132,7 +239,10 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
           popupAnchor: [0, -50],
         });
 
-        const distText = craftsman.distance != null ? `<p style="font-size:11px;color:#059669;margin:2px 0;">📍 ${craftsman.distance.toFixed(1)} كم</p>` : '';
+        const distText =
+          craftsman.distance != null
+            ? `<p style="font-size:11px;color:#059669;margin:2px 0;">📍 ${craftsman.distance.toFixed(1)} كم</p>`
+            : '';
 
         const popupContent = `
           <div style="font-family:'Cairo',sans-serif;direction:rtl;min-width:160px;padding:4px;">
@@ -151,7 +261,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
         markersRef.current.push(marker);
       });
     });
-  }, [mapReady, craftsmen, userLocation]);
+  }, [mapReady, craftsmen, userLocation, selectedRegion, selectedLocation]);
 
   // Update user location marker
   useEffect(() => {
@@ -180,11 +290,11 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       });
 
       userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon });
-      userMarkerRef.current.bindPopup('<div style="font-family:Cairo,sans-serif;direction:rtl;font-size:12px;font-weight:600;color:#1565C0;">📍 موقعك الحالي</div>');
+      userMarkerRef.current.bindPopup(
+        '<div style="font-family:Cairo,sans-serif;direction:rtl;font-size:12px;font-weight:600;color:#1565C0;">📍 موقعك الحالي</div>'
+      );
       userMarkerRef.current.addTo(mapInstanceRef.current);
-
-      // Pan map to user location
-      mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 13, { animate: true });
+      mapInstanceRef.current.setView([userLocation.lat, userLocation.lng], 14, { animate: true });
     });
   }, [mapReady, userLocation]);
 
@@ -208,6 +318,22 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
     );
   };
 
+  const handleRegionSelect = (region: Region) => {
+    setSelectedRegion(region);
+    setSelectedLocation(null);
+    setShowRegionDropdown(false);
+    setUserLocation(null);
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
+  };
+
+  const handleLocationSelect = (loc: Location) => {
+    setSelectedLocation(loc);
+    setShowLocationDropdown(false);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
@@ -226,25 +352,107 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
         <h2 className="text-base font-bold text-gray-900">الصنايعية بالقرب منك</h2>
       </div>
 
+      {/* Region & Location Selectors */}
+      <div className="flex gap-2 mb-3">
+        {/* Region Selector */}
+        <div className="relative flex-1">
+          <button
+            onClick={() => {
+              setShowRegionDropdown((v) => !v);
+              setShowLocationDropdown(false);
+            }}
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
+          >
+            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
+            <span className="flex items-center gap-1.5 truncate">
+              <Icon name="MapIcon" size={14} className="text-primary flex-shrink-0" />
+              {selectedRegion.name}
+            </span>
+          </button>
+          {showRegionDropdown && (
+            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              {REGIONS.map((region) => (
+                <button
+                  key={region.id}
+                  onClick={() => handleRegionSelect(region)}
+                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                    selectedRegion.id === region.id
+                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {region.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Location Selector — enabled only after region is selected */}
+        <div className="relative flex-1">
+          <button
+            onClick={() => {
+              setShowLocationDropdown((v) => !v);
+              setShowRegionDropdown(false);
+            }}
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
+          >
+            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
+            <span className="flex items-center gap-1.5 truncate">
+              <Icon name="MapPinIcon" size={14} className="text-primary flex-shrink-0" />
+              {selectedLocation ? selectedLocation.name : 'اختر الموقع'}
+            </span>
+          </button>
+          {showLocationDropdown && (
+            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              <button
+                onClick={() => {
+                  setSelectedLocation(null);
+                  setShowLocationDropdown(false);
+                }}
+                className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                  !selectedLocation ? 'bg-green-50 text-primary font-bold' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                كل المنطقة
+              </button>
+              {selectedRegion.locations.map((loc) => (
+                <button
+                  key={loc.id}
+                  onClick={() => handleLocationSelect(loc)}
+                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                    selectedLocation?.id === loc.id
+                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {loc.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Active selection badge */}
+      <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5">
+        <Icon name="MapPinIcon" size={12} className="text-green-600" />
+        <span>
+          {userLocation
+            ? 'موقعك الحالي — يتم عرض أقرب الصنايعية إليك'
+            : selectedLocation
+            ? `${selectedRegion.name} — ${selectedLocation.name}`
+            : `منطقة ${selectedRegion.name}`}
+        </span>
+      </div>
+
       {locationError && (
         <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 text-right">
           {locationError}
         </div>
       )}
 
-      {userLocation && (
-        <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5">
-          <Icon name="MapPinIcon" size={12} className="text-green-600" />
-          تم تحديد موقعك — يتم عرض أقرب الصنايعية إليك
-        </div>
-      )}
-
       {/* Map */}
       <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm mb-3" style={{ height: 280 }}>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"
-        />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       </div>
 
