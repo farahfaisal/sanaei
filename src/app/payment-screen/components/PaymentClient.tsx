@@ -165,13 +165,23 @@ export default function PaymentClient() {
               <span className="text-sm text-gray-500">المبلغ المدفوع</span>
             </div>
           </div>
-          <button
-            onClick={() => router.push('/home-screen')}
-            className="w-full py-4 rounded-2xl font-bold text-white text-base"
-            style={{ background: '#1B5E20' }}
-          >
-            العودة للرئيسية
-          </button>
+          <div className="space-y-3">
+            {orderId && (
+              <button
+                onClick={() => router.push(`/order-details?order_id=${orderId}`)}
+                className="w-full py-4 rounded-2xl font-bold text-white text-base"
+                style={{ background: '#1B5E20' }}
+              >
+                عرض تفاصيل الطلب
+              </button>
+            )}
+            <button
+              onClick={() => router.push('/home-screen')}
+              className="w-full py-3.5 rounded-2xl font-bold text-gray-700 text-base border border-gray-200 bg-white"
+            >
+              العودة للرئيسية
+            </button>
+          </div>
         </div>
       </div>
     );
