@@ -7,6 +7,7 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomTabBar from '@/components/BottomTabBar';
+import ServiceRequestForm from './ServiceRequestForm';
 
 // ── Brand palette (matches app's primary green) ──────────────────────────────
 const BRAND = {
@@ -793,6 +794,19 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
 export default function OrderDetailsClient() {
   const searchParams = useSearchParams();
   const orderId = searchParams?.get('order_id');
+  const craftsmanId = searchParams?.get('craftsman_id');
+  const serviceId = searchParams?.get('service_id') || undefined;
+  const craftsmanUserId = searchParams?.get('craftsman_user_id') || undefined;
+
+  if (craftsmanId) {
+    return (
+      <ServiceRequestForm
+        craftsmanProfileId={craftsmanId}
+        craftsmanUserId={craftsmanUserId}
+        serviceId={serviceId}
+      />
+    );
+  }
 
   if (orderId) {
     return <SingleOrderDetail orderId={orderId} />;

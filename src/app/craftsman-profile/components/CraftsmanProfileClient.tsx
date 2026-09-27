@@ -516,9 +516,10 @@ export default function CraftsmanProfileClient() {
   };
 
   const handleRequestService = (serviceId?: string, serviceName?: string) => {
-    setRequestServiceId(serviceId);
-    setRequestServiceName(serviceName);
-    setShowRequestModal(true);
+    if (!craftsman) return;
+    const params = new URLSearchParams({ craftsman_id: craftsman.id, craftsman_user_id: craftsman.user_id });
+    if (serviceId) params.set('service_id', serviceId);
+    router.push(`/order-details?${params.toString()}`);
   };
 
   const handleOrderSuccess = (orderId: string) => {
