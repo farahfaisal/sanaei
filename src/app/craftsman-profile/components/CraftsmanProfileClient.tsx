@@ -23,11 +23,10 @@ interface CraftsmanData {
   total_reviews: number;
   completed_jobs: number;
   total_clients: number;
-  avatar_url: string | null;
   cover_image_url: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  user_profiles: { full_name: string } | null;
+  user_profiles: { full_name: string; avatar_url: string | null } | null;
 }
 
 interface ServiceItem {
@@ -238,7 +237,7 @@ export default function CraftsmanProfileClient() {
       const [profileRes, servicesRes, portfolioRes, reviewsRes] = await Promise.all([
         supabase
           .from('craftsman_profiles')
-          .select('*, user_profiles(full_name)')
+          .select('*, user_profiles(full_name, avatar_url)')
           .eq('id', id)
           .maybeSingle(),
         supabase
@@ -458,9 +457,9 @@ export default function CraftsmanProfileClient() {
         <div className="absolute -bottom-8 right-4">
           <div className="relative">
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md bg-gray-100">
-              {craftsman.avatar_url ? (
+              {craftsman.user_profiles?.avatar_url ? (
                 <AppImage
-                  src={craftsman.avatar_url}
+                  src={craftsman.user_profiles.avatar_url}
                   alt={`صورة شخصية لـ${name}`}
                   width={80}
                   height={80}
