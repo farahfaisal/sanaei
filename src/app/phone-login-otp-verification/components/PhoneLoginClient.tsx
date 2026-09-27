@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -13,9 +13,19 @@ const COUNTRY_CODES = [
   { code: '+965', flag: '🇰🇼', name: 'الكويت' },
 ];
 
+function getRedirectPath(role: string): string {
+  if (role === 'craftsman') return '/order-details';
+  if (role === 'admin') return '/dashboard';
+  return '/home-screen';
+}
+
 export default function PhoneLoginClient() {
   const router = useRouter();
-  const { sendOtp, verifyOtp, user, loading, registerUser } = useAuth();
+  const searchParams = useSearchParams();
+  const { sendOtp, verifyOtp, user, profile, loading } = useAuth();
+
+  const roleFromUrl = (searchParams.get('role') as 'customer' | 'craftsman') || 'customer';
+
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
@@ -25,17 +35,22 @@ export default function PhoneLoginClient() {
   const [isLoading, setIsLoading] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'customer' | 'craftsman'>('customer');
+  const [selectedRole, setSelectedRole] = useState<'customer' | 'craftsman'>(roleFromUrl);
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Redirect if already logged in
+  // Sync role if URL param changes
   useEffect(() => {
-    if (!loading && user) {
-      router.replace('/home-screen');
+    setSelectedRole(roleFromUrl);
+  }, [roleFromUrl]);
+
+  // Redirect if already logged in — based on actual profile role
+  useEffect(() => {
+    if (!loading && user && profile) {
+      router.replace(getRedirectPath(profile.role));
     }
-  }, [user, loading, router]);
+  }, [user, profile, loading, router]);
 
   useEffect(() => {
     if (step === 'otp') {
@@ -67,8 +82,10 @@ export default function PhoneLoginClient() {
     try {
       await sendOtp(fullPhone);
       // Auto-verify using the OTP code 123456 for all users
-      await verifyOtp(fullPhone, '123456', selectedRole);
-      router.push('/home-screen');
+      const data = await verifyOtp(fullPhone, '123456', selectedRole);
+      // After login, fetch the actual role from the returned profile or use selectedRole
+      const actualRole = data?.user?.user_metadata?.role || selectedRole;
+      router.push(getRedirectPath(actualRole));
     } catch (err: any) {
       // If user is not registered, redirect to registration page
       if (err?.code === 'USER_NOT_REGISTERED' || err?.message === 'USER_NOT_REGISTERED') {
@@ -106,8 +123,9 @@ export default function PhoneLoginClient() {
     setError('');
     setIsLoading(true);
     try {
-      await verifyOtp(fullPhone, code, selectedRole);
-      router.push('/home-screen');
+      const data = await verifyOtp(fullPhone, code, selectedRole);
+      const actualRole = data?.user?.user_metadata?.role || selectedRole;
+      router.push(getRedirectPath(actualRole));
     } catch (err: any) {
       setError(err?.message || 'رمز التحقق غير صحيح، يرجى المحاولة مجدداً');
     } finally {

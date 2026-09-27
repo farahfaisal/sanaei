@@ -1,13 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 
 type Role = 'customer' | 'craftsman' | null;
 
 export default function OnboardingClient() {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const router = useRouter();
+
+  const handleContinue = () => {
+    if (!selectedRole) return;
+    router.push(`/phone-login-otp-verification?role=${selectedRole}`);
+  };
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
@@ -129,18 +135,17 @@ export default function OnboardingClient() {
 
       {/* CTA */}
       <div className="px-5 pb-4">
-        <Link href="/phone-login-otp-verification">
-          <button
-            className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-            style={{
-              background: selectedRole ? '#1B5E20' : '#9CA3AF',
-              opacity: selectedRole ? 1 : 0.7,
-            }}
-            disabled={!selectedRole}
-          >
-            متابعة
-          </button>
-        </Link>
+        <button
+          onClick={handleContinue}
+          className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
+          style={{
+            background: selectedRole ? '#1B5E20' : '#9CA3AF',
+            opacity: selectedRole ? 1 : 0.7,
+          }}
+          disabled={!selectedRole}
+        >
+          متابعة
+        </button>
       </div>
 
       {/* Terms */}
