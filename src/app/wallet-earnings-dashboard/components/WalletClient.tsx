@@ -156,7 +156,7 @@ export default function WalletClient() {
             <div className="text-right">
               <p className="text-xs text-green-200 mb-1">الرصيد الحالي</p>
               <div className="flex items-end gap-2">
-                <span className="text-sm font-semibold text-green-200">ر.س</span>
+                <span className="text-sm font-semibold text-green-200">₪</span>
                 <span className="text-4xl font-black text-white font-tabular">
                   {isLoading ? '...' : formatAmount(wallet?.balance || 0)}
                 </span>
