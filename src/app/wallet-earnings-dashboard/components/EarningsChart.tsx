@@ -22,47 +22,10 @@ interface Transaction {
   created_at: string;
 }
 
-const FALLBACK_DATA: Record<EarningTab, { label: string; value: number }[]> = {
-  today: [
-    { label: '8ص', value: 0 },
-    { label: '10ص', value: 120 },
-    { label: '12م', value: 0 },
-    { label: '2م', value: 340 },
-    { label: '4م', value: 180 },
-    { label: '6م', value: 420 },
-    { label: '8م', value: 0 },
-  ],
-  week: [
-    { label: 'الأحد', value: 210 },
-    { label: 'الاثنين', value: 340 },
-    { label: 'الثلاثاء', value: 180 },
-    { label: 'الأربعاء', value: 420 },
-    { label: 'الخميس', value: 290 },
-    { label: 'الجمعة', value: 260 },
-    { label: 'السبت', value: 160 },
-  ],
-  month: [
-    { label: 'الأسبوع 1', value: 4200 },
-    { label: 'الأسبوع 2', value: 6800 },
-    { label: 'الأسبوع 3', value: 5100 },
-    { label: 'الأسبوع 4', value: 8200 },
-  ],
-  total: [
-    { label: 'أبريل', value: 18000 },
-    { label: 'مايو', value: 22500 },
-    { label: 'يونيو', value: 19800 },
-    { label: 'يوليو', value: 26000 },
-    { label: 'أغسطس', value: 21300 },
-    { label: 'سبتمبر', value: 21150 },
-  ],
-};
-
 const DAY_LABELS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
 function buildChartData(activeTab: EarningTab, transactions: Transaction[]) {
   const incomeTransactions = transactions.filter((t) => t.transaction_type === 'income');
-  if (incomeTransactions.length === 0) return FALLBACK_DATA[activeTab];
-
   const now = new Date();
 
   if (activeTab === 'today') {
@@ -131,7 +94,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return (
     <div className="bg-foreground text-white text-xs rounded-xl px-3 py-2 shadow-card-hover">
       <div className="font-semibold mb-0.5">{label}</div>
-      <div className="font-tabular font-bold">{payload[0].value.toLocaleString('ar')} ريال</div>
+      <div className="font-tabular font-bold">{payload[0].value.toLocaleString('ar')} ₪</div>
     </div>
   );
 }
@@ -145,6 +108,18 @@ export default function EarningsChart({
 }) {
   const data = buildChartData(activeTab, transactions);
   const maxValue = Math.max(...data.map((d) => d.value), 1);
+  const hasData = data.some((d) => d.value > 0);
+
+  if (!hasData) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[180px] text-gray-400">
+        <svg xmlns="http://www.w3.org/2000/svg" className="w-10 h-10 mb-2 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <p className="text-sm">لا توجد أرباح في هذه الفترة</p>
+      </div>
+    );
+  }
 
   return (
     <ResponsiveContainer width="100%" height={180}>
