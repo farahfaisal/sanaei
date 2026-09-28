@@ -48,7 +48,6 @@ interface PromotionalOffer {
   bg_color_to: string;
 }
 
-// Parse location string "lat,lng" into coordinates
 function parseLocation(location: string | null): { lat: number; lng: number } | null {
   if (!location) return null;
   const parts = location.split(',');
@@ -71,7 +70,6 @@ function generateFallbackPosition(seed: string): { lat: number; lng: number } {
   return { lat, lng };
 }
 
-// Logo green: #2a724d (app primary color)
 const LOGO_GREEN = '#2a724d';
 const LOGO_GREEN_DARK = '#1d5236';
 
@@ -87,7 +85,6 @@ export default function HomeScreenClient() {
   const [isLoading, setIsLoading] = useState(true);
   const offerTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Booking modal state
   const [bookingCraftsman, setBookingCraftsman] = useState<CraftsmanCard | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
 
@@ -110,24 +107,22 @@ export default function HomeScreenClient() {
     setIsLoading(true);
     try {
       const [catRes, craftRes, offersRes] = await Promise.all([
-      supabase.from('service_categories').select('*').eq('is_active', true).order('name'),
-      supabase
-        .from('craftsman_profiles')
-        .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)')
-        .order('rating', { ascending: false }),
-      supabase
-        .from('promotional_offers')
-        .select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to')
-        .eq('is_active', true)
-        .order('sort_order')
-        .limit(5)]
-      );
+        supabase.from('service_categories').select('*').eq('is_active', true).order('name'),
+        supabase
+          .from('craftsman_profiles')
+          .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)')
+          .order('rating', { ascending: false }),
+        supabase
+          .from('promotional_offers')
+          .select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to')
+          .eq('is_active', true)
+          .order('sort_order')
+          .limit(5),
+      ]);
 
       if (catRes.data) setCategories(catRes.data);
 
       if (craftRes.error) {
-        console.error('Craftsmen query error:', craftRes.error);
-        // Fallback: try without avatar_url in case column doesn't exist yet
         const fallbackRes = await supabase
           .from('craftsman_profiles')
           .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, location, user_profiles(full_name, location)')
@@ -142,7 +137,6 @@ export default function HomeScreenClient() {
       if (offersRes.data && offersRes.data.length > 0) {
         setOffers(offersRes.data);
       } else {
-        // Fallback offer if table not yet populated
         setOffers([{
           id: 'fallback',
           title: 'خصم 20% على خدمات التكييف',
@@ -152,7 +146,7 @@ export default function HomeScreenClient() {
           badge_text: '🌬️ عرض الصيف',
           button_text: 'اكتشف العرض',
           bg_color_from: LOGO_GREEN_DARK,
-          bg_color_to: LOGO_GREEN
+          bg_color_to: LOGO_GREEN,
         }]);
       }
     } catch (e) {
@@ -164,9 +158,9 @@ export default function HomeScreenClient() {
 
   const filteredCraftsmen = craftsmen.filter(
     (c) =>
-    !searchQuery ||
-    c?.user_profiles?.full_name?.includes(searchQuery) ||
-    c?.specialty?.includes(searchQuery)
+      !searchQuery ||
+      c?.user_profiles?.full_name?.includes(searchQuery) ||
+      c?.specialty?.includes(searchQuery)
   );
 
   const mapCraftsmen = craftsmen.map((c) => {
@@ -191,45 +185,87 @@ export default function HomeScreenClient() {
 
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
-      {/* Header - logo green */}
-      <div style={{ background: `linear-gradient(135deg, ${LOGO_GREEN_DARK} 0%, ${LOGO_GREEN} 100%)` }} className="px-4 pt-12 pb-5">
-        <div className="flex items-center justify-between mb-4">
+      {/* Header */}
+      <div
+        style={{
+          background: `linear-gradient(150deg, ${LOGO_GREEN_DARK} 0%, ${LOGO_GREEN} 60%, #3a9b68 100%)`,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+        className="px-4 pt-12 pb-6"
+      >
+        {/* Decorative circles */}
+        <div
+          style={{
+            position: 'absolute',
+            top: -40,
+            left: -40,
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.06)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -20,
+            right: -30,
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.05)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        <div className="flex items-center justify-between mb-5" style={{ position: 'relative' }}>
           <div>
-            <p className="text-xs text-primary/70 mb-0.5">🌟 مرحباً بك</p>
-            <h1 className="text-lg font-bold text-white">{displayName}</h1>
-            <div className="flex items-center gap-1 mt-0.5">
-              <Icon name="MapPinIcon" size={12} className="text-primary/70" />
-              <span className="text-xs text-primary/50">{profile?.location || 'الرياض، السعودية'}</span>
+            <p className="text-xs mb-0.5" style={{ color: 'rgba(255,255,255,0.65)' }}>
+              👋 أهلاً وسهلاً
+            </p>
+            <h1 className="text-xl font-bold text-white tracking-tight">{displayName}</h1>
+            <div className="flex items-center gap-1 mt-1">
+              <Icon name="MapPinIcon" size={12} style={{ color: 'rgba(255,255,255,0.55)' }} />
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+                {profile?.location || 'الرياض، السعودية'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* App Logo */}
-            <div className="w-10 h-10 rounded-full overflow-hidden bg-white flex items-center justify-center">
+            <div
+              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+              style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.3)' }}
+            >
               <img
                 src="/assets/images/__________________24_-1790287739442.png"
                 alt="شعار صنايعي"
-                className="w-full h-full object-contain" />
-              
+                className="w-full h-full object-contain"
+              />
             </div>
             <NotificationBell />
-            <div className="w-9 h-9 rounded-full overflow-hidden border-2 border-white/30 bg-white/20 flex items-center justify-center">
-              {profile?.avatar_url ?
-              <AppImage
-                src={profile.avatar_url}
-                alt="صورة المستخدم"
-                width={36}
-                height={36}
-                className="w-full h-full object-cover" /> :
-
-
-              <Icon name="UserCircleIcon" size={22} className="text-white" />
-              }
+            <div
+              className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
+              style={{ border: '2px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)' }}
+            >
+              {profile?.avatar_url ? (
+                <AppImage
+                  src={profile.avatar_url}
+                  alt="صورة المستخدم"
+                  width={36}
+                  height={36}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <Icon name="UserCircleIcon" size={22} className="text-white" />
+              )}
             </div>
           </div>
         </div>
 
         {/* Search bar */}
-        <div className="relative">
+        <div className="relative" style={{ position: 'relative' }}>
           <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
             <Icon name="MagnifyingGlassIcon" size={17} className="text-gray-400" />
           </div>
@@ -238,216 +274,332 @@ export default function HomeScreenClient() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e?.target?.value)}
             placeholder="ما الخدمة التي تحتاجها؟"
-            className="w-full bg-white rounded-xl py-3 pr-10 pl-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
-            dir="rtl" />
-          
+            className="w-full rounded-2xl py-3.5 pr-10 pl-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
+            style={{
+              background: 'rgba(255,255,255,0.97)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+            }}
+            dir="rtl"
+          />
         </div>
       </div>
 
-      <div className="px-4 py-4 space-y-5 pb-24">
+      <div className="px-4 py-5 space-y-6 pb-24">
         {/* Service Categories */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-primary text-sm font-semibold">عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-900">الخدمات</h2>
+            <button className="text-sm font-semibold" style={{ color: LOGO_GREEN }}>
+              عرض الكل
+            </button>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900">الخدمات</h2>
+              <div
+                className="w-1 h-4 rounded-full"
+                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+              />
+            </div>
           </div>
-          {isLoading ?
-          <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
-            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-            )}
-            </div> :
-
-          <div className="grid grid-cols-4 gap-2">
-              {categories.map((cat) =>
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${
-              activeCategory === cat.id ?
-              'border-primary bg-primary/10' : 'border-gray-200 bg-white'}`
-              }>
-              
+          {isLoading ? (
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <div key={i} className="h-18 bg-gray-100 rounded-2xl animate-pulse" style={{ height: 72 }} />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-2">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl transition-all"
+                  style={{
+                    background:
+                      activeCategory === cat.id
+                        ? `linear-gradient(135deg, ${LOGO_GREEN_DARK}18, ${LOGO_GREEN}22)`
+                        : 'white',
+                    border: `1.5px solid ${activeCategory === cat.id ? LOGO_GREEN + '55' : '#E5E7EB'}`,
+                    boxShadow:
+                      activeCategory === cat.id
+                        ? `0 2px 12px ${LOGO_GREEN}25`
+                        : '0 1px 4px rgba(0,0,0,0.06)',
+                  }}
+                >
                   <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                  <span
+                    className="text-xs font-medium text-center leading-tight"
+                    style={{ color: activeCategory === cat.id ? LOGO_GREEN : '#374151' }}
+                  >
                     {cat.name}
                   </span>
                 </button>
-            )}
+              ))}
             </div>
-          }
+          )}
         </div>
 
         {/* Promotional Offers Banner */}
-        {isLoading ?
-        <div className="h-28 bg-gray-100 rounded-2xl animate-pulse" /> :
-        activeOffer ?
-        <div>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex gap-1">
-                {offers.map((_, i) =>
-              <button
-                key={i}
-                onClick={() => setActiveOfferIndex(i)}
-                className="rounded-full transition-all"
-                style={{
-                  width: i === activeOfferIndex ? 20 : 6,
-                  height: 6,
-                  background: i === activeOfferIndex ? LOGO_GREEN : '#D1D5DB'
-                }} />
-
-              )}
+        {isLoading ? (
+          <div className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+        ) : activeOffer ? (
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex gap-1.5 items-center">
+                {offers.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveOfferIndex(i)}
+                    className="rounded-full transition-all"
+                    style={{
+                      width: i === activeOfferIndex ? 22 : 6,
+                      height: 6,
+                      background: i === activeOfferIndex ? LOGO_GREEN : '#D1D5DB',
+                    }}
+                  />
+                ))}
               </div>
-              <h2 className="text-base font-bold text-gray-900">العروض والخصومات</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-gray-900">العروض والخصومات</h2>
+                <div
+                  className="w-1 h-4 rounded-full"
+                  style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+                />
+              </div>
             </div>
             <div
-            key={activeOffer.id}
-            className="rounded-2xl p-4 overflow-hidden relative"
-            style={{ background: `linear-gradient(135deg, ${activeOffer.bg_color_from} 0%, ${activeOffer.bg_color_to} 100%)` }}>
-            
-              <div className="flex items-center justify-between">
+              key={activeOffer.id}
+              className="rounded-3xl p-4 overflow-hidden relative"
+              style={{
+                background: `linear-gradient(135deg, ${activeOffer.bg_color_from} 0%, ${activeOffer.bg_color_to} 100%)`,
+                boxShadow: `0 8px 28px ${activeOffer.bg_color_from}55`,
+              }}
+            >
+              {/* Decorative blob */}
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -30,
+                  left: -30,
+                  width: 100,
+                  height: 100,
+                  borderRadius: '50%',
+                  background: 'rgba(255,255,255,0.08)',
+                  pointerEvents: 'none',
+                }}
+              />
+              <div className="flex items-center justify-between" style={{ position: 'relative' }}>
                 <div className="flex-1">
-                  {activeOffer.badge_text &&
-                <div className="inline-flex items-center gap-1 bg-white/15 rounded-lg px-2.5 py-1 mb-2">
+                  {activeOffer.badge_text && (
+                    <div
+                      className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1 mb-2"
+                      style={{ background: 'rgba(255,255,255,0.18)' }}
+                    >
                       <span className="text-white text-xs font-bold">{activeOffer.badge_text}</span>
                     </div>
-                }
-                  <p className="text-white font-bold text-sm leading-snug mb-2">{activeOffer.title}</p>
-                  {activeOffer.description &&
-                <p className="text-white/80 text-xs mb-2 leading-relaxed">{activeOffer.description}</p>
-                }
-                  <button className="mt-1 bg-yellow-500 text-white text-xs font-bold px-4 py-2 rounded-xl">
+                  )}
+                  <p className="text-white font-bold text-sm leading-snug mb-1.5">{activeOffer.title}</p>
+                  {activeOffer.description && (
+                    <p className="text-xs mb-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                      {activeOffer.description}
+                    </p>
+                  )}
+                  <button
+                    className="mt-1 text-white text-xs font-bold px-4 py-2 rounded-xl"
+                    style={{
+                      background: 'rgba(255,255,255,0.22)',
+                      border: '1px solid rgba(255,255,255,0.35)',
+                    }}
+                  >
                     {activeOffer.button_text}
                   </button>
                 </div>
                 <div className="relative w-20 h-20 flex-shrink-0 mr-3">
-                  {activeOffer.image_url &&
-                <div className="w-full h-full rounded-xl overflow-hidden">
+                  {activeOffer.image_url && (
+                    <div
+                      className="w-full h-full rounded-2xl overflow-hidden"
+                      style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}
+                    >
                       <AppImage
-                    src={activeOffer.image_url}
-                    alt={activeOffer.title}
-                    width={80}
-                    height={80}
-                    className="w-full h-full object-cover" />
-                  
+                        src={activeOffer.image_url}
+                        alt={activeOffer.title}
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
-                }
-                  {activeOffer.discount_percent &&
-                <div className="absolute -top-2 -right-2 w-9 h-9 bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                  )}
+                  {activeOffer.discount_percent && (
+                    <div
+                      className="absolute -top-2 -right-2 w-9 h-9 rounded-full flex items-center justify-center"
+                      style={{
+                        background: 'linear-gradient(135deg, #F59E0B, #D97706)',
+                        boxShadow: '0 3px 10px rgba(217,119,6,0.5)',
+                      }}
+                    >
                       <span className="text-white text-xs font-black">{activeOffer.discount_percent}%</span>
                     </div>
-                }
+                  )}
                 </div>
               </div>
             </div>
-          </div> :
-        null}
+          </div>
+        ) : null}
 
         {/* Nearby Craftsmen Map */}
         <NearbyMapSection craftsmen={mapCraftsmen} />
 
-        {/* Nearby Craftsmen */}
+        {/* Craftsmen List */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-primary text-sm font-semibold">عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-900">جميع الصنايعية</h2>
+            <button className="text-sm font-semibold" style={{ color: LOGO_GREEN }}>
+              عرض الكل
+            </button>
+            <div className="flex items-center gap-2">
+              <h2 className="text-base font-bold text-gray-900">جميع الصنايعية</h2>
+              <div
+                className="w-1 h-4 rounded-full"
+                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+              />
+            </div>
           </div>
 
-          {isLoading ?
-          <div className="flex flex-col gap-3">
-              {[1, 2, 3].map((i) =>
-            <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
-            )}
-            </div> :
-          filteredCraftsmen.length === 0 ?
-          <div className="text-center py-8 text-gray-400 text-sm">
+          {isLoading ? (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : filteredCraftsmen.length === 0 ? (
+            <div className="text-center py-10 text-gray-400 text-sm">
               لا يوجد صنايعية مسجلون حالياً
-            </div> :
-
-          <div className="flex flex-col gap-3">
-              {filteredCraftsmen.map((craftsman) =>
-            <div key={craftsman.id} className="bg-white rounded-2xl border border-gray-200 p-4">
-                    <div className="flex items-center gap-3">
-                      {/* Avatar */}
-                      <div className="relative flex-shrink-0">
-                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100">
-                          {craftsman.avatar_url ?
-                      <AppImage
-                        src={craftsman.avatar_url}
-                        alt={`صورة ${craftsman.user_profiles?.full_name || 'الصنايعي'}`}
-                        width={56}
-                        height={56}
-                        className="w-full h-full object-cover" /> :
-
-
-                      <div className="w-full h-full flex items-center justify-center">
-                              <Icon name="UserCircleIcon" size={32} className="text-gray-300" />
-                            </div>
-                      }
-                        </div>
-                        {craftsman.is_online &&
-                    <div className="absolute -bottom-1 -left-1 w-3.5 h-3.5 bg-primary rounded-full border-2 border-white" />
-                    }
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <h3 className="text-sm font-bold text-gray-900">
-                            {craftsman.user_profiles?.full_name || 'صنايعي'}
-                          </h3>
-                          {craftsman.is_verified &&
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}>
-                              <Icon name="CheckBadgeIcon" size={10} className="text-white" />
-                              موثوق
-                            </span>
-                      }
-                          {craftsman.is_online &&
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-primary bg-primary/10 border border-primary/30">
-                              <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-                              متاح الآن
-                            </span>
-                      }
-                        </div>
-                        <p className="text-xs text-gray-500 mb-1.5">{craftsman.specialty}</p>
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center gap-1">
-                            <Icon name="BriefcaseIcon" size={12} className="text-gray-400" />
-                            <span className="text-xs text-gray-500 font-tabular">{craftsman.completed_jobs} مهمة مكتملة</span>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filteredCraftsmen.map((craftsman) => (
+                <div
+                  key={craftsman.id}
+                  className="bg-white rounded-2xl p-4"
+                  style={{
+                    border: '1px solid #F0F0F0',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Avatar */}
+                    <div className="relative flex-shrink-0">
+                      <div
+                        className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100"
+                        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                      >
+                        {craftsman.avatar_url ? (
+                          <AppImage
+                            src={craftsman.avatar_url}
+                            alt={`صورة ${craftsman.user_profiles?.full_name || 'الصنايعي'}`}
+                            width={56}
+                            height={56}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-50">
+                            <Icon name="UserCircleIcon" size={32} className="text-gray-300" />
                           </div>
-                        </div>
+                        )}
                       </div>
+                      {craftsman.is_online && (
+                        <div
+                          className="absolute -bottom-1 -left-1 w-3.5 h-3.5 rounded-full border-2 border-white"
+                          style={{ background: LOGO_GREEN }}
+                        />
+                      )}
+                    </div>
 
-                      {/* Rating + Buttons */}
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <div className="flex items-center gap-1">
-                          <span className="text-sm font-bold text-gray-900 font-tabular">{craftsman.rating}</span>
-                          <Icon name="StarIcon" size={13} variant="solid" className="text-yellow-500" />
-                        </div>
-                        <Link href={`/craftsman-profile?id=${craftsman.id}`}>
-                          <button className="px-3 py-1.5 rounded-lg border border-primary text-primary text-xs font-semibold">
-                            عرض الملف
-                          </button>
-                        </Link>
-                        <button
-                          onClick={(e) => { e.preventDefault(); setBookingCraftsman(craftsman); }}
-                          className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold"
-                          style={{ background: '#1B5E20' }}
-                        >
-                          احجز الآن
-                        </button>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
+                        <h3 className="text-sm font-bold text-gray-900">
+                          {craftsman.user_profiles?.full_name || 'صنايعي'}
+                        </h3>
+                        {craftsman.is_verified && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white"
+                            style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}
+                          >
+                            <Icon name="CheckBadgeIcon" size={10} className="text-white" />
+                            موثوق
+                          </span>
+                        )}
+                        {craftsman.is_online && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                            style={{
+                              color: LOGO_GREEN,
+                              background: `${LOGO_GREEN}15`,
+                              border: `1px solid ${LOGO_GREEN}30`,
+                            }}
+                          >
+                            <div
+                              className="w-1.5 h-1.5 rounded-full"
+                              style={{ background: LOGO_GREEN }}
+                            />
+                            متاح الآن
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-500 mb-1.5">{craftsman.specialty}</p>
+                      <div className="flex items-center gap-1">
+                        <Icon name="BriefcaseIcon" size={12} className="text-gray-400" />
+                        <span className="text-xs text-gray-500 font-tabular">
+                          {craftsman.completed_jobs} مهمة مكتملة
+                        </span>
                       </div>
                     </div>
+
+                    {/* Rating + Buttons */}
+                    <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                      <div
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg"
+                        style={{ background: '#FFFBEB' }}
+                      >
+                        <span className="text-sm font-bold text-gray-900 font-tabular">
+                          {craftsman.rating}
+                        </span>
+                        <Icon name="StarIcon" size={13} variant="solid" className="text-yellow-500" />
+                      </div>
+                      <Link href={`/craftsman-profile?id=${craftsman.id}`}>
+                        <button
+                          className="px-3 py-1.5 rounded-xl text-xs font-semibold"
+                          style={{
+                            border: `1.5px solid ${LOGO_GREEN}`,
+                            color: LOGO_GREEN,
+                            background: 'white',
+                          }}
+                        >
+                          عرض الملف
+                        </button>
+                      </Link>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setBookingCraftsman(craftsman);
+                        }}
+                        className="px-3 py-1.5 rounded-xl text-white text-xs font-semibold"
+                        style={{
+                          background: `linear-gradient(135deg, ${LOGO_GREEN_DARK}, ${LOGO_GREEN})`,
+                          boxShadow: `0 3px 10px ${LOGO_GREEN}40`,
+                        }}
+                      >
+                        احجز الآن
+                      </button>
+                    </div>
                   </div>
-            )}
+                </div>
+              ))}
             </div>
-          }
+          )}
         </div>
       </div>
 
       <BottomTabBar activeTab="home" />
 
-      {/* Booking Modal */}
       {bookingCraftsman && (
         <RequestServiceModal
           craftsmanProfileId={bookingCraftsman.id}
@@ -461,6 +613,6 @@ export default function HomeScreenClient() {
           }}
         />
       )}
-    </div>);
-
+    </div>
+  );
 }
