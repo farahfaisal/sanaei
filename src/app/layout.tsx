@@ -23,11 +23,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', type: 'image/x-icon' },
-      { url: '/assets/images/app_logo.png', type: 'image/png', sizes: '192x192' },
-      { url: '/assets/images/app_logo.png', type: 'image/png', sizes: '512x512' },
+      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', type: 'image/jpeg', sizes: '192x192' },
+      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', type: 'image/jpeg', sizes: '512x512' },
     ],
     apple: [
-      { url: '/assets/images/app_logo.png', sizes: '180x180', type: 'image/png' },
+      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', sizes: '180x180', type: 'image/jpeg' },
     ],
   },
 };
@@ -47,7 +47,7 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="صنايعي" />
-        <link rel="apple-touch-icon" href="/assets/images/app_logo.png" />
+        <link rel="apple-touch-icon" href="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg" />
         <style dangerouslySetInnerHTML={{ __html: `
           html, body {
             margin: 0;

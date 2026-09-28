@@ -1,7 +1,7 @@
 {
-    "name": "\u0635\u0646\u0627\u064a\u0639\u064a \u2014 \u0646\u0628\u0646\u064a \u062b\u0642\u0629\u060c \u0648\u0646\u0635\u0646\u0639 \u0641\u0631\u0642",
-    "short_name": "\u0635\u0646\u0627\u064a\u0639\u064a",
-    "description": "\u0645\u0646\u0635\u0629 \u0635\u0646\u0627\u064a\u0639\u064a \u062a\u0631\u0628\u0637\u0643 \u0628\u0623\u0641\u0636\u0644 \u0627\u0644\u062d\u0631\u0641\u064a\u064a\u0646 \u0627\u0644\u0645\u062d\u0644\u064a\u064a\u0646 \u0627\u0644\u0645\u0648\u062b\u0648\u0642\u064a\u0646 \u0644\u062c\u0645\u064a\u0639 \u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0646\u0632\u0644 \u0628\u0633\u0631\u0639\u0629 \u0648\u0623\u0645\u0627\u0646.",
+    "name": "صنايعي — نبني ثقة، ونصنع فرق",
+    "short_name": "صنايعي",
+    "description": "منصة صنايعي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.",
     "start_url": "/home-screen",
     "display": "standalone",
     "background_color": "#0f3d25",
@@ -12,15 +12,15 @@
     "scope": "/",
     "icons": [
         {
-            "src": "/assets/images/app_logo.png",
+            "src": "/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg",
             "sizes": "192x192",
-            "type": "image/png",
+            "type": "image/jpeg",
             "purpose": "any maskable"
         },
         {
-            "src": "/assets/images/app_logo.png",
+            "src": "/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg",
             "sizes": "512x512",
-            "type": "image/png",
+            "type": "image/jpeg",
             "purpose": "any maskable"
         }
     ],
