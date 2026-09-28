@@ -312,27 +312,43 @@ export default function HomeScreenClient() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-3">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-                  className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-2xl transition-all"
+                  className="flex flex-col items-center gap-2 py-3.5 px-1 rounded-2xl transition-all duration-200"
                   style={{
                     background:
                       activeCategory === cat.id
-                        ? `linear-gradient(135deg, ${LOGO_GREEN_DARK}20, ${LOGO_GREEN}28)`
-                        : '#FAFAFA',
-                    border: `1.5px solid ${activeCategory === cat.id ? LOGO_GREEN + '60' : '#EBEBEB'}`,
+                        ? `linear-gradient(145deg, ${LOGO_GREEN_DARK}18, ${LOGO_GREEN}28)`
+                        : 'linear-gradient(145deg, #ffffff, #f7faf8)',
+                    border: `1.5px solid ${activeCategory === cat.id ? LOGO_GREEN + '70' : '#E5EDE8'}`,
                     boxShadow:
                       activeCategory === cat.id
-                        ? `0 4px 16px ${LOGO_GREEN}30, 0 1px 4px rgba(0,0,0,0.06)`
-                        : '0 1px 4px rgba(0,0,0,0.05)',
+                        ? `0 6px 20px ${LOGO_GREEN}35, 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)`
+                        : '0 2px 8px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.9)',
+                    transform: activeCategory === cat.id ? 'translateY(-1px)' : 'translateY(0)',
                   }}
                 >
-                  <span className="text-xl">{cat.emoji}</span>
+                  <div
+                    className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+                    style={{
+                      background:
+                        activeCategory === cat.id
+                          ? `linear-gradient(135deg, ${LOGO_GREEN}22, ${LOGO_GREEN_DARK}18)`
+                          : 'linear-gradient(135deg, #f0f7f3, #e8f2ec)',
+                      boxShadow:
+                        activeCategory === cat.id
+                          ? `0 3px 10px ${LOGO_GREEN}30`
+                          : '0 2px 6px rgba(0,0,0,0.06)',
+                      border: `1px solid ${activeCategory === cat.id ? LOGO_GREEN + '40' : '#d4e8db'}`,
+                    }}
+                  >
+                    {cat.emoji}
+                  </div>
                   <span
-                    className="text-xs font-medium text-center leading-tight"
+                    className="text-xs font-semibold text-center leading-tight"
                     style={{ color: activeCategory === cat.id ? LOGO_GREEN : '#374151' }}
                   >
                     {cat.name}
