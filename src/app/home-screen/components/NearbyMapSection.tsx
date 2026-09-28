@@ -19,7 +19,6 @@ interface CraftsmanMapItem {
 
 interface NearbyMapSectionProps {
   craftsmen: CraftsmanMapItem[];
-  compact?: boolean;
 }
 
 interface Region {
@@ -128,7 +127,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export default function NearbyMapSection({ craftsmen, compact = false }: NearbyMapSectionProps) {
+export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -350,136 +349,129 @@ export default function NearbyMapSection({ craftsmen, compact = false }: NearbyM
   };
 
   return (
-    <div className={compact ? 'w-full h-full' : ''}>
-      {!compact && (
-        <>
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={handleLocate}
-              disabled={isLocating}
-              className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl border border-primary text-primary bg-green-50 active:bg-green-100 transition-colors disabled:opacity-60"
-            >
-              {isLocating ? (
-                <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Icon name="MapPinIcon" size={14} className="text-primary" />
-              )}
-              {userLocation ? 'تحديث الموقع' : 'تحديد موقعي'}
-            </button>
-            <h2 className="text-base font-bold text-gray-900">الصنايعية بالقرب منك</h2>
-          </div>
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={handleLocate}
+          disabled={isLocating}
+          className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-xl border border-primary text-primary bg-green-50 active:bg-green-100 transition-colors disabled:opacity-60"
+        >
+          {isLocating ? (
+            <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Icon name="MapPinIcon" size={14} className="text-primary" />
+          )}
+          {userLocation ? 'تحديث الموقع' : 'تحديد موقعي'}
+        </button>
+        <h2 className="text-base font-bold text-gray-900">الصنايعية بالقرب منك</h2>
+      </div>
 
-          {/* Region & Location Selectors */}
-          <div className="flex gap-2 mb-3">
-            {/* Region Selector */}
-            <div className="relative flex-1">
-              <button
-                onClick={() => {
-                  setShowRegionDropdown((v) => !v);
-                  setShowLocationDropdown(false);
-                }}
-                className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
-              >
-                <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
-                <span className="flex items-center gap-1.5 truncate">
-                  <Icon name="MapIcon" size={14} className="text-primary flex-shrink-0" />
-                  {selectedRegion.name}
-                </span>
-              </button>
-              {showRegionDropdown && (
-                <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                  {REGIONS.map((region) => (
-                    <button
-                      key={region.id}
-                      onClick={() => handleRegionSelect(region)}
-                      className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                        selectedRegion.id === region.id
-                          ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {region.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Location Selector — enabled only after region is selected */}
-            <div className="relative flex-1">
-              <button
-                onClick={() => {
-                  setShowLocationDropdown((v) => !v);
-                  setShowRegionDropdown(false);
-                }}
-                className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
-              >
-                <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
-                <span className="flex items-center gap-1.5 truncate">
-                  <Icon name="MapPinIcon" size={14} className="text-primary flex-shrink-0" />
-                  {selectedLocation ? selectedLocation.name : 'اختر الموقع'}
-                </span>
-              </button>
-              {showLocationDropdown && (
-                <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-                  <button
-                    onClick={() => {
-                      setSelectedLocation(null);
-                      setShowLocationDropdown(false);
-                    }}
-                    className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                      !selectedLocation ? 'bg-green-50 text-primary font-bold' : 'text-gray-500 hover:bg-gray-50'
-                    }`}
-                  >
-                    كل المنطقة
-                  </button>
-                  {selectedRegion.locations.map((loc) => (
-                    <button
-                      key={loc.id}
-                      onClick={() => handleLocationSelect(loc)}
-                      className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                        selectedLocation?.id === loc.id
-                          ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {loc.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Active selection badge */}
-          <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5">
-            <Icon name="MapPinIcon" size={12} className="text-green-600" />
-            <span>
-              {userLocation
-                ? 'موقعك الحالي — يتم عرض أقرب الصنايعية إليك'
-                : selectedLocation
-                ? `${selectedRegion.name} — ${selectedLocation.name}`
-                : `منطقة ${selectedRegion.name}`}
+      {/* Region & Location Selectors */}
+      <div className="flex gap-2 mb-3">
+        {/* Region Selector */}
+        <div className="relative flex-1">
+          <button
+            onClick={() => {
+              setShowRegionDropdown((v) => !v);
+              setShowLocationDropdown(false);
+            }}
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
+          >
+            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
+            <span className="flex items-center gap-1.5 truncate">
+              <Icon name="MapIcon" size={14} className="text-primary flex-shrink-0" />
+              {selectedRegion.name}
             </span>
-          </div>
-
-          {locationError && (
-            <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 text-right">
-              {locationError}
+          </button>
+          {showRegionDropdown && (
+            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              {REGIONS.map((region) => (
+                <button
+                  key={region.id}
+                  onClick={() => handleRegionSelect(region)}
+                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                    selectedRegion.id === region.id
+                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {region.name}
+                </button>
+              ))}
             </div>
           )}
-        </>
+        </div>
+
+        {/* Location Selector — enabled only after region is selected */}
+        <div className="relative flex-1">
+          <button
+            onClick={() => {
+              setShowLocationDropdown((v) => !v);
+              setShowRegionDropdown(false);
+            }}
+            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
+          >
+            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
+            <span className="flex items-center gap-1.5 truncate">
+              <Icon name="MapPinIcon" size={14} className="text-primary flex-shrink-0" />
+              {selectedLocation ? selectedLocation.name : 'اختر الموقع'}
+            </span>
+          </button>
+          {showLocationDropdown && (
+            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+              <button
+                onClick={() => {
+                  setSelectedLocation(null);
+                  setShowLocationDropdown(false);
+                }}
+                className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                  !selectedLocation ? 'bg-green-50 text-primary font-bold' : 'text-gray-500 hover:bg-gray-50'
+                }`}
+              >
+                كل المنطقة
+              </button>
+              {selectedRegion.locations.map((loc) => (
+                <button
+                  key={loc.id}
+                  onClick={() => handleLocationSelect(loc)}
+                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
+                    selectedLocation?.id === loc.id
+                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {loc.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Active selection badge */}
+      <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5">
+        <Icon name="MapPinIcon" size={12} className="text-green-600" />
+        <span>
+          {userLocation
+            ? 'موقعك الحالي — يتم عرض أقرب الصنايعية إليك'
+            : selectedLocation
+            ? `${selectedRegion.name} — ${selectedLocation.name}`
+            : `منطقة ${selectedRegion.name}`}
+        </span>
+      </div>
+
+      {locationError && (
+        <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 text-right">
+          {locationError}
+        </div>
       )}
 
       {/* Map */}
-      <div
-        className={compact ? 'w-full h-full' : 'rounded-2xl overflow-hidden border border-gray-200 shadow-sm mb-3'}
-        style={compact ? {} : { height: 280 }}
-      >
+      <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm mb-3" style={{ height: 280 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       </div>
 
       {/* Nearby craftsmen list below map */}
-      {!compact && nearbyCraftsmen.length > 0 && (
+      {nearbyCraftsmen.length > 0 && (
         <div className="flex flex-col gap-2">
           {nearbyCraftsmen.slice(0, 5).map((craftsman) => (
             <Link key={craftsman.id} href={`/craftsman-profile?id=${craftsman.id}`}>
