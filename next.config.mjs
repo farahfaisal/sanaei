@@ -2,7 +2,8 @@ import { imageHosts } from './image-hosts.config.mjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
+  compress: true,
   distDir: process.env.DIST_DIR || '.next',
   typescript: {
     ignoreBuildErrors: true,
@@ -10,10 +11,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  experimental: {
+    optimizePackageImports: ['@heroicons/react', 'recharts'],
+  },
   images: {
     remotePatterns: imageHosts,
-    minimumCacheTTL: 60,
-    qualities: [75, 85, 100],
+    minimumCacheTTL: 3600,
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [360, 414, 768, 1080],
+    imageSizes: [32, 48, 64, 96, 128, 256],
   },
   webpack(
     config,

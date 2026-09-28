@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import BottomTabBar from '@/components/BottomTabBar';
@@ -104,11 +104,11 @@ export default function HomeScreenClient() {
     };
   }, [offers.length]);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     try {
       const [catRes, craftRes, offersRes] = await Promise.all([
-        supabase.from('service_categories').select('*').eq('is_active', true).order('name'),
+        supabase.from('service_categories').select('id, name, emoji, slug').eq('is_active', true).order('name'),
         supabase
           .from('craftsman_profiles')
           .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)')
@@ -156,13 +156,16 @@ export default function HomeScreenClient() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  const filteredCraftsmen = activeCategory
-    ? craftsmen.filter((c) => c?.specialty?.includes(activeCategory))
-    : craftsmen;
+  const filteredCraftsmen = useMemo(
+    () => activeCategory
+      ? craftsmen.filter((c) => c?.specialty?.includes(activeCategory))
+      : craftsmen,
+    [craftsmen, activeCategory]
+  );
 
-  const mapCraftsmen = craftsmen.map((c) => {
+  const mapCraftsmen = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
     const parsed = parseLocation(locStr);
     const fallback = generateFallbackPosition(c.id);
@@ -177,7 +180,7 @@ export default function HomeScreenClient() {
       lng: parsed?.lng ?? fallback.lng,
       status: c.is_online ? ('available' as const) : ('offline' as const),
     };
-  });
+  }), [craftsmen]);
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'مرحباً';
   const activeOffer = offers[activeOfferIndex] || offers[0];
