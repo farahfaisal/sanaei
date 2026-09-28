@@ -17,7 +17,7 @@ interface Tab {
 
 const BASE_TABS: Tab[] = [
   { id: 'home', label: 'الرئيسية', icon: 'HomeIcon', href: '/home-screen' },
-  { id: 'search', label: 'البحث', icon: 'MagnifyingGlassIcon', href: '/home-screen' },
+  { id: 'search', label: 'البحث', icon: 'MagnifyingGlassIcon', href: '/search' },
   { id: 'orders', label: 'الطلبات', icon: 'ClipboardDocumentListIcon', href: '/order-details' },
   { id: 'wallet', label: 'المحفظة', icon: 'WalletIcon', href: '/wallet-earnings-dashboard' },
   { id: 'profile', label: 'حسابي', icon: 'UserCircleIcon', href: '/customer-profile' },
