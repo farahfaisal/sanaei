@@ -111,20 +111,34 @@ export default function HomeScreenClient() {
     try {
       const [catRes, craftRes, offersRes] = await Promise.all([
       supabase.from('service_categories').select('*').eq('is_active', true).order('name'),
-      supabase.
-      from('craftsman_profiles').
-      select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)').
-      order('rating', { ascending: false }),
-      supabase.
-      from('promotional_offers').
-      select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to').
-      eq('is_active', true).
-      order('sort_order').
-      limit(5)]
+      supabase
+        .from('craftsman_profiles')
+        .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)')
+        .order('rating', { ascending: false }),
+      supabase
+        .from('promotional_offers')
+        .select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to')
+        .eq('is_active', true)
+        .order('sort_order')
+        .limit(5)]
       );
 
       if (catRes.data) setCategories(catRes.data);
-      if (craftRes.data) setCraftsmen(craftRes.data as any);
+
+      if (craftRes.error) {
+        console.error('Craftsmen query error:', craftRes.error);
+        // Fallback: try without avatar_url in case column doesn't exist yet
+        const fallbackRes = await supabase
+          .from('craftsman_profiles')
+          .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, location, user_profiles(full_name, location)')
+          .order('rating', { ascending: false });
+        if (fallbackRes.data) {
+          setCraftsmen(fallbackRes.data.map((c: any) => ({ ...c, avatar_url: null })) as any);
+        }
+      } else if (craftRes.data) {
+        setCraftsmen(craftRes.data as any);
+      }
+
       if (offersRes.data && offersRes.data.length > 0) {
         setOffers(offersRes.data);
       } else {
@@ -142,9 +156,9 @@ export default function HomeScreenClient() {
         }]);
       }
     } catch (e) {
-
-      // ignore
-    } finally {setIsLoading(false);
+      console.error('loadData error:', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
