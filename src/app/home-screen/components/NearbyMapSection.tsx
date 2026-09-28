@@ -208,8 +208,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
           ...c,
           distance: haversineDistance(refPoint.lat, refPoint.lng, c.lat, c.lng),
         }))
-        .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999))
-        .slice(0, 20);
+        .sort((a, b) => (a.distance ?? 999) - (b.distance ?? 999));
 
       setNearbyCraftsmen(sorted);
 

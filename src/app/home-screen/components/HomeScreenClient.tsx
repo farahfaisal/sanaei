@@ -114,8 +114,7 @@ export default function HomeScreenClient() {
       supabase.
       from('craftsman_profiles').
       select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)').
-      order('rating', { ascending: false }).
-      limit(20),
+      order('rating', { ascending: false }),
       supabase.
       from('promotional_offers').
       select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to').
@@ -337,7 +336,7 @@ export default function HomeScreenClient() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <button className="text-primary text-sm font-semibold">عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-900">أفضل الصنايعية بالقرب منك</h2>
+            <h2 className="text-base font-bold text-gray-900">جميع الصنايعية</h2>
           </div>
 
           {isLoading ?
@@ -348,7 +347,7 @@ export default function HomeScreenClient() {
             </div> :
           filteredCraftsmen.length === 0 ?
           <div className="text-center py-8 text-gray-400 text-sm">
-              لا يوجد صنايعية متاحون حالياً
+              لا يوجد صنايعية مسجلون حالياً
             </div> :
 
           <div className="flex flex-col gap-3">
