@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import BottomTabBar from '@/components/BottomTabBar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
@@ -76,7 +77,7 @@ const LOGO_GREEN_DARK = '#1d5236';
 export default function HomeScreenClient() {
   const { user, profile } = useAuth();
   const supabase = createClient();
-  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<ServiceCategory[]>([]);
   const [craftsmen, setCraftsmen] = useState<CraftsmanCard[]>([]);
@@ -156,12 +157,9 @@ export default function HomeScreenClient() {
     }
   };
 
-  const filteredCraftsmen = craftsmen.filter(
-    (c) =>
-      !searchQuery ||
-      c?.user_profiles?.full_name?.includes(searchQuery) ||
-      c?.specialty?.includes(searchQuery)
-  );
+  const filteredCraftsmen = activeCategory
+    ? craftsmen.filter((c) => c?.specialty?.includes(activeCategory))
+    : craftsmen;
 
   const mapCraftsmen = craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
@@ -262,21 +260,20 @@ export default function HomeScreenClient() {
 
         {/* Search bar */}
         <div className="relative" style={{ position: 'relative' }}>
-          <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 right-3.5 flex items-center pointer-events-none z-10">
             <Icon name="MagnifyingGlassIcon" size={17} className="text-gray-400" />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e?.target?.value)}
-            placeholder="ما الخدمة التي تحتاجها؟"
-            className="w-full rounded-2xl py-3.5 pr-10 pl-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
+          <button
+            onClick={() => router.push('/search')}
+            className="w-full rounded-2xl py-3.5 pr-10 pl-4 text-sm text-gray-400 text-right outline-none cursor-pointer"
             style={{
               background: 'rgba(255,255,255,0.98)',
               boxShadow: '0 6px 24px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.08)',
             }}
             dir="rtl"
-          />
+          >
+            ما الخدمة التي تحتاجها؟
+          </button>
         </div>
 
         {/* Bottom wave divider */}
