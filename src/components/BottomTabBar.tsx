@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -25,6 +26,7 @@ const BASE_TABS: Tab[] = [
 
 export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
   const { profile } = useAuth();
+  const router = useRouter();
   const isCraftsman = profile?.role === 'craftsman';
 
   const tabs = BASE_TABS.map((tab) => {
@@ -61,6 +63,10 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
             <Link
               key={`nav-tab-${tab.id}`}
               href={tab.href}
+              onClick={(e) => {
+                e.preventDefault();
+                router.push(tab.href);
+              }}
               className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full relative"
             >
               {/* Active background pill */}
