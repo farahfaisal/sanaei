@@ -36,7 +36,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
     }
     return tab;
   }).filter((tab) => {
-    if (isCraftsman && (tab.id === 'home' || tab.id === 'search')) return false;
+    if (isCraftsman && tab.id === 'home') return false;
     return true;
   });
 
