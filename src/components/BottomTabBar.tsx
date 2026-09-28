@@ -41,43 +41,84 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
   });
 
   return (
-    <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around"
-      style={{
-        height: '64px',
-        background: 'var(--card)',
-        borderTop: '1px solid var(--border)',
-      }}
-    >
-      {tabs.map((tab) => {
-        const isActive = tab.id === activeTab;
-        return (
-          <Link
-            key={`nav-tab-${tab.id}`}
-            href={tab.href}
-            className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full"
-          >
-            <div className="relative">
-              <Icon
-                name={tab.icon as never}
-                size={22}
-                variant={isActive ? 'solid' : 'outline'}
-                className={isActive ? 'text-primary' : 'text-gray-400'}
-              />
-              {tab.badge && tab.badge > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
-                  {tab.badge}
-                </span>
-              )}
-            </div>
-            <span
-              className={`text-xs font-medium ${isActive ? 'text-primary' : 'text-gray-400'}`}
+    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-3 px-4 pointer-events-none">
+      <nav
+        className="pointer-events-auto flex items-center justify-around w-full max-w-md"
+        style={{
+          height: '68px',
+          borderRadius: '28px',
+          background: 'rgba(255, 255, 255, 0.82)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1.5px solid rgba(34, 197, 94, 0.25)',
+          boxShadow:
+            '0 8px 32px rgba(34, 197, 94, 0.18), 0 2px 12px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.7)',
+        }}
+      >
+        {tabs.map((tab) => {
+          const isActive = tab.id === activeTab;
+          return (
+            <Link
+              key={`nav-tab-${tab.id}`}
+              href={tab.href}
+              className="flex flex-col items-center justify-center gap-0.5 flex-1 h-full relative"
             >
-              {tab.label}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+              {/* Active background pill */}
+              {isActive && (
+                <span
+                  className="absolute inset-x-1 top-2 bottom-2 rounded-2xl"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(16,185,129,0.12) 100%)',
+                    border: '1px solid rgba(34,197,94,0.22)',
+                  }}
+                />
+              )}
+
+              {/* Icon container */}
+              <div className="relative z-10">
+                <div
+                  className="flex items-center justify-center rounded-xl transition-all duration-200"
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    background: isActive
+                      ? 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)'
+                      : 'transparent',
+                    boxShadow: isActive
+                      ? '0 4px 12px rgba(34,197,94,0.4), 0 1px 3px rgba(0,0,0,0.1)'
+                      : 'none',
+                    transform: isActive ? 'translateY(-2px)' : 'none',
+                  }}
+                >
+                  <Icon
+                    name={tab.icon as never}
+                    size={20}
+                    variant={isActive ? 'solid' : 'outline'}
+                    className={isActive ? 'text-white' : 'text-gray-400'}
+                  />
+                </div>
+                {tab.badge && tab.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center z-20">
+                    {tab.badge}
+                  </span>
+                )}
+              </div>
+
+              {/* Label */}
+              <span
+                className="text-xs font-semibold z-10 transition-all duration-200"
+                style={{
+                  color: isActive ? '#16a34a' : '#9ca3af',
+                  fontSize: '10px',
+                  letterSpacing: '0.01em',
+                }}
+              >
+                {tab.label}
+              </span>
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
   );
 }
