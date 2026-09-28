@@ -360,13 +360,13 @@ export default function ChatClient() {
       await supabase.from('messages').insert({
         conversation_id: conversation.id,
         sender_id: user.id,
-        content: `💰 عرض سعر: ${parseFloat(quoteAmount).toLocaleString('ar-SA')} ₪\n${quoteDescription || ''}`,
+        content: `💰 عرض سعر: ${parseFloat(quoteAmount).toLocaleString('ar-SA')} ر.س\n${quoteDescription || ''}`,
         message_type: 'quote',
       });
 
       await supabase
         .from('conversations')
-        .update({ last_message: `💰 عرض سعر: ${quoteAmount} ₪`, last_message_at: new Date().toISOString() })
+        .update({ last_message: `💰 عرض سعر: ${quoteAmount} ر.س`, last_message_at: new Date().toISOString() })
         .eq('id', conversation.id);
 
       setShowQuoteForm(false);
@@ -402,7 +402,7 @@ export default function ChatClient() {
         await supabase.from('messages').insert({
           conversation_id: conversation.id,
           sender_id: user!.id,
-          content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ₪`,
+          content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ر.س`,
           message_type: 'text',
         });
 
@@ -514,7 +514,7 @@ export default function ChatClient() {
           <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 text-center">
             <p className="text-sm text-gray-500 mb-1">المبلغ المطلوب</p>
             <p className="text-3xl font-black text-primary">
-              {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ₪
+              {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ر.س
             </p>
             <p className="text-xs text-gray-400 mt-1">سيتم الاحتفاظ بالمبلغ لدى الإدارة حتى إتمام الخدمة</p>
           </div>
@@ -568,6 +568,9 @@ export default function ChatClient() {
     );
   }
 
+  // Detect if this is a custom service request
+  const isCustomRequest = conversation.order?.description?.startsWith('[خدمة مخصصة:');
+
   return (
     <div className="screen-container bg-gray-50 flex flex-col" dir="rtl" style={{ height: '100dvh' }}>
       {/* Header */}
@@ -587,8 +590,9 @@ export default function ChatClient() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-gray-900 truncate">{otherPartyName}</p>
           {conversation.order && (
-            <p className="text-xs text-gray-400 truncate">
-              {conversation.order.description?.slice(0, 40) || 'طلب خدمة'}
+            <p className="text-xs text-gray-400 truncate flex items-center gap-1">
+              {isCustomRequest && <span className="text-blue-500 font-semibold">✏️ مخصص</span>}
+              {conversation.order.description?.replace(/^\[خدمة مخصصة: .+?\]\n?/, '').slice(0, 35) || 'طلب خدمة'}
             </p>
           )}
         </div>
@@ -598,6 +602,19 @@ export default function ChatClient() {
           </span>
         )}
       </div>
+
+      {/* Custom request banner (for craftsman) */}
+      {isCustomRequest && isCraftsman && !activeQuote && !acceptedQuote && (
+        <div className="mx-4 mt-3 bg-blue-50 border border-blue-200 rounded-2xl p-3 flex-shrink-0">
+          <div className="flex items-start gap-2">
+            <Icon name="InformationCircleIcon" size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-blue-800 mb-0.5">طلب خدمة مخصصة</p>
+              <p className="text-xs text-blue-600">راجع تفاصيل الطلب وأرسل عرض سعرك باستخدام زر 💰 في أسفل الشاشة</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Service images (if any) */}
       {conversation.order?.service_images && conversation.order.service_images.length > 0 && (
@@ -613,12 +630,12 @@ export default function ChatClient() {
         </div>
       )}
 
-      {/* Active quote banner */}
+      {/* Active quote banner — customer sees accept/reject, craftsman sees pending status */}
       {activeQuote && isCustomer && (
         <div className="mx-4 mt-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 flex-shrink-0">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-bold text-blue-800">💰 عرض سعر جديد</p>
-            <p className="text-lg font-black text-blue-900">{activeQuote.amount.toLocaleString('ar-SA')} ₪</p>
+            <p className="text-lg font-black text-blue-900">{activeQuote.amount.toLocaleString('ar-SA')} ر.س</p>
           </div>
           {activeQuote.description && (
             <p className="text-xs text-blue-600 mb-3">{activeQuote.description}</p>
@@ -668,6 +685,19 @@ export default function ChatClient() {
                 🔄 تعديل
               </button>
             </div>
+          )}
+        </div>
+      )}
+
+      {/* Craftsman sees pending quote status */}
+      {activeQuote && isCraftsman && (
+        <div className="mx-4 mt-3 bg-yellow-50 border border-yellow-200 rounded-2xl p-3 flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-bold text-yellow-800">⏳ عرض السعر بانتظار رد الزبون</p>
+            <p className="text-sm font-black text-yellow-900">{activeQuote.amount.toLocaleString('ar-SA')} ر.س</p>
+          </div>
+          {activeQuote.description && (
+            <p className="text-xs text-yellow-600 mt-1">{activeQuote.description}</p>
           )}
         </div>
       )}
@@ -746,13 +776,16 @@ export default function ChatClient() {
         <div className="mx-4 mb-2 bg-white border border-gray-200 rounded-2xl p-4 flex-shrink-0 shadow-sm">
           <p className="text-sm font-bold text-gray-800 mb-3">💰 إرسال عرض سعر</p>
           <div className="space-y-2">
-            <input
-              type="number"
-              placeholder="المبلغ (₪)"
-              value={quoteAmount}
-              onChange={(e) => setQuoteAmount(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-gray-50"
-            />
+            <div className="relative">
+              <input
+                type="number"
+                placeholder="المبلغ"
+                value={quoteAmount}
+                onChange={(e) => setQuoteAmount(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-primary bg-gray-50 pl-14"
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">ر.س</span>
+            </div>
             <textarea
               rows={2}
               placeholder="وصف العرض (اختياري)"
@@ -814,6 +847,7 @@ export default function ChatClient() {
             <button
               onClick={() => setShowQuoteForm(true)}
               className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0"
+              title="إرسال عرض سعر"
             >
               <Icon name="CurrencyDollarIcon" size={20} className="text-blue-600" />
             </button>

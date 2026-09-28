@@ -27,6 +27,8 @@ interface RequestServiceModalProps {
   onSuccess: (orderId: string) => void;
 }
 
+type RequestType = 'listed' | 'custom';
+
 export default function RequestServiceModal({
   craftsmanProfileId,
   craftsmanUserId,
@@ -41,11 +43,17 @@ export default function RequestServiceModal({
   const supabase = createClient();
   const router = useRouter();
 
+  // If a specific service was pre-selected, start on listed tab
+  const [requestType, setRequestType] = useState<RequestType>(
+    initialServiceId ? 'listed' : services.length > 0 ? 'listed' : 'custom'
+  );
+
   const [selectedServiceId, setSelectedServiceId] = useState<string>(initialServiceId || '');
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [customServiceTitle, setCustomServiceTitle] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,7 +67,7 @@ export default function RequestServiceModal({
 
   const selectedService = services.find((s) => s.id === selectedServiceId) || null;
   const displayServiceName =
-    selectedService?.name || initialServiceName || '';
+    requestType === 'custom' ? customServiceTitle.trim() ||'خدمة مخصصة' : selectedService?.name || initialServiceName ||'';
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -108,6 +116,11 @@ export default function RequestServiceModal({
       setError('يرجى إدخال موقع الخدمة');
       return;
     }
+    if (requestType === 'listed' && !selectedServiceId && !initialServiceId) {
+      setError('يرجى اختيار الخدمة المطلوبة');
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     try {
@@ -115,13 +128,16 @@ export default function RequestServiceModal({
         ? new Date(`${scheduledDate}T${scheduledTime || '09:00'}:00`).toISOString()
         : null;
 
-      const finalServiceId = selectedServiceId || initialServiceId || undefined;
+      const finalServiceId =
+        requestType === 'listed' ? (selectedServiceId || initialServiceId || undefined) : undefined;
 
       const insertPayload: Record<string, any> = {
         customer_id: user.id,
         craftsman_id: craftsmanProfileId,
         status: 'pending',
-        description: description.trim(),
+        description: requestType === 'custom' && customServiceTitle.trim()
+          ? `[خدمة مخصصة: ${customServiceTitle.trim()}]\n${description.trim()}`
+          : description.trim(),
         address: location.trim(),
         scheduled_at: scheduledAt,
         payment_status: 'pending',
@@ -151,13 +167,17 @@ export default function RequestServiceModal({
       }
 
       // Create conversation linked to this order
+      const firstMessage = requestType === 'custom'
+        ? `مرحباً، أحتاج خدمة مخصصة${customServiceTitle.trim() ? ': ' + customServiceTitle.trim() : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}\n\n💡 يرجى إرسال عرض السعر المناسب.`
+        : `مرحباً، أحتاج خدمة${displayServiceName ? ' ' + displayServiceName : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}`;
+
       const { data: conversation } = await supabase
         .from('conversations')
         .insert({
           customer_id: user.id,
           craftsman_id: craftsmanUserId,
           order_id: order.id,
-          last_message: `طلب خدمة جديد${displayServiceName ? ': ' + displayServiceName : ''}`,
+          last_message: `طلب خدمة${requestType === 'custom' ? ' مخصصة' : ''}: ${displayServiceName}`,
           last_message_at: new Date().toISOString(),
         })
         .select('id')
@@ -172,33 +192,47 @@ export default function RequestServiceModal({
         await supabase.from('messages').insert({
           conversation_id: conversation.id,
           sender_id: user.id,
-          content: `مرحباً، أحتاج خدمة${displayServiceName ? ' ' + displayServiceName : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}`,
+          content: firstMessage,
           message_type: 'text',
         });
+
+        // For custom requests, add a system hint message
+        if (requestType === 'custom') {
+          await supabase.from('messages').insert({
+            conversation_id: conversation.id,
+            sender_id: craftsmanUserId,
+            content: `📋 طلب خدمة مخصصة جديد — يرجى مراجعة الطلب وإرسال عرض السعر المناسب باستخدام زر 💰 عرض سعر.`,
+            message_type: 'text',
+          });
+        }
       }
 
       // Notification for craftsman
+      const notifTitle = requestType === 'custom' ? 'طلب خدمة مخصصة 🔔' : 'طلب خدمة جديد 🔔';
+      const notifBody = requestType === 'custom'
+        ? `لديك طلب خدمة مخصصة: ${customServiceTitle.trim() || 'خدمة مخصصة'} — أرسل عرض سعرك`
+        : `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`;
+
       await supabase.from('notifications').insert({
         user_id: craftsmanUserId,
-        title: 'طلب خدمة جديد 🔔',
-        body: `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
+        title: notifTitle,
+        body: notifBody,
         type: 'new_order',
         order_id: order.id,
       });
 
-      sendPushToUser(
-        craftsmanUserId,
-        'طلب خدمة جديد 🔔',
-        `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
-        { url: '/craftsman-profile', orderId: order.id }
-      );
+      sendPushToUser(craftsmanUserId, notifTitle, notifBody, {
+        url: '/craftsman-profile',
+        orderId: order.id,
+      });
 
-      // Navigate to payment screen
+      // Navigate to chat (not payment) — price will be negotiated in chat
       onClose();
-      const paymentParams = new URLSearchParams({ order_id: order.id });
-      if (finalServiceId) paymentParams.set('service_id', finalServiceId);
-      else paymentParams.set('craftsman_id', craftsmanProfileId);
-      router.push(`/payment-screen?${paymentParams.toString()}`);
+      if (conversation) {
+        router.push(`/chat?conversation_id=${conversation.id}`);
+      } else {
+        router.push(`/chat?order_id=${order.id}`);
+      }
     } catch (e: any) {
       setError(e?.message || 'حدث خطأ، يرجى المحاولة مجدداً');
       setUploadingImages(false);
@@ -234,43 +268,99 @@ export default function RequestServiceModal({
           <div>
             <p className="text-xs text-gray-500">الصنايعي</p>
             <p className="text-sm font-bold text-gray-900">{craftsmanName}</p>
-            {displayServiceName && <p className="text-xs text-primary">{displayServiceName}</p>}
           </div>
+        </div>
+
+        {/* Request type tabs */}
+        <div className="flex gap-2 mb-5 p-1 bg-gray-100 rounded-2xl">
+          <button
+            onClick={() => { setRequestType('listed'); setError(null); }}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+              requestType === 'listed' ?'bg-white text-gray-900 shadow-sm' :'text-gray-500'
+            }`}
+          >
+            <Icon name="ListBulletIcon" size={15} className={requestType === 'listed' ? 'text-primary' : 'text-gray-400'} />
+            خدمة من القائمة
+          </button>
+          <button
+            onClick={() => { setRequestType('custom'); setError(null); }}
+            className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+              requestType === 'custom' ?'bg-white text-gray-900 shadow-sm' :'text-gray-500'
+            }`}
+          >
+            <Icon name="PencilSquareIcon" size={15} className={requestType === 'custom' ? 'text-primary' : 'text-gray-400'} />
+            خدمة مخصصة
+          </button>
         </div>
 
         <div className="space-y-4">
 
-          {/* Service choice — show when no pre-selected service and services list is available */}
-          {!initialServiceId && services.length > 0 && (
+          {/* Listed services */}
+          {requestType === 'listed' && (
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 اختر الخدمة <span className="text-red-500">*</span>
               </label>
-              <div className="grid grid-cols-2 gap-2">
-                {services.map((s) => (
+              {services.length === 0 ? (
+                <div className="p-4 bg-gray-50 rounded-xl text-center">
+                  <p className="text-sm text-gray-400">لا توجد خدمات محددة لهذا الصنايعي</p>
                   <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => { setSelectedServiceId(s.id); setError(null); }}
-                    className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
-                      selectedServiceId === s.id
-                        ? 'border-primary bg-green-50' :'border-gray-200 bg-gray-50 hover:border-gray-300'
-                    }`}
+                    onClick={() => setRequestType('custom')}
+                    className="mt-2 text-xs text-primary font-semibold underline"
                   >
-                    <span className="text-xl">{s.emoji}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold text-gray-900 truncate">{s.name}</p>
-                      {(s.price_label || s.base_price) && (
-                        <p className="text-xs text-primary">
-                          {s.price_label || `${s.base_price} ر.س`}
-                        </p>
-                      )}
-                    </div>
-                    {selectedServiceId === s.id && (
-                      <Icon name="CheckCircleIcon" size={16} className="text-primary flex-shrink-0" />
-                    )}
+                    أرسل طلباً مخصصاً
                   </button>
-                ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {services.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => { setSelectedServiceId(s.id); setError(null); }}
+                      className={`flex items-center gap-2 p-3 rounded-xl border text-right transition-all ${
+                        selectedServiceId === s.id
+                          ? 'border-primary bg-green-50' :'border-gray-200 bg-gray-50 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-xl">{s.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-900 truncate">{s.name}</p>
+                        {(s.price_label || s.base_price) && (
+                          <p className="text-xs text-primary">
+                            {s.price_label || `${s.base_price} ر.س`}
+                          </p>
+                        )}
+                      </div>
+                      {selectedServiceId === s.id && (
+                        <Icon name="CheckCircleIcon" size={16} className="text-primary flex-shrink-0" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Custom service title */}
+          {requestType === 'custom' && (
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                نوع الخدمة المطلوبة <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="مثال: تركيب مكيف، إصلاح سباكة، دهان غرفة..."
+                value={customServiceTitle}
+                onChange={(e) => { setCustomServiceTitle(e.target.value); setError(null); }}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-primary bg-gray-50"
+              />
+              {/* Custom request info banner */}
+              <div className="mt-2 flex items-start gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                <Icon name="InformationCircleIcon" size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-700 leading-relaxed">
+                  سيتواصل معك الصنايعي عبر المحادثة ويرسل لك عرض السعر المناسب، ويمكنك قبوله أو رفضه.
+                </p>
               </div>
             </div>
           )}
@@ -381,16 +471,16 @@ export default function RequestServiceModal({
             </p>
           )}
 
-          {/* Summary before payment */}
-          {(selectedServiceId || initialServiceId) && location && description && (
-            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-xs text-amber-800 space-y-1">
-              <p className="font-semibold text-amber-900 flex items-center gap-1">
-                <Icon name="CreditCardIcon" size={13} className="text-amber-700" />
-                ستنتقل إلى صفحة الدفع بعد إرسال الطلب
-              </p>
-              <p className="text-amber-700">يمكنك اختيار طريقة الدفع المناسبة في الخطوة التالية</p>
-            </div>
-          )}
+          {/* Chat flow info */}
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-xs text-amber-800 space-y-1">
+            <p className="font-semibold text-amber-900 flex items-center gap-1">
+              <Icon name="ChatBubbleLeftEllipsisIcon" size={13} className="text-amber-700" />
+              {requestType === 'custom' ?'سيتم فتح محادثة مع الصنايعي' :'سيتم فتح محادثة بعد إرسال الطلب'}
+            </p>
+            <p className="text-amber-700">
+              {requestType === 'custom' ?'الصنايعي سيرسل لك عرض السعر، ويمكنك قبوله أو رفضه من داخل المحادثة' :'يمكنك التواصل مع الصنايعي ومتابعة الطلب من خلال المحادثة'}
+            </p>
+          </div>
 
           <button
             onClick={handleConfirm}
@@ -405,8 +495,8 @@ export default function RequestServiceModal({
               </>
             ) : (
               <>
-                <Icon name="CreditCardIcon" size={16} className="text-white" />
-                تأكيد الطلب والمتابعة للدفع
+                <Icon name="ChatBubbleLeftEllipsisIcon" size={16} className="text-white" />
+                {requestType === 'custom' ? 'إرسال الطلب وفتح المحادثة' : 'تأكيد الطلب وفتح المحادثة'}
               </>
             )}
           </button>
