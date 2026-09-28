@@ -50,9 +50,9 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
           background: 'rgba(255, 255, 255, 0.82)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          border: '1.5px solid rgba(34, 197, 94, 0.25)',
+          border: '1.5px solid rgba(20, 82, 48, 0.35)',
           boxShadow:
-            '0 8px 32px rgba(34, 197, 94, 0.18), 0 2px 12px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.7)',
+            '0 8px 32px rgba(20, 82, 48, 0.25), 0 2px 12px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.7)',
         }}
       >
         {tabs.map((tab) => {
@@ -68,8 +68,8 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
                 <span
                   className="absolute inset-x-1 top-2 bottom-2 rounded-2xl"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(34,197,94,0.18) 0%, rgba(16,185,129,0.12) 100%)',
-                    border: '1px solid rgba(34,197,94,0.22)',
+                    background: 'linear-gradient(135deg, rgba(20,82,48,0.20) 0%, rgba(10,46,24,0.14) 100%)',
+                    border: '1px solid rgba(20,82,48,0.28)',
                   }}
                 />
               )}
@@ -82,10 +82,10 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
                     width: '36px',
                     height: '36px',
                     background: isActive
-                      ? 'linear-gradient(135deg, #22c55e 0%, #10b981 100%)'
+                      ? 'linear-gradient(135deg, #145230 0%, #0a2e18 100%)'
                       : 'transparent',
                     boxShadow: isActive
-                      ? '0 4px 12px rgba(34,197,94,0.4), 0 1px 3px rgba(0,0,0,0.1)'
+                      ? '0 4px 12px rgba(20,82,48,0.5), 0 1px 3px rgba(0,0,0,0.15)'
                       : 'none',
                     transform: isActive ? 'translateY(-2px)' : 'none',
                   }}
@@ -108,7 +108,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
               <span
                 className="text-xs font-semibold z-10 transition-all duration-200"
                 style={{
-                  color: isActive ? '#16a34a' : '#9ca3af',
+                  color: isActive ? '#145230' : '#9ca3af',
                   fontSize: '10px',
                   letterSpacing: '0.01em',
                 }}

@@ -70,8 +70,8 @@ module.exports = {
           to: { opacity: '1', transform: 'translateY(0)' },
         },
         pulseGreen: {
-          '0%, 100%': { boxShadow: '0 0 0 0 rgba(26, 92, 58, 0.3)' },
-          '50%': { boxShadow: '0 0 0 8px rgba(26, 92, 58, 0)' },
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(20, 82, 48, 0.3)' },
+          '50%': { boxShadow: '0 0 0 8px rgba(20, 82, 48, 0)' },
         },
         bounceSubtle: {
           '0%, 100%': { transform: 'translateY(0)' },
@@ -81,7 +81,7 @@ module.exports = {
       boxShadow: {
         card: '0 2px 12px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 4px 20px rgba(0, 0, 0, 0.12)',
-        green: '0 4px 16px rgba(26, 92, 58, 0.35)',
+        green: '0 4px 16px rgba(20, 82, 48, 0.35)',
       },
     },
   },
