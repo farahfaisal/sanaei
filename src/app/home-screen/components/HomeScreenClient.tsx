@@ -184,41 +184,24 @@ export default function HomeScreenClient() {
   const activeOffer = offers[activeOfferIndex] || offers[0];
 
   return (
-    <div className="screen-container bg-gray-50" dir="rtl">
+    <div className="screen-container" style={{ background: 'linear-gradient(180deg, #f0f7f3 0%, #f5f5f5 100%)' }} dir="rtl">
       {/* Header */}
       <div
         style={{
-          background: `linear-gradient(150deg, ${LOGO_GREEN_DARK} 0%, ${LOGO_GREEN} 60%, #3a9b68 100%)`,
+          background: `linear-gradient(150deg, ${LOGO_GREEN_DARK} 0%, ${LOGO_GREEN} 55%, #3aaa6e 100%)`,
           position: 'relative',
           overflow: 'hidden',
+          boxShadow: `0 8px 32px ${LOGO_GREEN_DARK}60, 0 2px 8px rgba(0,0,0,0.15)`,
         }}
-        className="px-4 pt-12 pb-6"
+        className="px-4 pt-12 pb-8"
       >
-        {/* Decorative circles */}
-        <div
-          style={{
-            position: 'absolute',
-            top: -40,
-            left: -40,
-            width: 160,
-            height: 160,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.06)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: -20,
-            right: -30,
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.05)',
-            pointerEvents: 'none',
-          }}
-        />
+        {/* Decorative circles — layered for depth */}
+        <div style={{ position: 'absolute', top: -50, left: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(255,255,255,0.07)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', top: -20, left: 20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: -30, right: -40, width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: 10, right: 60, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.04)', pointerEvents: 'none' }} />
+        {/* Subtle diagonal shimmer line */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.04) 50%, transparent 70%)', pointerEvents: 'none' }} />
 
         <div className="flex items-center justify-between mb-5" style={{ position: 'relative' }}>
           <div>
@@ -226,9 +209,12 @@ export default function HomeScreenClient() {
               👋 أهلاً وسهلاً
             </p>
             <h1 className="text-xl font-bold text-white tracking-tight">{displayName}</h1>
-            <div className="flex items-center gap-1 mt-1">
-              <Icon name="MapPinIcon" size={12} style={{ color: 'rgba(255,255,255,0.55)' }} />
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.55)' }}>
+            <div
+              className="flex items-center gap-1 mt-1.5 px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.12)', display: 'inline-flex', backdropFilter: 'blur(4px)' }}
+            >
+              <Icon name="MapPinIcon" size={11} style={{ color: 'rgba(255,255,255,0.75)' }} />
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.75)' }}>
                 {profile?.location || 'الرياض، السعودية'}
               </span>
             </div>
@@ -236,7 +222,12 @@ export default function HomeScreenClient() {
           <div className="flex items-center gap-2">
             <div
               className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ background: 'rgba(255,255,255,0.15)', border: '1.5px solid rgba(255,255,255,0.3)' }}
+              style={{
+                background: 'rgba(255,255,255,0.15)',
+                border: '1.5px solid rgba(255,255,255,0.3)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                backdropFilter: 'blur(6px)',
+              }}
             >
               <img
                 src="/assets/images/__________________24_-1790287739442.png"
@@ -247,7 +238,12 @@ export default function HomeScreenClient() {
             <NotificationBell />
             <div
               className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center"
-              style={{ border: '2px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.15)' }}
+              style={{
+                border: '2px solid rgba(255,255,255,0.4)',
+                background: 'rgba(255,255,255,0.15)',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                backdropFilter: 'blur(6px)',
+              }}
             >
               {profile?.avatar_url ? (
                 <AppImage
@@ -276,26 +272,36 @@ export default function HomeScreenClient() {
             placeholder="ما الخدمة التي تحتاجها؟"
             className="w-full rounded-2xl py-3.5 pr-10 pl-4 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
             style={{
-              background: 'rgba(255,255,255,0.97)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.12)',
+              background: 'rgba(255,255,255,0.98)',
+              boxShadow: '0 6px 24px rgba(0,0,0,0.18), 0 1px 4px rgba(0,0,0,0.08)',
             }}
             dir="rtl"
           />
         </div>
+
+        {/* Bottom wave divider */}
+        <div style={{ position: 'absolute', bottom: -1, left: 0, right: 0, height: 20, background: 'linear-gradient(180deg, #f0f7f3 0%, #f0f7f3 100%)', borderRadius: '50% 50% 0 0 / 100% 100% 0 0', transform: 'scaleX(1.1)' }} />
       </div>
 
-      <div className="px-4 py-5 space-y-6 pb-24">
+      <div className="px-4 py-5 space-y-6 pb-24" style={{ marginTop: 4 }}>
+
         {/* Service Categories */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
+        <div
+          className="rounded-3xl p-4"
+          style={{
+            background: 'white',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-4">
             <button className="text-sm font-semibold" style={{ color: LOGO_GREEN }}>
               عرض الكل
             </button>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-gray-900">الخدمات</h2>
               <div
-                className="w-1 h-4 rounded-full"
-                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+                className="w-1 h-5 rounded-full"
+                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})`, boxShadow: `0 2px 6px ${LOGO_GREEN}50` }}
               />
             </div>
           </div>
@@ -315,13 +321,13 @@ export default function HomeScreenClient() {
                   style={{
                     background:
                       activeCategory === cat.id
-                        ? `linear-gradient(135deg, ${LOGO_GREEN_DARK}18, ${LOGO_GREEN}22)`
-                        : 'white',
-                    border: `1.5px solid ${activeCategory === cat.id ? LOGO_GREEN + '55' : '#E5E7EB'}`,
+                        ? `linear-gradient(135deg, ${LOGO_GREEN_DARK}20, ${LOGO_GREEN}28)`
+                        : '#FAFAFA',
+                    border: `1.5px solid ${activeCategory === cat.id ? LOGO_GREEN + '60' : '#EBEBEB'}`,
                     boxShadow:
                       activeCategory === cat.id
-                        ? `0 2px 12px ${LOGO_GREEN}25`
-                        : '0 1px 4px rgba(0,0,0,0.06)',
+                        ? `0 4px 16px ${LOGO_GREEN}30, 0 1px 4px rgba(0,0,0,0.06)`
+                        : '0 1px 4px rgba(0,0,0,0.05)',
                   }}
                 >
                   <span className="text-xl">{cat.emoji}</span>
@@ -360,8 +366,8 @@ export default function HomeScreenClient() {
               <div className="flex items-center gap-2">
                 <h2 className="text-base font-bold text-gray-900">العروض والخصومات</h2>
                 <div
-                  className="w-1 h-4 rounded-full"
-                  style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+                  className="w-1 h-5 rounded-full"
+                  style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})`, boxShadow: `0 2px 6px ${LOGO_GREEN}50` }}
                 />
               </div>
             </div>
@@ -370,35 +376,29 @@ export default function HomeScreenClient() {
               className="rounded-3xl p-4 overflow-hidden relative"
               style={{
                 background: `linear-gradient(135deg, ${activeOffer.bg_color_from} 0%, ${activeOffer.bg_color_to} 100%)`,
-                boxShadow: `0 8px 28px ${activeOffer.bg_color_from}55`,
+                boxShadow: `0 10px 36px ${activeOffer.bg_color_from}60, 0 3px 10px rgba(0,0,0,0.12)`,
               }}
             >
-              {/* Decorative blob */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: -30,
-                  left: -30,
-                  width: 100,
-                  height: 100,
-                  borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.08)',
-                  pointerEvents: 'none',
-                }}
-              />
+              {/* Layered decorative blobs */}
+              <div style={{ position: 'absolute', top: -40, left: -40, width: 130, height: 130, borderRadius: '50%', background: 'rgba(255,255,255,0.09)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', top: 10, left: 40, width: 60, height: 60, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', pointerEvents: 'none' }} />
+              <div style={{ position: 'absolute', bottom: -20, right: 80, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', pointerEvents: 'none' }} />
+              {/* Shimmer overlay */}
+              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'linear-gradient(120deg, transparent 20%, rgba(255,255,255,0.06) 50%, transparent 80%)', pointerEvents: 'none' }} />
+
               <div className="flex items-center justify-between" style={{ position: 'relative' }}>
                 <div className="flex-1">
                   {activeOffer.badge_text && (
                     <div
                       className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1 mb-2"
-                      style={{ background: 'rgba(255,255,255,0.18)' }}
+                      style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.25)' }}
                     >
                       <span className="text-white text-xs font-bold">{activeOffer.badge_text}</span>
                     </div>
                   )}
                   <p className="text-white font-bold text-sm leading-snug mb-1.5">{activeOffer.title}</p>
                   {activeOffer.description && (
-                    <p className="text-xs mb-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    <p className="text-xs mb-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.82)' }}>
                       {activeOffer.description}
                     </p>
                   )}
@@ -406,7 +406,9 @@ export default function HomeScreenClient() {
                     className="mt-1 text-white text-xs font-bold px-4 py-2 rounded-xl"
                     style={{
                       background: 'rgba(255,255,255,0.22)',
-                      border: '1px solid rgba(255,255,255,0.35)',
+                      border: '1px solid rgba(255,255,255,0.4)',
+                      backdropFilter: 'blur(4px)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                     }}
                   >
                     {activeOffer.button_text}
@@ -416,7 +418,7 @@ export default function HomeScreenClient() {
                   {activeOffer.image_url && (
                     <div
                       className="w-full h-full rounded-2xl overflow-hidden"
-                      style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.2)' }}
+                      style={{ boxShadow: '0 6px 20px rgba(0,0,0,0.25)' }}
                     >
                       <AppImage
                         src={activeOffer.image_url}
@@ -432,7 +434,8 @@ export default function HomeScreenClient() {
                       className="absolute -top-2 -right-2 w-9 h-9 rounded-full flex items-center justify-center"
                       style={{
                         background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                        boxShadow: '0 3px 10px rgba(217,119,6,0.5)',
+                        boxShadow: '0 4px 12px rgba(217,119,6,0.55)',
+                        border: '2px solid rgba(255,255,255,0.4)',
                       }}
                     >
                       <span className="text-white text-xs font-black">{activeOffer.discount_percent}%</span>
@@ -445,19 +448,26 @@ export default function HomeScreenClient() {
         ) : null}
 
         {/* Nearby Craftsmen Map */}
-        <NearbyMapSection craftsmen={mapCraftsmen} />
+        <div
+          className="rounded-3xl overflow-hidden"
+          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)' }}
+        >
+          <NearbyMapSection craftsmen={mapCraftsmen} />
+        </div>
 
         {/* Craftsmen List */}
         <div>
-          <div className="flex items-center justify-between mb-3">
+          <div
+            className="flex items-center justify-between mb-4 px-1"
+          >
             <button className="text-sm font-semibold" style={{ color: LOGO_GREEN }}>
               عرض الكل
             </button>
             <div className="flex items-center gap-2">
               <h2 className="text-base font-bold text-gray-900">جميع الصنايعية</h2>
               <div
-                className="w-1 h-4 rounded-full"
-                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})` }}
+                className="w-1 h-5 rounded-full"
+                style={{ background: `linear-gradient(to bottom, ${LOGO_GREEN}, ${LOGO_GREEN_DARK})`, boxShadow: `0 2px 6px ${LOGO_GREEN}50` }}
               />
             </div>
           </div>
@@ -474,21 +484,42 @@ export default function HomeScreenClient() {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {filteredCraftsmen.map((craftsman) => (
+              {filteredCraftsmen.map((craftsman, index) => (
                 <div
                   key={craftsman.id}
                   className="bg-white rounded-2xl p-4"
                   style={{
-                    border: '1px solid #F0F0F0',
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)',
+                    background: index === 0
+                      ? `linear-gradient(135deg, white 70%, ${LOGO_GREEN}08 100%)`
+                      : 'white',
                   }}
                 >
+                  {/* Top craftsman badge */}
+                  {index === 0 && (
+                    <div
+                      className="flex items-center gap-1 mb-2 px-2 py-0.5 rounded-lg self-start inline-flex"
+                      style={{
+                        background: `linear-gradient(135deg, ${LOGO_GREEN_DARK}15, ${LOGO_GREEN}20)`,
+                        border: `1px solid ${LOGO_GREEN}30`,
+                      }}
+                    >
+                      <Icon name="StarIcon" size={10} variant="solid" style={{ color: LOGO_GREEN }} />
+                      <span className="text-xs font-bold" style={{ color: LOGO_GREEN }}>الأعلى تقييماً</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="relative flex-shrink-0">
                       <div
                         className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100"
-                        style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}
+                        style={{
+                          boxShadow: craftsman.is_online
+                            ? `0 4px 14px ${LOGO_GREEN}35, 0 1px 4px rgba(0,0,0,0.08)`
+                            : '0 3px 10px rgba(0,0,0,0.1)',
+                          border: craftsman.is_online ? `2px solid ${LOGO_GREEN}40` : '2px solid transparent',
+                        }}
                       >
                         {craftsman.avatar_url ? (
                           <AppImage
@@ -507,7 +538,7 @@ export default function HomeScreenClient() {
                       {craftsman.is_online && (
                         <div
                           className="absolute -bottom-1 -left-1 w-3.5 h-3.5 rounded-full border-2 border-white"
-                          style={{ background: LOGO_GREEN }}
+                          style={{ background: LOGO_GREEN, boxShadow: `0 0 6px ${LOGO_GREEN}80` }}
                         />
                       )}
                     </div>
@@ -521,7 +552,10 @@ export default function HomeScreenClient() {
                         {craftsman.is_verified && (
                           <span
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white"
-                            style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}
+                            style={{
+                              background: 'linear-gradient(135deg, #D97706, #F59E0B)',
+                              boxShadow: '0 2px 6px rgba(217,119,6,0.35)',
+                            }}
                           >
                             <Icon name="CheckBadgeIcon" size={10} className="text-white" />
                             موثوق
@@ -538,7 +572,7 @@ export default function HomeScreenClient() {
                           >
                             <div
                               className="w-1.5 h-1.5 rounded-full"
-                              style={{ background: LOGO_GREEN }}
+                              style={{ background: LOGO_GREEN, boxShadow: `0 0 4px ${LOGO_GREEN}` }}
                             />
                             متاح الآن
                           </span>
@@ -556,8 +590,12 @@ export default function HomeScreenClient() {
                     {/* Rating + Buttons */}
                     <div className="flex flex-col items-end gap-2 flex-shrink-0">
                       <div
-                        className="flex items-center gap-1 px-2 py-1 rounded-lg"
-                        style={{ background: '#FFFBEB' }}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-xl"
+                        style={{
+                          background: 'linear-gradient(135deg, #FFFBEB, #FEF3C7)',
+                          boxShadow: '0 2px 6px rgba(245,158,11,0.2)',
+                          border: '1px solid rgba(245,158,11,0.2)',
+                        }}
                       >
                         <span className="text-sm font-bold text-gray-900 font-tabular">
                           {craftsman.rating}
@@ -570,7 +608,7 @@ export default function HomeScreenClient() {
                           style={{
                             border: `1.5px solid ${LOGO_GREEN}`,
                             color: LOGO_GREEN,
-                            background: 'white',
+                            background: `${LOGO_GREEN}08`,
                           }}
                         >
                           عرض الملف
@@ -584,7 +622,7 @@ export default function HomeScreenClient() {
                         className="px-3 py-1.5 rounded-xl text-white text-xs font-semibold"
                         style={{
                           background: `linear-gradient(135deg, ${LOGO_GREEN_DARK}, ${LOGO_GREEN})`,
-                          boxShadow: `0 3px 10px ${LOGO_GREEN}40`,
+                          boxShadow: `0 4px 14px ${LOGO_GREEN}45`,
                         }}
                       >
                         احجز الآن
