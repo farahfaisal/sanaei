@@ -232,37 +232,45 @@ export default function HomeScreenClient() {
       </div>
 
       <div className="px-4 py-4 space-y-5 pb-24">
-        {/* Service Categories */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <button className="text-primary text-sm font-semibold">عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-900">الخدمات</h2>
+        {/* Map as background with categories overlaid on top */}
+        <div className="relative rounded-2xl overflow-hidden" style={{ minHeight: 260 }}>
+          {/* Nearby Craftsmen Map - background layer */}
+          <div className="absolute inset-0 z-0">
+            <NearbyMapSection craftsmen={mapCraftsmen} compact />
           </div>
-          {isLoading ?
-          <div className="grid grid-cols-4 gap-2">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
-            <div key={i} className="h-16 bg-gray-100 rounded-xl animate-pulse" />
-            )}
-            </div> :
 
-          <div className="grid grid-cols-4 gap-2">
-              {categories.map((cat) =>
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
-              className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all ${
-              activeCategory === cat.id ?
-              'border-primary bg-primary/10' : 'border-gray-200 bg-white'}`
-              }>
-              
-                  <span className="text-xl">{cat.emoji}</span>
-                  <span className="text-xs font-medium text-gray-700 text-center leading-tight">
-                    {cat.name}
-                  </span>
-                </button>
-            )}
+          {/* Service Categories - overlay on top of map */}
+          <div className="relative z-10 pt-3 pb-4 px-2">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <button className="text-white text-sm font-semibold drop-shadow">عرض الكل</button>
+              <h2 className="text-base font-bold text-white drop-shadow">الخدمات</h2>
             </div>
-          }
+            {isLoading ?
+            <div className="grid grid-cols-4 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
+              <div key={i} className="h-16 bg-white/30 rounded-xl animate-pulse" />
+              )}
+              </div> :
+
+            <div className="grid grid-cols-4 gap-2">
+                {categories.map((cat) =>
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(activeCategory === cat.id ? null : cat.id)}
+                className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border transition-all backdrop-blur-sm ${
+                activeCategory === cat.id ?
+                'border-primary bg-primary/80 shadow-lg' : 'border-white/40 bg-white/80'}`
+                }>
+              
+                    <span className="text-xl">{cat.emoji}</span>
+                    <span className="text-xs font-medium text-gray-700 text-center leading-tight">
+                      {cat.name}
+                    </span>
+                  </button>
+              )}
+              </div>
+            }
+          </div>
         </div>
 
         {/* Promotional Offers Banner */}
@@ -329,9 +337,6 @@ export default function HomeScreenClient() {
             </div>
           </div> :
         null}
-
-        {/* Nearby Craftsmen Map */}
-        <NearbyMapSection craftsmen={mapCraftsmen} />
 
         {/* Nearby Craftsmen */}
         <div>
