@@ -5,12 +5,12 @@
 :root {
   --background: #0F1117;
   --foreground: #F1F5F9;
-  --primary: #2a724d;
-  --primary-dark: #1d5236;
-  --primary-light: #358f61;
+  --primary: #1a5c3a;
+  --primary-dark: #0f3d25;
+  --primary-light: #236b47;
   --primary-foreground: #FFFFFF;
   --secondary: #1A2332;
-  --secondary-foreground: #2a724d;
+  --secondary-foreground: #1a5c3a;
   --accent: #F59E0B;
   --accent-foreground: #FFFFFF;
   --muted: #1E2535;
@@ -19,10 +19,10 @@
   --card-foreground: #F1F5F9;
   --border: #2D3748;
   --input: #1E2535;
-  --ring: #2a724d;
+  --ring: #1a5c3a;
   --radius: 12px;
   --font-sans: var(--font-noto-arabic), var(--font-plus-jakarta), sans-serif;
-  --success: #2a724d;
+  --success: #1a5c3a;
   --warning: #F59E0B;
   --danger: #EF4444;
   --nav-height: 64px;
@@ -193,7 +193,7 @@
   }
 
   .tab-item.active {
-    color: #2a724d;
+    color: #1a5c3a;
   }
 
   .tab-item:not(.active) {
