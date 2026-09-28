@@ -16,7 +16,7 @@ export default function SplashScreen() {
       if (user && profile) {
         // Redirect based on role
         if (profile?.role === 'craftsman') {
-          router?.replace('/order-details');
+          router?.replace('/craftsman-orders');
         } else if (profile?.role === 'admin') {
           router?.replace('/dashboard');
         } else {

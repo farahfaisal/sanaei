@@ -49,10 +49,10 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; 
 };
 
 const BRAND = {
-  primary:   '#0891B2',
-  secondary: '#06B6D4',
-  light:     'rgba(8,145,178,0.10)',
-  gradient:  'linear-gradient(145deg, #0E7490 0%, #0891B2 45%, #0284C7 100%)',
+  primary:   '#2a724d',
+  secondary: '#358f61',
+  light:     'rgba(42,114,77,0.10)',
+  gradient:  'linear-gradient(145deg, #1d5236 0%, #2a724d 45%, #358f61 100%)',
 };
 
 type ProfileTab = 'orders' | 'addresses' | 'payments' | 'settings';
