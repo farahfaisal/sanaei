@@ -38,11 +38,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
-        // Auto-subscribe to Web Push if permission already granted
-        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-          import('@/lib/pushNotifications').then(({ subscribeToPush }) => {
-            subscribeToPush(session.user.id);
+        // Request notification permission and subscribe to Web Push
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          import('@/lib/pushNotifications').then(({ requestNotificationPermission, subscribeToPush }) => {
+            requestNotificationPermission().then((permission) => {
+              if (permission === 'granted') {
+                subscribeToPush(session.user.id);
+              }
+            });
           });
+        }
+        // Request geolocation permission
+        if (typeof window !== 'undefined' && 'geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            () => { /* permission granted, position available */ },
+            () => { /* permission denied or error, ignore silently */ },
+            { timeout: 10000, maximumAge: 60000 }
+          );
         }
         // Register FCM token for WebView (JS-Native bridge)
         import('@/lib/fcm').then(({ isWebView, registerFCM }) => {

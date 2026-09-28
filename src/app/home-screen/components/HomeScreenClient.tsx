@@ -112,7 +112,8 @@ export default function HomeScreenClient() {
         supabase
           .from('craftsman_profiles')
           .select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)')
-          .order('rating', { ascending: false }),
+          .order('rating', { ascending: false })
+          .limit(20),
         supabase
           .from('promotional_offers')
           .select('id, title, description, discount_percent, image_url, badge_text, button_text, bg_color_from, bg_color_to')

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 
 export default function PageTransition({ children }: { children: React.ReactNode }) {
@@ -18,11 +18,12 @@ export default function PageTransition({ children }: { children: React.ReactNode
 
       if (timerRef.current) clearTimeout(timerRef.current);
 
+      // Reduced from 600ms to 200ms for snappier navigation
       timerRef.current = setTimeout(() => {
         setDisplayChildren(children);
         setPageKey(pathname);
         setIsLoading(false);
-      }, 600);
+      }, 200);
     } else {
       setDisplayChildren(children);
     }
@@ -34,7 +35,6 @@ export default function PageTransition({ children }: { children: React.ReactNode
 
   return (
     <>
-      {/* Page content with slide animation */}
       <div
         key={pageKey}
         className="page-slide-in"
@@ -43,7 +43,6 @@ export default function PageTransition({ children }: { children: React.ReactNode
         {displayChildren}
       </div>
 
-      {/* Branded loading overlay */}
       {isLoading && (
         <div
           className="fixed inset-0 flex flex-col items-center justify-center z-[9999]"
@@ -51,13 +50,10 @@ export default function PageTransition({ children }: { children: React.ReactNode
             background: 'linear-gradient(160deg, #0a2e18 0%, #145230 50%, #1a5c3a 100%)',
           }}
         >
-          {/* Ripple rings */}
           <div className="relative flex items-center justify-center mb-8">
             <span className="loader-ring loader-ring-1" />
             <span className="loader-ring loader-ring-2" />
             <span className="loader-ring loader-ring-3" />
-
-            {/* Logo circle */}
             <div
               className="relative z-10 rounded-full overflow-hidden flex items-center justify-center loader-logo-pulse"
               style={{
@@ -65,7 +61,6 @@ export default function PageTransition({ children }: { children: React.ReactNode
                 height: 80,
                 background: 'rgba(255,255,255,0.12)',
                 border: '2px solid rgba(255,255,255,0.25)',
-                backdropFilter: 'blur(8px)',
               }}
             >
               <img
@@ -76,7 +71,6 @@ export default function PageTransition({ children }: { children: React.ReactNode
             </div>
           </div>
 
-          {/* Brand name */}
           <p
             className="loader-fade-in"
             style={{
@@ -84,13 +78,11 @@ export default function PageTransition({ children }: { children: React.ReactNode
               fontFamily: "'Cairo', sans-serif",
               fontSize: 22,
               fontWeight: 700,
-              letterSpacing: '0.05em',
             }}
           >
             صنايعي
           </p>
 
-          {/* Animated dots */}
           <div className="flex gap-2 mt-4">
             <span className="loader-dot" style={{ animationDelay: '0ms' }} />
             <span className="loader-dot" style={{ animationDelay: '180ms' }} />
