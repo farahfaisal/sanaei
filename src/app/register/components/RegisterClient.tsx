@@ -506,7 +506,7 @@ function RegisterForm() {
           onClick={handleRegister}
           disabled={isLoading || !canSubmit}
           className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-          style={{ background: '#1a5857', opacity: (!canSubmit || isLoading) ? 0.6 : 1 }}
+          style={{ background: '#2a724d', opacity: (!canSubmit || isLoading) ? 0.6 : 1 }}
         >
           {isLoading ? 'جاري إنشاء الحساب...' : 'إنشاء الحساب'}
         </button>

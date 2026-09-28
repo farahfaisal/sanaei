@@ -71,9 +71,9 @@ function generateFallbackPosition(seed: string): { lat: number; lng: number } {
   return { lat, lng };
 }
 
-// Logo green: #1a5857 (app primary color)
-const LOGO_GREEN = '#1a5857';
-const LOGO_GREEN_DARK = '#123d3c';
+// Logo green: #2a724d (app primary color)
+const LOGO_GREEN = '#2a724d';
+const LOGO_GREEN_DARK = '#1d5236';
 
 export default function HomeScreenClient() {
   const { user, profile } = useAuth();

@@ -254,7 +254,7 @@ export default function PhoneLoginClient() {
               onClick={handleSendOtp}
               disabled={isLoading || !phone}
               className="w-full py-4 rounded-2xl font-bold text-white text-base mb-5 transition-all"
-              style={{ background: '#1a5857', opacity: (!phone || isLoading) ? 0.6 : 1 }}
+              style={{ background: '#2a724d', opacity: (!phone || isLoading) ? 0.6 : 1 }}
             >
               {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
             </button>
@@ -315,13 +315,13 @@ export default function PhoneLoginClient() {
                     <circle cx="16" cy="16" r="13" fill="none" stroke="#E5E7EB" strokeWidth="2.5" />
                     <circle
                       cx="16" cy="16" r="13" fill="none"
-                      stroke="#1a5857" strokeWidth="2.5"
+                      stroke="#2a724d" strokeWidth="2.5"
                       strokeDasharray={circumference}
                       strokeDashoffset={dashOffset}
                       strokeLinecap="round"
                       transform="rotate(-90 16 16)"
                     />
-                    <text x="16" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#1a5857">
+                    <text x="16" y="20" textAnchor="middle" fontSize="9" fontWeight="bold" fill="#2a724d">
                       {countdown}
                     </text>
                   </svg>
@@ -346,7 +346,7 @@ export default function PhoneLoginClient() {
               onClick={handleVerify}
               disabled={isLoading || otp.join('').length < 6}
               className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-              style={{ background: '#1a5857', opacity: (isLoading || otp.join('').length < 6) ? 0.6 : 1 }}
+              style={{ background: '#2a724d', opacity: (isLoading || otp.join('').length < 6) ? 0.6 : 1 }}
             >
               {isLoading ? 'جاري التحقق...' : 'تأكيد'}
             </button>

@@ -133,7 +133,7 @@ export default function WalletClient() {
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
       {/* Header */}
-      <div style={{ background: '#1a5857' }} className="px-4 pt-12 pb-5">
+      <div style={{ background: '#2a724d' }} className="px-4 pt-12 pb-5">
         <div className="flex items-center justify-between mb-4">
           <div className="flex gap-2">
             <button className="w-9 h-9 bg-white/15 rounded-full flex items-center justify-center">

@@ -34,7 +34,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string; bg: string; 
 
 type OrderTab = 'active' | 'scheduled' | 'previous';
 
-const BRAND_GRADIENT = 'linear-gradient(145deg, #1a5857 0%, #1e6b6a 50%, #1a5857 100%)';
+const BRAND_GRADIENT = 'linear-gradient(145deg, #2a724d 0%, #2d8a5a 50%, #2a724d 100%)';
 
 export default function CraftsmanOrdersClient() {
   const router = useRouter();
@@ -98,7 +98,7 @@ export default function CraftsmanOrdersClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#1a5857', borderTopColor: 'transparent' }} />
+        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
       </div>
     );
   }
@@ -155,7 +155,7 @@ export default function CraftsmanOrdersClient() {
               onClick={() => setActiveTab(tab.key)}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all"
               style={activeTab === tab.key
-                ? { background: '#1a5857', color: '#fff' }
+                ? { background: '#2a724d', color: '#fff' }
                 : { background: 'var(--muted)', color: 'var(--muted-foreground)' }
               }
             >
@@ -259,7 +259,7 @@ export default function CraftsmanOrdersClient() {
                       #{order.id.slice(0, 8).toUpperCase()}
                     </span>
                     {order.amount != null && (
-                      <span className="font-bold text-sm" style={{ color: '#1a5857' }}>
+                      <span className="font-bold text-sm" style={{ color: '#2a724d' }}>
                         {order.amount.toLocaleString('ar-SA')} ر.س
                       </span>
                     )}
@@ -271,7 +271,7 @@ export default function CraftsmanOrdersClient() {
                       <button
                         onClick={() => router.push(`/order-details?id=${order.id}`)}
                         className="flex-1 py-2 rounded-xl text-sm font-semibold transition-colors"
-                        style={{ background: '#1a5857', color: '#fff' }}
+                        style={{ background: '#2a724d', color: '#fff' }}
                       >
                         عرض التفاصيل
                       </button>

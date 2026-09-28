@@ -199,7 +199,7 @@ export default function PaymentClient() {
     return (
       <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
         <div className="text-center">
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1a5857' }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#2a724d' }}>
             <Icon name="CheckIcon" size={44} className="text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">تم الدفع بنجاح!</h2>
@@ -219,7 +219,7 @@ export default function PaymentClient() {
               <button
                 onClick={() => router.push(`/order-details?order_id=${orderId}`)}
                 className="w-full py-4 rounded-2xl font-bold text-white text-base"
-                style={{ background: '#1a5857' }}
+                style={{ background: '#2a724d' }}
               >
                 عرض تفاصيل الطلب
               </button>
@@ -384,7 +384,7 @@ export default function PaymentClient() {
           onClick={handlePay}
           disabled={isProcessing}
           className="w-full py-4 rounded-2xl font-bold text-white text-base mb-3 transition-all"
-          style={{ background: '#1a5857', opacity: isProcessing ? 0.7 : 1 }}
+          style={{ background: '#2a724d', opacity: isProcessing ? 0.7 : 1 }}
         >
           {isProcessing ? 'جاري المعالجة...' : `ادفع ${amount} ₪ الآن`}
         </button>

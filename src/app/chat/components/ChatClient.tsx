@@ -549,7 +549,7 @@ export default function ChatClient() {
             onClick={handlePayment}
             disabled={isProcessingPayment}
             className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2"
-            style={{ background: '#1a5857' }}
+            style={{ background: '#2a724d' }}
           >
             {isProcessingPayment ? (
               <>
@@ -749,7 +749,7 @@ export default function ChatClient() {
                       : isOwn
                       ? 'text-white' :'bg-white border border-gray-100 text-gray-900'
                   }`}
-                  style={isOwn && msg.message_type !== 'quote' ? { background: '#1a5857' } : {}}
+                  style={isOwn && msg.message_type !== 'quote' ? { background: '#2a724d' } : {}}
                 >
                   {msg.message_type === 'image' && msg.media_url ? (
                     <div className="w-48 h-48 rounded-xl overflow-hidden">
@@ -798,7 +798,7 @@ export default function ChatClient() {
                 onClick={submitQuote}
                 disabled={isSubmittingQuote || !quoteAmount}
                 className="flex-1 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-1"
-                style={{ background: '#1a5857' }}
+                style={{ background: '#2a724d' }}
               >
                 {isSubmittingQuote ? (
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -876,7 +876,7 @@ export default function ChatClient() {
             onClick={() => sendMessage(messageText)}
             disabled={isSending || !messageText.trim()}
             className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all"
-            style={{ background: messageText.trim() ? '#1a5857' : '#e5e7eb' }}
+            style={{ background: messageText.trim() ? '#2a724d' : '#e5e7eb' }}
           >
             <Icon name="PaperAirplaneIcon" size={18} className={messageText.trim() ? 'text-white' : 'text-gray-400'} />
           </button>

@@ -6,8 +6,8 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 
 const BRAND = {
-  primary: '#1a5857',
-  light: 'rgba(26,88,87,0.12)',
+  primary: '#2a724d',
+  light: 'rgba(42,114,77,0.12)',
 };
 
 interface RatingModalProps {

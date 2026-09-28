@@ -139,7 +139,7 @@ export default function OnboardingClient() {
           onClick={handleContinue}
           className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
           style={{
-            background: selectedRole ? '#1a5857' : '#9CA3AF',
+            background: selectedRole ? '#2a724d' : '#9CA3AF',
             opacity: selectedRole ? 1 : 0.7,
           }}
           disabled={!selectedRole}

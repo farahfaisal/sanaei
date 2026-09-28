@@ -10,10 +10,10 @@ import BottomTabBar from '@/components/BottomTabBar';
 import RatingModal from './RatingModal';
 
 const BRAND = {
-  primary: '#1a5857',
-  accent: '#123d3c',
-  light: 'rgba(26,88,87,0.12)',
-  gradient: 'linear-gradient(145deg, #1a5857 0%, #123d3c 55%, #267877 100%)',
+  primary: '#2a724d',
+  accent: '#1d5236',
+  light: 'rgba(42,114,77,0.12)',
+  gradient: 'linear-gradient(145deg, #2a724d 0%, #1d5236 55%, #358f61 100%)',
 };
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; icon: string; step: number }> = {

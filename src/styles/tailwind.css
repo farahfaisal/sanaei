@@ -5,12 +5,12 @@
 :root {
   --background: #0F1117;
   --foreground: #F1F5F9;
-  --primary: #1a5857;
-  --primary-dark: #123d3c;
-  --primary-light: #267877;
+  --primary: #2a724d;
+  --primary-dark: #1d5236;
+  --primary-light: #358f61;
   --primary-foreground: #FFFFFF;
   --secondary: #1A2332;
-  --secondary-foreground: #1a5857;
+  --secondary-foreground: #2a724d;
   --accent: #F59E0B;
   --accent-foreground: #FFFFFF;
   --muted: #1E2535;
@@ -19,10 +19,10 @@
   --card-foreground: #F1F5F9;
   --border: #2D3748;
   --input: #1E2535;
-  --ring: #1a5857;
+  --ring: #2a724d;
   --radius: 12px;
   --font-sans: var(--font-noto-arabic), var(--font-plus-jakarta), sans-serif;
-  --success: #1a5857;
+  --success: #2a724d;
   --warning: #F59E0B;
   --danger: #EF4444;
   --nav-height: 64px;
@@ -193,7 +193,7 @@
   }
 
   .tab-item.active {
-    color: #1a5857;
+    color: #2a724d;
   }
 
   .tab-item:not(.active) {
@@ -373,7 +373,7 @@
   }
 
   .promo-banner {
-    background: linear-gradient(135deg, #0d3332 0%, #1a5857 60%, #267877 100%);
+    background: linear-gradient(135deg, #163d28 0%, #2a724d 60%, #358f61 100%);
     border-radius: 16px;
     padding: 20px;
     color: white;
@@ -404,7 +404,7 @@
   }
 
   .wallet-balance-card {
-    background: linear-gradient(135deg, #0d3332 0%, #1a5857 50%, #267877 100%);
+    background: linear-gradient(135deg, #163d28 0%, #2a724d 50%, #358f61 100%);
     border-radius: 20px;
     padding: 24px;
     color: white;

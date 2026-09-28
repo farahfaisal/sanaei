@@ -122,7 +122,7 @@ function NearbyCraftsmenMap({ craftsmen, centerLat, centerLng }: {
 
       // Center marker (current craftsman)
       const selfIcon = L.divIcon({
-        html: `<div style="background:#1a5857;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
+        html: `<div style="background:#2a724d;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.4)"></div>`,
         className: '',
         iconSize: [16, 16],
         iconAnchor: [8, 8],
@@ -135,7 +135,7 @@ function NearbyCraftsmenMap({ craftsmen, centerLat, centerLng }: {
       craftsmen.forEach((c) => {
         const lat = c.latitude ?? centerLat + (Math.random() - 0.5) * 0.05;
         const lng = c.longitude ?? centerLng + (Math.random() - 0.5) * 0.05;
-        const color = c.is_online ? '#1a5857' : '#6b7280';
+        const color = c.is_online ? '#2a724d' : '#6b7280';
         const icon = L.divIcon({
           html: `<div style="background:${color};width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,0.3)"></div>`,
           className: '',
@@ -618,7 +618,7 @@ export default function CraftsmanProfileClient() {
     return (
       <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
         <div className="text-center">
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#1a5857' }}>
+          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#2a724d' }}>
             <Icon name="CheckIcon" size={44} className="text-white" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">تم إرسال الطلب!</h2>
@@ -635,7 +635,7 @@ export default function CraftsmanProfileClient() {
           <button
             onClick={() => router.push('/home-screen')}
             className="w-full py-4 rounded-2xl font-bold text-white text-base"
-            style={{ background: '#1a5857' }}
+            style={{ background: '#2a724d' }}
           >
             العودة للرئيسية
           </button>
@@ -662,7 +662,7 @@ export default function CraftsmanProfileClient() {
             priority
           />
         ) : (
-          <div className="w-full h-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #1a5857 0%, #123d3c 100%)' }} />
+          <div className="w-full h-full overflow-hidden" style={{ background: 'linear-gradient(135deg, #2a724d 0%, #1d5236 100%)' }} />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
 
@@ -751,7 +751,7 @@ export default function CraftsmanProfileClient() {
                 onClick={() => !avatarUploading && avatarFileRef.current?.click()}
                 disabled={avatarUploading}
                 className="absolute -bottom-1 -left-1 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white shadow"
-                style={{ background: '#1a5857' }}
+                style={{ background: '#2a724d' }}
                 aria-label="تغيير الصورة الشخصية"
               >
                 {avatarUploading ? (
@@ -803,12 +803,12 @@ export default function CraftsmanProfileClient() {
         {/* ── Online/Offline Toggle (own profile only) ── */}
         {isOwnProfile && (
           <div className="mb-4 p-3 rounded-2xl border-2 flex items-center justify-between"
-            style={{ borderColor: isOnline ? '#1a5857' : '#d1d5db', background: isOnline ? '#f0faf9' : '#f9fafb' }}>
+            style={{ borderColor: isOnline ? '#2a724d' : '#d1d5db', background: isOnline ? '#f0faf9' : '#f9fafb' }}>
             <div>
-              <p className="text-sm font-bold" style={{ color: isOnline ? '#1a5857' : '#374151' }}>
+              <p className="text-sm font-bold" style={{ color: isOnline ? '#2a724d' : '#374151' }}>
                 {isOnline ? '🟢 أنت متصل الآن' : '⚫ أنت غير متصل'}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: isOnline ? '#267877' : '#6b7280' }}>
+              <p className="text-xs mt-0.5" style={{ color: isOnline ? '#358f61' : '#6b7280' }}>
                 {isOnline ? 'العملاء يمكنهم رؤيتك وطلب خدماتك' : 'لن تظهر للعملاء في البحث'}
               </p>
             </div>
@@ -816,7 +816,7 @@ export default function CraftsmanProfileClient() {
               onClick={toggleOnlineStatus}
               disabled={togglingOnline}
               className="relative w-14 h-7 rounded-full transition-all duration-300 focus:outline-none"
-              style={{ background: isOnline ? '#1a5857' : '#d1d5db' }}
+              style={{ background: isOnline ? '#2a724d' : '#d1d5db' }}
               aria-label="تبديل حالة الاتصال"
             >
               {togglingOnline ? (
@@ -862,7 +862,7 @@ export default function CraftsmanProfileClient() {
             <button
               onClick={() => handleRequestService()}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: '#1a5857' }}
+              style={{ background: '#2a724d' }}
             >
               <Icon name="WrenchScrewdriverIcon" size={15} className="text-white" />
               طلب خدمة
@@ -872,7 +872,7 @@ export default function CraftsmanProfileClient() {
             <button
               onClick={openEditModal}
               className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: '#1a5857' }}
+              style={{ background: '#2a724d' }}
             >
               <Icon name="PencilSquareIcon" size={15} className="text-white" />
               تعديل الملف
@@ -1061,7 +1061,7 @@ export default function CraftsmanProfileClient() {
                 <div key={svc.id} className="flex items-center justify-between">
                   {isOwnProfile ? (
                     <Link href={`/payment-screen?service_id=${svc.id}&craftsman_id=${craftsman.id}`}>
-                      <button className="px-4 py-1.5 rounded-xl text-sm font-bold text-white" style={{ background: '#1a5857' }}>
+                      <button className="px-4 py-1.5 rounded-xl text-sm font-bold text-white" style={{ background: '#2a724d' }}>
                         طلب
                       </button>
                     </Link>
@@ -1069,7 +1069,7 @@ export default function CraftsmanProfileClient() {
                     <button
                       onClick={() => handleRequestService(svc.id, svc.name)}
                       className="px-4 py-1.5 rounded-xl text-sm font-bold text-white"
-                      style={{ background: '#1a5857' }}
+                      style={{ background: '#2a724d' }}
                     >
                       طلب
                     </button>
@@ -1409,7 +1409,7 @@ export default function CraftsmanProfileClient() {
                 onClick={handleSaveProfile}
                 disabled={editSaving || !editForm.full_name.trim()}
                 className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
-                style={{ background: '#1a5857' }}
+                style={{ background: '#2a724d' }}
               >
                 {editSaving ? (
                   <>
@@ -1556,7 +1556,7 @@ export default function CraftsmanProfileClient() {
                 onClick={handleAddPortfolioItem}
                 disabled={portfolioSaving || !portfolioFile}
                 className="w-full py-4 rounded-2xl font-bold text-white text-base flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity"
-                style={{ background: '#1a5857' }}
+                style={{ background: '#2a724d' }}
               >
                 {portfolioSaving ? (
                   <>
