@@ -41,7 +41,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
   });
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 flex justify-center pb-3 px-4 pointer-events-none">
+    <div className="fixed bottom-0 left-0 right-0 z-[1100] flex justify-center pb-3 px-4 pointer-events-none">
       <nav
         className="pointer-events-auto flex items-center justify-around w-full max-w-md"
         style={{
