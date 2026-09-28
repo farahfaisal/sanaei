@@ -3,7 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
-import PageTransition from '@/components/PageTransition';
+import PageTransitionWrapper from '@/components/PageTransitionWrapper';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -75,9 +75,9 @@ export default function RootLayout({
       <body style={{ fontFamily: "'Cairo', sans-serif" }}>
         <ThemeProvider>
           <AuthProvider>
-            <PageTransition>
+            <PageTransitionWrapper>
               {children}
-            </PageTransition>
+            </PageTransitionWrapper>
           </AuthProvider>
         </ThemeProvider>
       </body>
