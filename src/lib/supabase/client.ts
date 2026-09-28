@@ -69,7 +69,10 @@ if (typeof window !== 'undefined' && !(window as any).__sb_patched__) {
     const url = typeof input === 'string' ? input
       : input instanceof URL ? input.href
       : (input as Request).url;
-    if (token && (url.startsWith('/') || url.startsWith(window.location.origin))) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    const isSameOrigin = url.startsWith('/') || url.startsWith(window.location.origin);
+    const isSupabaseExternal = supabaseUrl && url.startsWith(supabaseUrl);
+    if (token && isSameOrigin && !isSupabaseExternal) {
       init = { ...(init || {}), headers: { ...(init?.headers || {}), 'x-sb-token': token } };
     }
     return orig(input, init);
