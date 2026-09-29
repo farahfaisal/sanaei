@@ -12,9 +12,12 @@ interface Message {
   conversation_id: string;
   sender_id: string;
   content: string | null;
-  message_type: 'text' | 'image' | 'video' | 'quote';
+  message_type: 'text' | 'image' | 'video' | 'quote' | 'file';
   media_url: string | null;
+  file_name: string | null;
+  file_size: number | null;
   is_read: boolean;
+  read_at: string | null;
   created_at: string;
   sender?: { full_name: string; avatar_url: string | null; role: string };
 }
@@ -51,12 +54,35 @@ interface ConversationInfo {
 type ChatStep = 'chat' | 'payment_method' | 'payment_held';
 
 // WhatsApp-style double tick SVG
-const DoubleTick = ({ read }: { read: boolean }) => (
-  <svg width="16" height="11" viewBox="0 0 16 11" className="inline-block ml-1">
-    <path d="M11.071.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-1.085 0l-2.5-2.614a.75.75 0 1 1 1.085-1.037l1.957 2.047 4.957-5.181a.75.75 0 0 1 1.06-.025z" fill={read ? '#53bdeb' : '#8696a0'} />
-    <path d="M14.571.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-.542.234.75.75 0 0 1-.025-1.06l5.5-5.75a.75.75 0 0 1 1.06-.025l.025.025-.543-.234z" fill={read ? '#53bdeb' : '#8696a0'} />
-  </svg>
+const DoubleTick = ({ read, readAt }: { read: boolean; readAt?: string | null }) => (
+  <span title={read && readAt ? `قُرئت ${new Date(readAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}` : ''}>
+    <svg width="16" height="11" viewBox="0 0 16 11" className="inline-block ml-1">
+      <path d="M11.071.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-1.085 0l-2.5-2.614a.75.75 0 1 1 1.085-1.037l1.957 2.047 4.957-5.181a.75.75 0 0 1 1.06-.025z" fill={read ? '#53bdeb' : '#8696a0'} />
+      <path d="M14.571.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-.542.234.75.75 0 0 1-.025-1.06l5.5-5.75a.75.75 0 0 1 1.06-.025l.025.025-.543-.234z" fill={read ? '#53bdeb' : '#8696a0'} />
+    </svg>
+  </span>
 );
+
+// Typing indicator dots
+const TypingIndicator = () => (
+  <div className="flex mb-1 justify-end">
+    <div className="relative max-w-[75%] rounded-2xl px-4 py-3 shadow-sm" style={{ background: 'white', borderTopLeftRadius: '4px' }}>
+      <div className="flex items-center gap-1">
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+        ))}
+      </div>
+      <div className="absolute top-0 left-[-6px]" style={{ width: 0, height: 0, borderTop: '8px solid white', borderRight: '8px solid transparent' }} />
+    </div>
+  </div>
+);
+
+// File size formatter
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 export default function ChatClient() {
   const router = useRouter();
@@ -72,7 +98,7 @@ export default function ChatClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const [chatStep, setChatStep] = useState<ChatStep>('chat');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card' | 'wallet'>('cash');
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -86,8 +112,14 @@ export default function ChatClient() {
   const [showModificationInput, setShowModificationInput] = useState<string | null>(null);
   const [modificationNote, setModificationNote] = useState('');
 
+  // Typing indicator state
+  const [otherPartyTyping, setOtherPartyTyping] = useState(false);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingRef = useRef(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isCraftsman = profile?.role === 'craftsman';
   const isCustomer = profile?.role === 'customer';
@@ -106,24 +138,79 @@ export default function ChatClient() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, otherPartyTyping]);
 
+  // Real-time: messages + typing via broadcast
   useEffect(() => {
-    if (!conversation?.id) return;
+    if (!conversation?.id || !user) return;
+
     const channel = supabase
       .channel(`chat:${conversation.id}`)
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation.id}` },
-        async (payload) => {
-          const newMsg = payload.new as Message;
-          const { data: senderData } = await supabase.from('user_profiles').select('full_name, avatar_url, role').eq('id', newMsg.sender_id).maybeSingle();
-          setMessages((prev) => {
-            if (prev.find((m) => m.id === newMsg.id)) return prev;
-            return [...prev, { ...newMsg, sender: senderData || undefined }];
+      // New messages
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversation.id}`,
+      }, async (payload) => {
+        const newMsg = payload.new as Message;
+        const { data: senderData } = await supabase
+          .from('user_profiles')
+          .select('full_name, avatar_url, role')
+          .eq('id', newMsg.sender_id)
+          .maybeSingle();
+        setMessages((prev) => {
+          if (prev.find((m) => m.id === newMsg.id)) return prev;
+          return [...prev, { ...newMsg, sender: senderData || undefined }];
+        });
+        // Mark as read if it's from the other party
+        if (newMsg.sender_id !== user.id) {
+          await supabase.rpc('mark_messages_read', {
+            p_conversation_id: conversation.id,
+            p_reader_id: user.id,
           });
         }
-      ).subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [conversation?.id]);
+      })
+      // Read receipt updates
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'messages',
+        filter: `conversation_id=eq.${conversation.id}`,
+      }, (payload) => {
+        const updated = payload.new as Message;
+        setMessages((prev) =>
+          prev.map((m) => m.id === updated.id ? { ...m, is_read: updated.is_read, read_at: updated.read_at } : m)
+        );
+      })
+      // Typing indicator via broadcast
+      .on('broadcast', { event: 'typing' }, (payload) => {
+        if (payload.payload?.user_id !== user.id) {
+          setOtherPartyTyping(true);
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setOtherPartyTyping(false), 3000);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    };
+  }, [conversation?.id, user]);
+
+  const sendTypingIndicator = useCallback(() => {
+    if (!conversation?.id || !user) return;
+    if (!isTypingRef.current) {
+      isTypingRef.current = true;
+      supabase.channel(`chat:${conversation.id}`).send({
+        type: 'broadcast',
+        event: 'typing',
+        payload: { user_id: user.id },
+      });
+      setTimeout(() => { isTypingRef.current = false; }, 2000);
+    }
+  }, [conversation?.id, user]);
 
   const findOrCreateConversation = async (oId: string) => {
     setIsLoading(true);
@@ -161,36 +248,55 @@ export default function ChatClient() {
         const { data: quotesData } = await supabase.from('price_quotes').select('*').eq('order_id', conv.order_id).order('created_at', { ascending: false });
         if (quotesData) setQuotes(quotesData as any);
       }
-      if (user) await supabase.from('messages').update({ is_read: true }).eq('conversation_id', convId).neq('sender_id', user.id);
+      // Mark all unread messages as read
+      if (user) {
+        await supabase.rpc('mark_messages_read', {
+          p_conversation_id: convId,
+          p_reader_id: user.id,
+        });
+      }
     } catch (e) {
     } finally { setIsLoading(false); }
   };
 
-  const sendMessage = async (content: string, type: 'text' | 'image' = 'text', mediaUrl?: string) => {
+  const sendMessage = async (content: string, type: 'text' | 'image' | 'file' = 'text', mediaUrl?: string, fileName?: string, fileSize?: number) => {
     if (!conversation || !user) return;
     if (type === 'text' && !content.trim()) return;
     setIsSending(true);
     try {
-      await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user.id, content: type === 'text' ? content.trim() : null, message_type: type, media_url: mediaUrl || null });
-      await supabase.from('conversations').update({ last_message: type === 'text' ? content.trim() : '📷 صورة', last_message_at: new Date().toISOString() }).eq('id', conversation.id);
+      await supabase.from('messages').insert({
+        conversation_id: conversation.id,
+        sender_id: user.id,
+        content: type === 'text' ? content.trim() : null,
+        message_type: type,
+        media_url: mediaUrl || null,
+        file_name: fileName || null,
+        file_size: fileSize || null,
+      });
+      const lastMsg = type === 'text' ? content.trim() : type === 'image' ? '📷 صورة' : `📎 ${fileName || 'ملف'}`;
+      await supabase.from('conversations').update({ last_message: lastMsg, last_message_at: new Date().toISOString() }).eq('id', conversation.id);
       setMessageText('');
       if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
     } catch (e) {
     } finally { setIsSending(false); }
   };
 
-  const handleImageUpload = async (file: File) => {
+  const handleFileUpload = async (file: File, isImage: boolean) => {
     if (!user || !conversation) return;
-    setUploadingImage(true);
+    setUploadingFile(true);
     try {
       const ext = file.name.split('.').pop();
       const path = `chat/${conversation.id}/${user.id}_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from('chat-media').upload(path, file, { upsert: true });
       if (uploadError) throw uploadError;
       const { data: urlData } = supabase.storage.from('chat-media').getPublicUrl(path);
-      await sendMessage('', 'image', urlData.publicUrl);
+      if (isImage) {
+        await sendMessage('', 'image', urlData.publicUrl);
+      } else {
+        await sendMessage('', 'file', urlData.publicUrl, file.name, file.size);
+      }
     } catch (e) {
-    } finally { setUploadingImage(false); }
+    } finally { setUploadingFile(false); }
   };
 
   const submitQuote = async () => {
@@ -350,7 +456,9 @@ export default function ChatClient() {
         <div className="flex-1 min-w-0">
           <p className="text-sm font-bold text-white truncate">{otherPartyName}</p>
           <p className="text-xs truncate" style={{ color: '#b2dfdb' }}>
-            {chatStep === 'payment_held' ? '🔒 المبلغ محجوز' : 'متصل الآن'}
+            {otherPartyTyping ? (
+              <span className="animate-pulse">يكتب...</span>
+            ) : chatStep === 'payment_held' ? '🔒 المبلغ محجوز' : 'متصل الآن'}
           </p>
         </div>
         {/* Header actions */}
@@ -459,6 +567,8 @@ export default function ChatClient() {
             {msgs.map((msg) => {
               const isOwn = msg.sender_id === user?.id;
               const isQuote = msg.message_type === 'quote';
+              const isFile = msg.message_type === 'file';
+              const isImage = msg.message_type === 'image';
               const timeStr = new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
 
               return (
@@ -478,20 +588,38 @@ export default function ChatClient() {
                       </div>
                     )}
 
-                    {msg.message_type === 'image' && msg.media_url ? (
-                      <div className="w-48 h-48 rounded-xl overflow-hidden mb-1">
-                        <AppImage src={msg.media_url} alt="صورة مرسلة" width={192} height={192} className="w-full h-full object-cover" />
-                      </div>
+                    {isImage && msg.media_url ? (
+                      <a href={msg.media_url} target="_blank" rel="noopener noreferrer">
+                        <div className="w-48 h-48 rounded-xl overflow-hidden mb-1">
+                          <AppImage src={msg.media_url} alt="صورة مرسلة" width={192} height={192} className="w-full h-full object-cover" />
+                        </div>
+                      </a>
+                    ) : isFile && msg.media_url ? (
+                      <a href={msg.media_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 py-1 mb-1 min-w-[160px]">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: isOwn ? 'rgba(7,94,84,0.12)' : 'rgba(0,0,0,0.06)' }}>
+                          <Icon name="DocumentIcon" size={22} style={{ color: isOwn ? '#075E54' : '#555' } as any} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-gray-800 truncate">{msg.file_name || 'ملف'}</p>
+                          {msg.file_size && <p className="text-xs text-gray-400">{formatFileSize(msg.file_size)}</p>}
+                        </div>
+                        <Icon name="ArrowDownTrayIcon" size={16} className="text-gray-400 flex-shrink-0" />
+                      </a>
                     ) : (
                       <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isQuote ? 'text-yellow-900 font-medium' : 'text-gray-900'}`}>
                         {msg.content}
                       </p>
                     )}
 
-                    {/* Time + ticks */}
+                    {/* Time + read receipt */}
                     <div className={`flex items-center gap-0.5 mt-0.5 ${isOwn ? 'justify-start' : 'justify-end'}`}>
+                      {isOwn && msg.is_read && msg.read_at && (
+                        <span className="text-xs mr-1" style={{ color: '#8696a0', fontSize: '10px' }}>
+                          {new Date(msg.read_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                       <span className="text-xs" style={{ color: '#8696a0', fontSize: '11px' }}>{timeStr}</span>
-                      {isOwn && <DoubleTick read={msg.is_read} />}
+                      {isOwn && <DoubleTick read={msg.is_read} readAt={msg.read_at} />}
                     </div>
 
                     {/* WhatsApp bubble tail */}
@@ -511,6 +639,10 @@ export default function ChatClient() {
             })}
           </div>
         ))}
+
+        {/* Typing indicator */}
+        {otherPartyTyping && <TypingIndicator />}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -540,16 +672,28 @@ export default function ChatClient() {
 
       {/* WhatsApp-style Input Bar */}
       <div className="px-2 py-2 flex-shrink-0 flex items-end gap-2" style={{ background: '#f0f2f5', paddingBottom: 'max(8px, env(safe-area-inset-bottom))' }}>
-        {/* Attach / Quote button */}
+        {/* Attach buttons */}
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button onClick={() => fileInputRef.current?.click()} disabled={uploadingImage}
-            className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }}>
-            {uploadingImage
+          {/* Image upload */}
+          <button onClick={() => imageInputRef.current?.click()} disabled={uploadingFile}
+            className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }}
+            title="إرسال صورة">
+            {uploadingFile
               ? <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              : <Icon name="PaperClipIcon" size={20} className="text-gray-500" />}
+              : <Icon name="PhotoIcon" size={20} className="text-gray-500" />}
           </button>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const file = e.target.files?.[0]; if (file) handleImageUpload(file); e.target.value = ''; }} />
+          <input ref={imageInputRef} type="file" accept="image/*" className="hidden"
+            onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload(file, true); e.target.value = ''; }} />
+
+          {/* File upload */}
+          <button onClick={() => fileInputRef.current?.click()} disabled={uploadingFile}
+            className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }}
+            title="إرسال ملف">
+            <Icon name="PaperClipIcon" size={20} className="text-gray-500" />
+          </button>
+          <input ref={fileInputRef} type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.zip" className="hidden"
+            onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload(file, false); e.target.value = ''; }} />
+
           {isCraftsman && !showQuoteForm && (
             <button onClick={() => setShowQuoteForm(true)} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }} title="إرسال عرض سعر">
               <Icon name="CurrencyDollarIcon" size={20} style={{ color: '#25D366' } as any} />
@@ -568,6 +712,7 @@ export default function ChatClient() {
               setMessageText(e.target.value);
               e.target.style.height = 'auto';
               e.target.style.height = Math.min(e.target.scrollHeight, 96) + 'px';
+              sendTypingIndicator();
             }}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(messageText); } }}
             className="flex-1 bg-transparent text-sm text-gray-900 resize-none focus:outline-none leading-relaxed"
