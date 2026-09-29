@@ -34,7 +34,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
       return { ...tab, href: isCraftsman ? '/craftsman-profile' : '/customer-profile' };
     }
     if (tab.id === 'orders') {
-      return { ...tab, href: isCraftsman ? '/craftsman-orders' : '/order-details' };
+      return { ...tab, href: isCraftsman ? '/craftsman-orders' : '/customer-orders' };
     }
     return tab;
   }).filter((tab) => {
