@@ -116,12 +116,22 @@ export default function CraftsmanOrdersClient() {
             <p className="text-white/70 text-sm mb-0.5">مرحباً،</p>
             <h1 className="text-white text-xl font-bold">{craftsmanName}</h1>
           </div>
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 bg-white/20 flex items-center justify-center">
-            {profile?.avatar_url ? (
-              <AppImage src={profile.avatar_url} alt={craftsmanName} className="w-full h-full object-cover" />
-            ) : (
-              <Icon name="UserCircleIcon" size={28} className="text-white" />
-            )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => router.push('/incoming-requests')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+              style={{ background: 'rgba(255,255,255,0.18)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)' }}
+            >
+              <Icon name="BellAlertIcon" size={14} />
+              الطلبات الواردة
+            </button>
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-white/30 bg-white/20 flex items-center justify-center">
+              {profile?.avatar_url ? (
+                <AppImage src={profile.avatar_url} alt={craftsmanName} className="w-full h-full object-cover" />
+              ) : (
+                <Icon name="UserCircleIcon" size={28} className="text-white" />
+              )}
+            </div>
           </div>
         </div>
 
