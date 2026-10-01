@@ -12,7 +12,7 @@ interface Message {
   conversation_id: string;
   sender_id: string;
   content: string | null;
-  message_type: 'text' | 'image' | 'video' | 'quote' | 'file';
+  message_type: 'text' | 'image' | 'video' | 'quote' | 'file' | 'system';
   media_url: string | null;
   file_name: string | null;
   file_size: number | null;
@@ -83,6 +83,26 @@ function formatFileSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
+
+// System message bubble (centered, pill-style)
+const SystemMessage = ({ content }: { content: string }) => (
+  <div className="flex justify-center my-2">
+    <span
+      className="px-4 py-1.5 rounded-full text-xs font-medium shadow-sm"
+      style={{ background: 'rgba(255,255,255,0.85)', color: '#555', maxWidth: '80%', textAlign: 'center' }}
+    >
+      {content}
+    </span>
+  </div>
+);
+
+// Status label map
+const STATUS_SYSTEM_MESSAGES: Record<string, string> = {
+  accepted:    '✅ تم قبول الطلب من قِبَل الصنايعي',
+  in_progress: '🔧 بدأ تنفيذ الخدمة',
+  completed:   '🎉 اكتملت الخدمة بنجاح',
+  cancelled:   '❌ تم إلغاء الطلب',
+};
 
 export default function ChatClient() {
   const router = useRouter();
@@ -198,6 +218,46 @@ export default function ChatClient() {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [conversation?.id, user]);
+
+  // Listen for order status changes and insert system messages
+  useEffect(() => {
+    if (!conversation?.order_id || !conversation?.id || !user) return;
+
+    const orderChannel = supabase
+      .channel(`order-status:${conversation.order_id}`)
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'orders',
+        filter: `id=eq.${conversation.order_id}`,
+      }, async (payload) => {
+        const newStatus = (payload.new as any).status as string;
+        const oldStatus = (payload.old as any).status as string;
+        if (newStatus && newStatus !== oldStatus && STATUS_SYSTEM_MESSAGES[newStatus]) {
+          // Only insert if not already present (avoid duplicates from own actions)
+          const { data: existing } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('conversation_id', conversation.id)
+            .eq('message_type', 'system')
+            .eq('content', STATUS_SYSTEM_MESSAGES[newStatus])
+            .maybeSingle();
+          if (!existing) {
+            await supabase.from('messages').insert({
+              conversation_id: conversation.id,
+              sender_id: user.id,
+              content: STATUS_SYSTEM_MESSAGES[newStatus],
+              message_type: 'system',
+            });
+          }
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(orderChannel);
+    };
+  }, [conversation?.order_id, conversation?.id, user]);
 
   const sendTypingIndicator = useCallback(() => {
     if (!conversation?.id || !user) return;
@@ -323,6 +383,13 @@ export default function ChatClient() {
       setQuotes((prev) => prev.map((q) => q.id === quote.id ? { ...q, ...updateData } : q));
       if (action === 'accepted') {
         await supabase.from('orders').update({ amount: quote.amount, status: 'accepted' }).eq('id', conversation.order_id);
+        // System message for accepted status
+        await supabase.from('messages').insert({
+          conversation_id: conversation.id,
+          sender_id: user!.id,
+          content: STATUS_SYSTEM_MESSAGES['accepted'],
+          message_type: 'system',
+        });
         await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user!.id, content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ر.س`, message_type: 'text' });
         setChatStep('payment_method');
       } else if (action === 'rejected') {
@@ -339,6 +406,13 @@ export default function ChatClient() {
     setIsProcessingPayment(true);
     try {
       await supabase.from('orders').update({ payment_method: selectedPaymentMethod, payment_status: 'paid', escrow_status: 'held', status: 'in_progress' }).eq('id', conversation.order_id);
+      // System message for in_progress status
+      await supabase.from('messages').insert({
+        conversation_id: conversation.id,
+        sender_id: user.id,
+        content: STATUS_SYSTEM_MESSAGES['in_progress'],
+        message_type: 'system',
+      });
       await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'text' });
       setConversation((prev) => prev ? { ...prev, order: prev.order ? { ...prev.order, escrow_status: 'held', payment_status: 'paid' } as any : prev.order } : prev);
       setChatStep('payment_held'); setPaymentDone(true);
@@ -569,7 +643,13 @@ export default function ChatClient() {
               const isQuote = msg.message_type === 'quote';
               const isFile = msg.message_type === 'file';
               const isImage = msg.message_type === 'image';
+              const isSystem = msg.message_type === 'system';
               const timeStr = new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+
+              // Render system messages as centered pill
+              if (isSystem) {
+                return <SystemMessage key={msg.id} content={msg.content || ''} />;
+              }
 
               return (
                 <div key={msg.id} className={`flex mb-1 ${isOwn ? 'justify-start' : 'justify-end'}`}>
