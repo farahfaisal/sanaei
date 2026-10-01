@@ -11,8 +11,9 @@ import MapTab from './MapTab';
 import BroadcastTab from './BroadcastTab';
 import OffersTab from './OffersTab';
 import ChatsTab from './ChatsTab';
+import ActivityFeedTab from './ActivityFeedTab';
 
-type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast' | 'offers' | 'chats';
+type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast' | 'offers' | 'chats' | 'activity';
 
 interface Stats {
   totalUsers: number;
@@ -27,6 +28,7 @@ interface Stats {
 
 const NAV_ITEMS: { id: Tab; label: string; icon: string }[] = [
   { id: 'overview', label: 'نظرة عامة', icon: 'ChartBarIcon' },
+  { id: 'activity', label: 'سجل النشاط', icon: 'BoltIcon' },
   { id: 'users', label: 'المستخدمون', icon: 'UsersIcon' },
   { id: 'craftsmen', label: 'الحرفيون', icon: 'WrenchScrewdriverIcon' },
   { id: 'orders', label: 'الطلبات', icon: 'ClipboardDocumentListIcon' },
@@ -373,6 +375,7 @@ export default function DashboardClient() {
           {activeTab === 'map' && <MapTab />}
           {activeTab === 'broadcast' && <BroadcastTab />}
           {activeTab === 'offers' && <OffersTab />}
+          {activeTab === 'activity' && <ActivityFeedTab />}
         </main>
       </div>
     </div>
