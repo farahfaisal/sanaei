@@ -286,6 +286,7 @@
     background: var(--background);
     position: relative;
     overflow-x: hidden;
+    padding-bottom: calc(var(--nav-height) + 24px);
   }
 
   .page-content {
