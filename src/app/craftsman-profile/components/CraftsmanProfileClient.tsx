@@ -850,14 +850,18 @@ export default function CraftsmanProfileClient() {
 
         {/* Action buttons */}
         <div className="flex gap-2">
-          <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
-            <Icon name="PhoneIcon" size={15} className="text-primary" />
-            اتصال
-          </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
-            <Icon name="ChatBubbleLeftEllipsisIcon" size={15} className="text-primary" />
-            رسالة
-          </button>
+          {!isOwnProfile && (
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
+              <Icon name="PhoneIcon" size={15} className="text-primary" />
+              اتصال
+            </button>
+          )}
+          {!isOwnProfile && (
+            <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
+              <Icon name="ChatBubbleLeftEllipsisIcon" size={15} className="text-primary" />
+              رسالة
+            </button>
+          )}
           {!isOwnProfile && (
             <button
               onClick={() => handleRequestService()}
