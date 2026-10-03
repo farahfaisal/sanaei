@@ -265,7 +265,7 @@ function RegisterForm() {
             type="text"
             value={fullName}
             onChange={(e) => { setFullName(e.target.value); setError(''); }}
-            placeholder="أدخل اسمك الكامل"
+            placeholder=""
             className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             autoFocus
           />
@@ -358,7 +358,7 @@ function RegisterForm() {
                   type="text"
                   value={customSpecialty}
                   onChange={(e) => setCustomSpecialty(e.target.value)}
-                  placeholder="اكتب تخصصك..."
+                  placeholder=""
                   className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
                 />
               )}
@@ -406,7 +406,7 @@ function RegisterForm() {
                       type="text"
                       value={svc}
                       onChange={(e) => updateService(i, e.target.value)}
-                      placeholder={`مثال: تركيب أنابيب، إصلاح تسرب...`}
+                      placeholder=""
                       className="flex-1 py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
                     />
                     {services.length > 1 && (
@@ -487,7 +487,7 @@ function RegisterForm() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="اكتب نبذة مختصرة عن خبرتك وأسلوب عملك..."
+                placeholder=""
                 rows={3}
                 className="w-full py-3 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary resize-none"
               />
@@ -528,13 +528,13 @@ function RegisterForm() {
                       type="text"
                       value={work.label}
                       onChange={(e) => updateWork(i, 'label', e.target.value)}
-                      placeholder="عنوان العمل (مثال: تركيب حمام كامل)"
+                      placeholder=""
                       className="w-full py-2.5 px-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary mb-2"
                     />
                     <textarea
                       value={work.description}
                       onChange={(e) => updateWork(i, 'description', e.target.value)}
-                      placeholder="وصف مختصر للعمل (اختياري)"
+                      placeholder=""
                       rows={2}
                       className="w-full py-2.5 px-3 bg-white border border-gray-200 rounded-lg text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary resize-none"
                     />
