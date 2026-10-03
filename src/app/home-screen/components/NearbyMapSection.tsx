@@ -366,7 +366,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       </div>
 
       {/* Region & Location Selectors */}
-      <div className="flex gap-2 mb-3">
+      <div className="flex gap-2 mb-3" style={{ position: 'relative', zIndex: 1000 }}>
         {/* Region Selector */}
         <div className="relative flex-1">
           <button
@@ -446,7 +446,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       </div>
 
       {/* Active selection badge */}
-      <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5">
+      <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5" style={{ position: 'relative', zIndex: 999 }}>
         <Icon name="MapPinIcon" size={12} className="text-green-600" />
         <span>
           {userLocation
