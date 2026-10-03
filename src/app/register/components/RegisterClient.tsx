@@ -287,9 +287,9 @@ function RegisterForm() {
               onChange={(e) => { setCity(e.target.value); setError(''); }}
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-primary"
             >
-              <option value="">اختر المدينة / المنطقة</option>
-              {PALESTINE_CITIES.map((city) => (
-                <option key={city} value={city}>{city}</option>
+              <option value="">اختر مدينتك في فلسطين...</option>
+              {PALESTINE_CITIES.map((c) => (
+                <option key={c} value={c}>{c}</option>
               ))}
             </select>
           </div>
