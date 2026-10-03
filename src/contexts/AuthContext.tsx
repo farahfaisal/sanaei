@@ -152,7 +152,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (error) throw error;
     if (!data?.user) throw new Error('فشل إنشاء الحساب');
 
-    // Save profile to user_profiles table
+    // Sign in immediately after registration (signUp may not auto-sign-in without email confirmation)
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (signInError) throw signInError;
+
+    // Save profile to user_profiles table AFTER sign-in so auth.uid() is set for RLS
     const { error: profileError } = await supabase
       .from('user_profiles')
       .upsert({
@@ -164,13 +171,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }, { onConflict: 'id' });
 
     if (profileError) throw profileError;
-
-    // Sign in immediately after registration (signUp may not auto-sign-in without email confirmation)
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (signInError) throw signInError;
 
     return signInData;
   };
