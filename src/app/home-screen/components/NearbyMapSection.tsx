@@ -110,8 +110,7 @@ const REGIONS: Region[] = [
   },
 ];
 
-const DEFAULT_REGION = REGIONS[0]; // الرياض
-
+const DEFAULT_REGION = REGIONS[0];
 const LOGO_GREEN = '#2E7D32';
 
 function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -135,8 +134,9 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
 
   const [selectedRegion, setSelectedRegion] = useState<Region>(DEFAULT_REGION);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [showRegionDropdown, setShowRegionDropdown] = useState(false);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [modalStep, setModalStep] = useState<'region' | 'location'>('region');
+  const [pendingRegion, setPendingRegion] = useState<Region>(DEFAULT_REGION);
 
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -315,13 +315,10 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       (err) => {
         setIsLocating(false);
         if (err.code === 1) {
-          // PERMISSION_DENIED
           setLocationError('تم رفض إذن الموقع. يرجى السماح بالوصول للموقع من إعدادات المتصفح ثم المحاولة مجدداً');
         } else if (err.code === 2) {
-          // POSITION_UNAVAILABLE
           setLocationError('تعذّر تحديد موقعك، يرجى التحقق من اتصالك بالإنترنت');
         } else if (err.code === 3) {
-          // TIMEOUT
           setLocationError('انتهت مهلة تحديد الموقع، يرجى المحاولة مجدداً');
         } else {
           setLocationError('تعذّر تحديد موقعك، يرجى المحاولة مجدداً');
@@ -332,20 +329,33 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
   };
 
   const handleRegionSelect = (region: Region) => {
-    setSelectedRegion(region);
-    setSelectedLocation(null);
-    setShowRegionDropdown(false);
+    setPendingRegion(region);
+    setModalStep('location');
+  };
+
+  const handleLocationSelect = (loc: Location | null) => {
+    setSelectedRegion(pendingRegion);
+    setSelectedLocation(loc);
     setUserLocation(null);
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
       userMarkerRef.current = null;
     }
+    setShowLocationModal(false);
+    setModalStep('region');
   };
 
-  const handleLocationSelect = (loc: Location) => {
-    setSelectedLocation(loc);
-    setShowLocationDropdown(false);
+  const openModal = () => {
+    setPendingRegion(selectedRegion);
+    setModalStep('region');
+    setShowLocationModal(true);
   };
+
+  const currentLocationLabel = userLocation
+    ? 'موقعك الحالي'
+    : selectedLocation
+    ? `${selectedRegion.name} — ${selectedLocation.name}`
+    : `منطقة ${selectedRegion.name}`;
 
   return (
     <div>
@@ -365,98 +375,6 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
         <h2 className="text-base font-bold text-gray-900">الصنايعية بالقرب منك</h2>
       </div>
 
-      {/* Region & Location Selectors */}
-      <div className="flex gap-2 mb-3" style={{ position: 'relative', zIndex: 1000 }}>
-        {/* Region Selector */}
-        <div className="relative flex-1">
-          <button
-            onClick={() => {
-              setShowRegionDropdown((v) => !v);
-              setShowLocationDropdown(false);
-            }}
-            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
-          >
-            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
-            <span className="flex items-center gap-1.5 truncate">
-              <Icon name="MapIcon" size={14} className="text-primary flex-shrink-0" />
-              {selectedRegion.name}
-            </span>
-          </button>
-          {showRegionDropdown && (
-            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-              {REGIONS.map((region) => (
-                <button
-                  key={region.id}
-                  onClick={() => handleRegionSelect(region)}
-                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                    selectedRegion.id === region.id
-                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {region.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Location Selector — enabled only after region is selected */}
-        <div className="relative flex-1">
-          <button
-            onClick={() => {
-              setShowLocationDropdown((v) => !v);
-              setShowRegionDropdown(false);
-            }}
-            className="w-full flex items-center justify-between gap-1.5 px-3 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-800 shadow-sm"
-          >
-            <Icon name="ChevronDownIcon" size={14} className="text-gray-400 flex-shrink-0" />
-            <span className="flex items-center gap-1.5 truncate">
-              <Icon name="MapPinIcon" size={14} className="text-primary flex-shrink-0" />
-              {selectedLocation ? selectedLocation.name : 'اختر الموقع'}
-            </span>
-          </button>
-          {showLocationDropdown && (
-            <div className="absolute top-full right-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
-              <button
-                onClick={() => {
-                  setSelectedLocation(null);
-                  setShowLocationDropdown(false);
-                }}
-                className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                  !selectedLocation ? 'bg-green-50 text-primary font-bold' : 'text-gray-500 hover:bg-gray-50'
-                }`}
-              >
-                كل المنطقة
-              </button>
-              {selectedRegion.locations.map((loc) => (
-                <button
-                  key={loc.id}
-                  onClick={() => handleLocationSelect(loc)}
-                  className={`w-full text-right px-3 py-2.5 text-sm font-medium transition-colors ${
-                    selectedLocation?.id === loc.id
-                      ? 'bg-green-50 text-primary font-bold' :'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {loc.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Active selection badge */}
-      <div className="mb-2 px-3 py-2 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700 text-right flex items-center gap-1.5" style={{ position: 'relative', zIndex: 999 }}>
-        <Icon name="MapPinIcon" size={12} className="text-green-600" />
-        <span>
-          {userLocation
-            ? 'موقعك الحالي — يتم عرض أقرب الصنايعية إليك'
-            : selectedLocation
-            ? `${selectedRegion.name} — ${selectedLocation.name}`
-            : `منطقة ${selectedRegion.name}`}
-        </span>
-      </div>
-
       {locationError && (
         <div className="mb-2 px-3 py-2 bg-red-50 border border-red-200 rounded-xl text-xs text-red-600 text-right">
           {locationError}
@@ -464,14 +382,103 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       )}
 
       {/* Map */}
-      <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm mb-3" style={{ height: 280 }}>
+      <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
       </div>
 
+      {/* Choose Location Button — below the map */}
+      <button
+        onClick={openModal}
+        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm font-semibold text-gray-800 active:bg-gray-50 transition-colors"
+      >
+        <Icon name="MapPinIcon" size={15} className="text-primary" />
+        <span>اختر موقع</span>
+        {!userLocation && (
+          <span className="text-xs text-gray-400 font-normal mr-1">({currentLocationLabel})</span>
+        )}
+        {userLocation && (
+          <span className="text-xs text-green-600 font-normal mr-1">(موقعك الحالي)</span>
+        )}
+      </button>
+
+      {/* Location Modal */}
+      {showLocationModal && (
+        <div
+          className="fixed inset-0 flex items-end justify-center z-50"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onClick={() => { setShowLocationModal(false); setModalStep('region'); }}
+        >
+          <div
+            className="w-full bg-white rounded-t-2xl pb-6 pt-4 px-4 max-h-[70vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div className="w-10 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+
+            {modalStep === 'region' ? (
+              <>
+                <h3 className="text-base font-bold text-gray-900 text-right mb-3">اختر المدينة</h3>
+                <div className="flex flex-col gap-1">
+                  {REGIONS.map((region) => (
+                    <button
+                      key={region.id}
+                      onClick={() => handleRegionSelect(region)}
+                      className={`w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                        selectedRegion.id === region.id
+                          ? 'bg-green-50 text-primary font-bold border border-green-200' :'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {region.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 mb-3">
+                  <button
+                    onClick={() => setModalStep('region')}
+                    className="p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <Icon name="ChevronRightIcon" size={16} className="text-gray-600" />
+                  </button>
+                  <h3 className="text-base font-bold text-gray-900 flex-1 text-right">
+                    اختر الموقع في {pendingRegion.name}
+                  </h3>
+                </div>
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => handleLocationSelect(null)}
+                    className={`w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                      !selectedLocation && selectedRegion.id === pendingRegion.id
+                        ? 'bg-green-50 text-primary font-bold border border-green-200' :'text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    كل المنطقة
+                  </button>
+                  {pendingRegion.locations.map((loc) => (
+                    <button
+                      key={loc.id}
+                      onClick={() => handleLocationSelect(loc)}
+                      className={`w-full text-right px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                        selectedLocation?.id === loc.id
+                          ? 'bg-green-50 text-primary font-bold border border-green-200' :'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {loc.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Nearby craftsmen list below map */}
       {nearbyCraftsmen.length > 0 && (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 mt-3">
           {nearbyCraftsmen.slice(0, 5).map((craftsman) => (
             <Link key={craftsman.id} href={`/craftsman-profile?id=${craftsman.id}`}>
               <div className="bg-white rounded-xl border border-gray-200 px-3 py-2.5 flex items-center gap-3">
