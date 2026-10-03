@@ -514,7 +514,7 @@ export default function ChatClient() {
     <div className="flex flex-col" dir="rtl" style={{ height: '100dvh', background: '#e5ddd5' }}>
       {/* WhatsApp Header */}
       <div className="flex items-center gap-3 px-3 pt-10 pb-3 flex-shrink-0 shadow-md" style={{ background: '#075E54' }}>
-        <button onClick={() => router.back()} className="flex items-center justify-center flex-shrink-0">
+        <button onClick={() => router.push('/conversations')} className="flex items-center justify-center flex-shrink-0">
           <Icon name="ChevronRightIcon" size={22} className="text-white" />
         </button>
         {/* Avatar */}

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 
-type TabId = 'home' | 'search' | 'orders' | 'wallet' | 'profile';
+type TabId = 'home' | 'search' | 'orders' | 'wallet' | 'profile' | 'chat';
 
 interface Tab {
   id: TabId;
@@ -19,6 +19,7 @@ interface Tab {
 const BASE_TABS: Tab[] = [
   { id: 'home', label: 'الرئيسية', icon: 'HomeIcon', href: '/home-screen' },
   { id: 'search', label: 'البحث', icon: 'MagnifyingGlassIcon', href: '/search' },
+  { id: 'chat', label: 'المحادثات', icon: 'ChatBubbleLeftRightIcon', href: '/conversations' },
   { id: 'orders', label: 'الطلبات', icon: 'ClipboardDocumentListIcon', href: '/order-details' },
   { id: 'wallet', label: 'المحفظة', icon: 'WalletIcon', href: '/wallet-earnings-dashboard' },
   { id: 'profile', label: 'حسابي', icon: 'UserCircleIcon', href: '/customer-profile' },
