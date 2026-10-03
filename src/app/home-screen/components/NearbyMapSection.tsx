@@ -400,36 +400,33 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
         </div>
       )}
 
-      {/* Map */}
-      <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
+      {/* Map container — position relative so overlay button sits on top */}
+      <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div key={mapKey} ref={mapRef} style={{ width: '100%', height: '100%' }} />
+
+        {/* City selector overlay button — sits on top of the map */}
+        <button
+          onClick={openModal}
+          className="absolute bottom-3 right-3 flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white shadow-md border border-gray-200 text-sm font-semibold text-gray-800 active:bg-gray-50 transition-colors"
+          style={{ zIndex: 1000 }}
+        >
+          <Icon name="MapPinIcon" size={14} className="text-primary" />
+          <span className="max-w-[140px] truncate">{currentLocationLabel}</span>
+          <Icon name="ChevronDownIcon" size={13} className="text-gray-500" />
+        </button>
       </div>
 
-      {/* Choose Location Button — below the map */}
-      <button
-        onClick={openModal}
-        className="mt-3 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm font-semibold text-gray-800 active:bg-gray-50 transition-colors"
-      >
-        <Icon name="MapPinIcon" size={15} className="text-primary" />
-        <span>اختر موقع</span>
-        {!userLocation && (
-          <span className="text-xs text-gray-400 font-normal mr-1">({currentLocationLabel})</span>
-        )}
-        {userLocation && (
-          <span className="text-xs text-green-600 font-normal mr-1">(موقعك الحالي)</span>
-        )}
-      </button>
-
-      {/* Location Modal */}
+      {/* Location Modal — fixed overlay above everything */}
       {showLocationModal && (
         <div
-          className="fixed inset-0 flex items-end justify-center z-50"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+          className="fixed inset-0 flex items-end justify-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9999 }}
           onClick={() => { setShowLocationModal(false); setModalStep('region'); }}
         >
           <div
             className="w-full bg-white rounded-t-2xl pb-6 pt-4 px-4 max-h-[70vh] overflow-y-auto"
+            style={{ zIndex: 10000 }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Handle */}
