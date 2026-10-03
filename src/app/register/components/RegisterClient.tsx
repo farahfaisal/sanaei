@@ -18,10 +18,26 @@ const SPECIALTIES = [
 ];
 
 const SERVICE_AREAS = [
-  'غزة', 'رفح', 'خانيونس', 'دير البلح', 'بيت لاهيا', 'بيت حانون', 'جباليا',
-  'الرياض', 'جدة', 'مكة المكرمة', 'المدينة المنورة', 'الدمام', 'الخبر',
-  'عمان', 'إربد', 'الزرقاء', 'العقبة',
-  'دبي', 'أبوظبي', 'الشارقة',
+  'رام الله',
+  'البيرة',
+  'بيتونيا',
+  'بيت عور',
+  'دير دبوان',
+  'رافات',
+  'سلواد',
+  'عين عريك',
+  'كفر عين',
+  'المزرعة الغربية',
+  'أبو قش',
+  'بيت نبالا',
+  'جفنا',
+  'قبيبة',
+  'صفا',
+  'بيت سيرا',
+  'خربثا بني حارث',
+  'دير قديس',
+  'عبود',
+  'نعلين',
 ];
 
 interface PreviousWork {
@@ -40,7 +56,7 @@ function RegisterForm() {
 
   // Common fields
   const [fullName, setFullName] = useState('');
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState('رام الله');
   const [neighborhood, setNeighborhood] = useState('');
   const [street, setStreet] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -241,7 +257,7 @@ function RegisterForm() {
               type="text"
               value={city}
               onChange={(e) => { setCity(e.target.value); setError(''); }}
-              placeholder="مثال: الرياض، جدة، غزة..."
+              placeholder="مثال: رام الله، البيرة..."
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             />
           </div>
@@ -252,7 +268,7 @@ function RegisterForm() {
               type="text"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
-              placeholder="مثال: حي النزهة، الشميساني..."
+              placeholder="مثال: وسط البلد، المصيون، التحتا..."
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             />
           </div>

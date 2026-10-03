@@ -217,7 +217,7 @@ export default function HomeScreenClient() {
             >
               <Icon name="MapPinIcon" size={11} style={{ color: 'rgba(255,255,255,0.75)' }} />
               <span className="text-xs" style={{ color: 'rgba(255,255,255,0.75)' }}>
-                {profile?.location || 'الرياض، السعودية'}
+                {profile?.location || 'رام الله، فلسطين'}
               </span>
             </div>
           </div>
