@@ -143,6 +143,18 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [nearbyCraftsmen, setNearbyCraftsmen] = useState<CraftsmanMapItem[]>([]);
   const [mapReady, setMapReady] = useState(false);
+  const [mapKey, setMapKey] = useState(0);
+
+  const handleRefreshMap = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
+    }
+    markersRef.current = [];
+    userMarkerRef.current = null;
+    setMapReady(false);
+    setMapKey((k) => k + 1);
+  };
 
   // Initialize map once
   useEffect(() => {
@@ -168,6 +180,13 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
       }).addTo(mapInstanceRef.current);
+
+      // Force map to recalculate its size after mounting
+      setTimeout(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize();
+        }
+      }, 100);
 
       setMapReady(true);
     });
@@ -384,7 +403,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       {/* Map */}
       <div className="rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-        <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
+        <div key={mapKey} ref={mapRef} style={{ width: '100%', height: '100%' }} />
       </div>
 
       {/* Choose Location Button — below the map */}
