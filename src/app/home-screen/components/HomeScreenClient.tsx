@@ -464,14 +464,6 @@ export default function HomeScreenClient() {
           </div>
         ) : null}
 
-        {/* Nearby Craftsmen Map */}
-        <div
-          className="rounded-3xl overflow-hidden"
-          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)' }}
-        >
-          <NearbyMapSection craftsmen={mapCraftsmen} />
-        </div>
-
         {/* Craftsmen List */}
         <div>
           <div
@@ -650,6 +642,14 @@ export default function HomeScreenClient() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Nearby Craftsmen Map */}
+        <div
+          className="rounded-3xl overflow-hidden"
+          style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)' }}
+        >
+          <NearbyMapSection craftsmen={mapCraftsmen} />
         </div>
       </div>
 
