@@ -40,6 +40,35 @@ const SERVICE_AREAS = [
   'نعلين',
 ];
 
+const PALESTINE_CITIES = [
+  'رام الله',
+  'البيرة',
+  'نابلس',
+  'الخليل',
+  'بيت لحم',
+  'جنين',
+  'طولكرم',
+  'قلقيلية',
+  'أريحا',
+  'سلفيت',
+  'طوباس',
+  'أبو ديس',
+  'بيتونيا',
+  'بيت جالا',
+  'بيت ساحور',
+  'دورا',
+  'يطا',
+  'الظاهرية',
+  'حلحول',
+  'سعير',
+  'ترقوميا',
+  'عنبتا',
+  'بيت أمين',
+  'كفر قاسم',
+  'عزون',
+  'حارة الشيخ',
+];
+
 interface PreviousWork {
   label: string;
   description: string;
@@ -251,15 +280,18 @@ function RegisterForm() {
 
           <div className="mb-3">
             <label className="text-sm font-semibold text-gray-700 block mb-2">
-              المدينة <span className="text-red-500">*</span>
+              المدينة / المنطقة <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               value={city}
               onChange={(e) => { setCity(e.target.value); setError(''); }}
-              placeholder="مثال: رام الله، البيرة..."
-              className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
-            />
+              className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 outline-none focus:border-primary"
+            >
+              <option value="">اختر المدينة / المنطقة</option>
+              {PALESTINE_CITIES.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
           </div>
 
           <div className="mb-3">
@@ -279,7 +311,7 @@ function RegisterForm() {
               type="text"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
-              placeholder="مثال: شارع الملك فهد، بناية رقم 5..."
+              placeholder="مثال: شارع الإستقلال، بناية رقم 5..."
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             />
           </div>
