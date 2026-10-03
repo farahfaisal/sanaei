@@ -5,7 +5,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { sendPushToUser } from '@/lib/pushNotifications';
+
 import { useRouter } from 'next/navigation';
 
 interface ServiceOption {
@@ -121,124 +121,24 @@ export default function RequestServiceModal({
       return;
     }
 
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const scheduledAt = scheduledDate
-        ? new Date(`${scheduledDate}T${scheduledTime || '09:00'}:00`).toISOString()
-        : null;
+    // Navigate to request summary screen for final confirmation
+    const finalServiceId = requestType === 'listed' ? (selectedServiceId || initialServiceId || '') : '';
+    const params = new URLSearchParams({
+      craftsman_id: craftsmanProfileId,
+      craftsman_user_id: craftsmanUserId,
+      request_type: requestType,
+      description: encodeURIComponent(description.trim()),
+      location: encodeURIComponent(location.trim()),
+      image_count: String(selectedImages.length),
+    });
+    if (finalServiceId) params.set('service_id', finalServiceId);
+    if (displayServiceName) params.set('service_name', displayServiceName);
+    if (requestType === 'custom' && customServiceTitle.trim()) params.set('custom_title', customServiceTitle.trim());
+    if (scheduledDate) params.set('date', scheduledDate);
+    if (scheduledTime) params.set('time', scheduledTime);
 
-      const finalServiceId =
-        requestType === 'listed' ? (selectedServiceId || initialServiceId || undefined) : undefined;
-
-      const insertPayload: Record<string, any> = {
-        customer_id: user.id,
-        craftsman_id: craftsmanProfileId,
-        status: 'pending',
-        description: requestType === 'custom' && customServiceTitle.trim()
-          ? `[خدمة مخصصة: ${customServiceTitle.trim()}]\n${description.trim()}`
-          : description.trim(),
-        address: location.trim(),
-        scheduled_at: scheduledAt,
-        payment_status: 'pending',
-        escrow_status: 'none',
-      };
-      if (finalServiceId) insertPayload.service_id = finalServiceId;
-
-      const { data: order, error: insertError } = await supabase
-        .from('orders')
-        .insert(insertPayload)
-        .select()
-        .single();
-
-      if (insertError) throw insertError;
-
-      // Upload images if any
-      if (selectedImages.length > 0) {
-        setUploadingImages(true);
-        const imageUrls = await uploadImages(order.id);
-        if (imageUrls.length > 0) {
-          await supabase
-            .from('orders')
-            .update({ service_images: imageUrls })
-            .eq('id', order.id);
-        }
-        setUploadingImages(false);
-      }
-
-      // Create conversation linked to this order
-      const firstMessage = requestType === 'custom'
-        ? `مرحباً، أحتاج خدمة مخصصة${customServiceTitle.trim() ? ': ' + customServiceTitle.trim() : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}\n\n💡 يرجى إرسال عرض السعر المناسب.`
-        : `مرحباً، أحتاج خدمة${displayServiceName ? ' ' + displayServiceName : ''}.\n📍 الموقع: ${location.trim()}\n${description.trim()}`;
-
-      const { data: conversation } = await supabase
-        .from('conversations')
-        .insert({
-          customer_id: user.id,
-          craftsman_id: craftsmanUserId,
-          order_id: order.id,
-          last_message: `طلب خدمة${requestType === 'custom' ? ' مخصصة' : ''}: ${displayServiceName}`,
-          last_message_at: new Date().toISOString(),
-        })
-        .select('id')
-        .single();
-
-      if (conversation) {
-        await supabase
-          .from('orders')
-          .update({ conversation_id: conversation.id })
-          .eq('id', order.id);
-
-        await supabase.from('messages').insert({
-          conversation_id: conversation.id,
-          sender_id: user.id,
-          content: firstMessage,
-          message_type: 'text',
-        });
-
-        // For custom requests, add a system hint message
-        if (requestType === 'custom') {
-          await supabase.from('messages').insert({
-            conversation_id: conversation.id,
-            sender_id: craftsmanUserId,
-            content: `📋 طلب خدمة مخصصة جديد — يرجى مراجعة الطلب وإرسال عرض السعر المناسب باستخدام زر 💰 عرض سعر.`,
-            message_type: 'text',
-          });
-        }
-      }
-
-      // Notification for craftsman
-      const notifTitle = requestType === 'custom' ? 'طلب خدمة مخصصة 🔔' : 'طلب خدمة جديد 🔔';
-      const notifBody = requestType === 'custom'
-        ? `لديك طلب خدمة مخصصة: ${customServiceTitle.trim() || 'خدمة مخصصة'} — أرسل عرض سعرك`
-        : `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`;
-
-      await supabase.from('notifications').insert({
-        user_id: craftsmanUserId,
-        title: notifTitle,
-        body: notifBody,
-        type: 'new_order',
-        order_id: order.id,
-      });
-
-      sendPushToUser(craftsmanUserId, notifTitle, notifBody, {
-        url: '/craftsman-profile',
-        orderId: order.id,
-      });
-
-      // Navigate to chat (not payment) — price will be negotiated in chat
-      onClose();
-      if (conversation) {
-        router.push(`/chat?conversation_id=${conversation.id}`);
-      } else {
-        router.push(`/chat?order_id=${order.id}`);
-      }
-    } catch (e: any) {
-      setError(e?.message || 'حدث خطأ، يرجى المحاولة مجدداً');
-      setUploadingImages(false);
-    } finally {
-      setIsSubmitting(false);
-    }
+    onClose();
+    router.push(`/request-summary?${params.toString()}`);
   };
 
   return (
@@ -488,17 +388,10 @@ export default function RequestServiceModal({
             className="w-full py-3.5 rounded-2xl font-bold text-white text-sm flex items-center justify-center gap-2"
             style={{ background: '#1B5E20' }}
           >
-            {isSubmitting || uploadingImages ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                {uploadingImages ? 'جاري رفع الصور...' : 'جاري الإرسال...'}
-              </>
-            ) : (
-              <>
-                <Icon name="ChatBubbleLeftEllipsisIcon" size={16} className="text-white" />
-                {requestType === 'custom' ? 'إرسال الطلب وفتح المحادثة' : 'تأكيد الطلب وفتح المحادثة'}
-              </>
-            )}
+            <>
+              <Icon name="ClipboardDocumentCheckIcon" size={16} className="text-white" />
+              {requestType === 'custom' ? 'مراجعة الطلب قبل الإرسال' : 'مراجعة وتأكيد الطلب'}
+            </>
           </button>
         </div>
       </div>
