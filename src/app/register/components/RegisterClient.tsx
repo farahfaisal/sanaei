@@ -300,7 +300,7 @@ function RegisterForm() {
               type="text"
               value={neighborhood}
               onChange={(e) => setNeighborhood(e.target.value)}
-              placeholder="مثال: وسط البلد، المصيون، التحتا..."
+              placeholder=""
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             />
           </div>
@@ -311,7 +311,7 @@ function RegisterForm() {
               type="text"
               value={street}
               onChange={(e) => setStreet(e.target.value)}
-              placeholder="مثال: شارع الإستقلال، بناية رقم 5..."
+              placeholder=""
               className="w-full py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
             />
           </div>
