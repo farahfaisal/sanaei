@@ -12,7 +12,7 @@ import NotificationBell from '@/components/NotificationBell';
 import dynamic from 'next/dynamic';
 import RequestServiceModal from '@/app/craftsman-profile/components/RequestServiceModal';
 
-const NearbyMapSection = dynamic(() => import('./NearbyMapSection'), { ssr: false });
+const MapBlock = dynamic(() => import('./MapBlock'), { ssr: false });
 
 interface ServiceCategory {
   id: string;
@@ -564,16 +564,7 @@ export default function HomeScreenClient() {
 
         {/* ── MAP SECTION ── */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <div />
-            <h2 className="text-base font-bold text-gray-800">الصنايعية القريبون منك</h2>
-          </div>
-          <div
-            className="rounded-3xl overflow-hidden"
-            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.1)', border: '1px solid #e8ecef' }}>
-            
-            <NearbyMapSection craftsmen={mapCraftsmen} />
-          </div>
+          <MapBlock craftsmen={mapCraftsmen} />
         </div>
 
       </div>
