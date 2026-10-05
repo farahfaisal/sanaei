@@ -137,6 +137,7 @@ export default function ChatClient() {
   const [otherPartyTyping, setOtherPartyTyping] = useState(false);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingRef = useRef(false);
+  const chatChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -216,7 +217,10 @@ export default function ChatClient() {
       })
       .subscribe();
 
+    chatChannelRef.current = channel;
+
     return () => {
+      chatChannelRef.current = null;
       supabase.removeChannel(channel);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
@@ -263,10 +267,10 @@ export default function ChatClient() {
   }, [conversation?.order_id, conversation?.id, user]);
 
   const sendTypingIndicator = useCallback(() => {
-    if (!conversation?.id || !user) return;
+    if (!conversation?.id || !user || !chatChannelRef.current) return;
     if (!isTypingRef.current) {
       isTypingRef.current = true;
-      supabase.channel(`chat:${conversation.id}`).send({
+      chatChannelRef.current.send({
         type: 'broadcast',
         event: 'typing',
         payload: { user_id: user.id },

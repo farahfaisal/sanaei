@@ -132,19 +132,79 @@ export default function ConversationsClient() {
     if (!user) return;
 
     const channel = supabase
-      .channel('conversations-list')
+      .channel(`conversations-realtime:${user.id}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'conversations',
-      }, () => {
-        loadConversations();
+        filter: `customer_id=eq.${user.id}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === updated.id
+              ? { ...c, last_message: updated.last_message, last_message_at: updated.last_message_at }
+              : c
+          ).sort((a, b) => {
+            const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+            const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+            return bTime - aTime;
+          })
+        );
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'conversations',
+        filter: `craftsman_id=eq.${user.id}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === updated.id
+              ? { ...c, last_message: updated.last_message, last_message_at: updated.last_message_at }
+              : c
+          ).sort((a, b) => {
+            const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+            const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+            return bTime - aTime;
+          })
+        );
       })
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'messages',
+      }, async (payload) => {
+        const newMsg = payload.new as any;
+        // Only update if this message belongs to one of our conversations
+        setConversations((prev) => {
+          const conv = prev.find((c) => c.id === newMsg.conversation_id);
+          if (!conv) return prev;
+          // Increment unread count if message is from the other party
+          const isFromOther = newMsg.sender_id !== user.id;
+          return prev.map((c) =>
+            c.id === newMsg.conversation_id
+              ? {
+                  ...c,
+                  last_message: newMsg.content || (newMsg.message_type === 'image' ? '📷 صورة' : newMsg.message_type === 'file' ? '📎 ملف' : c.last_message),
+                  last_message_at: newMsg.created_at,
+                  unread_count: isFromOther ? (c.unread_count || 0) + 1 : c.unread_count,
+                }
+              : c
+          ).sort((a, b) => {
+            const aTime = a.last_message_at ? new Date(a.last_message_at).getTime() : 0;
+            const bTime = b.last_message_at ? new Date(b.last_message_at).getTime() : 0;
+            return bTime - aTime;
+          });
+        });
+      })
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'conversations',
       }, () => {
+        // A new conversation was created — reload the full list
         loadConversations();
       })
       .subscribe();
