@@ -31,7 +31,7 @@ export default function OnboardingClient() {
 
       {/* Welcome text */}
       <div className="text-center px-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في صنايعي</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في حِرَفي</h2>
         <p className="text-sm text-gray-500">كيف تريد استخدام التطبيق؟</p>
       </div>
 
