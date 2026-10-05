@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import BottomTabBar from '@/components/BottomTabBar';
 import Icon from '@/components/ui/AppIcon';
@@ -541,18 +541,16 @@ export default function HomeScreenClient() {
                       
                           احجز الآن
                         </button>
-                        <Link href={`/craftsman-profile?id=${craftsman.id}`}>
-                          <button
-                        className="w-full px-3.5 py-2 rounded-xl text-xs font-semibold"
-                        style={{
-                          border: `1.5px solid ${PRIMARY}`,
-                          color: PRIMARY,
-                          background: PRIMARY_PALE
-                        }}>
-                        
-                            الملف الشخصي
+                        <button
+                          onClick={() => router.push(`/chat?craftsman_id=${craftsman.user_id}`)}
+                          className="w-full px-3.5 py-2 rounded-xl text-xs font-semibold"
+                          style={{
+                            border: `1.5px solid ${PRIMARY}`,
+                            color: PRIMARY,
+                            background: PRIMARY_PALE
+                          }}>
+                            مراسلة
                           </button>
-                        </Link>
                       </div>
                     </div>
                   </div>

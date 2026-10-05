@@ -109,6 +109,7 @@ export default function ChatClient() {
   const searchParams = useSearchParams();
   const conversationId = searchParams?.get('conversation_id');
   const orderId = searchParams?.get('order_id');
+  const craftsmanIdParam = searchParams?.get('craftsman_id');
   const { user, profile } = useAuth();
   const supabase = createClient();
 
@@ -153,8 +154,10 @@ export default function ChatClient() {
       loadConversation(conversationId);
     } else if (orderId) {
       findOrCreateConversation(orderId);
+    } else if (craftsmanIdParam && user) {
+      findOrCreateDirectConversation(craftsmanIdParam);
     }
-  }, [conversationId, orderId, user]);
+  }, [conversationId, orderId, craftsmanIdParam, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -283,6 +286,30 @@ export default function ChatClient() {
       const { data: newConv, error } = await supabase.from('conversations').insert({ customer_id: order.customer_id, craftsman_id: craftsmanUserId, order_id: oId }).select('id').single();
       if (error) throw error;
       await supabase.from('orders').update({ conversation_id: newConv.id }).eq('id', oId);
+      await loadConversation(newConv.id);
+    } catch (e) { setIsLoading(false); }
+  };
+
+  const findOrCreateDirectConversation = async (craftsmanUserId: string) => {
+    if (!user) return;
+    setIsLoading(true);
+    try {
+      // Look for existing direct conversation between this customer and craftsman
+      const { data: existing } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('customer_id', user.id)
+        .eq('craftsman_id', craftsmanUserId)
+        .is('order_id', null)
+        .maybeSingle();
+      if (existing) { await loadConversation(existing.id); return; }
+      // Create a new direct conversation
+      const { data: newConv, error } = await supabase
+        .from('conversations')
+        .insert({ customer_id: user.id, craftsman_id: craftsmanUserId, order_id: null })
+        .select('id')
+        .single();
+      if (error) throw error;
       await loadConversation(newConv.id);
     } catch (e) { setIsLoading(false); }
   };
