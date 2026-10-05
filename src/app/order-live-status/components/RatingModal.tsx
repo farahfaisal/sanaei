@@ -100,7 +100,7 @@ export default function RatingModal({
 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>تقييم الصنايعي</h2>
+          <h2 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>تقييم الحِرَفي</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -163,7 +163,7 @@ export default function RatingModal({
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="شاركنا تجربتك مع هذا الصنايعي..."
+            placeholder="شاركنا تجربتك مع هذا الحِرَفي..."
             rows={3}
             maxLength={500}
             className="w-full rounded-xl p-3 text-sm resize-none outline-none"

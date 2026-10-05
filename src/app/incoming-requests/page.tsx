@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import IncomingRequestsClient from './components/IncomingRequestsClient';
 
 export const metadata: Metadata = {
-  title: 'الطلبات الواردة | صنايعي',
+  title: 'الطلبات الواردة | حِرَفي',
   description: 'عرض الطلبات الواردة من العملاء',
 };
 

@@ -334,7 +334,7 @@ export default function RequestSummaryClient() {
         >
           <div className="flex items-center gap-2 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="w-1 h-4 rounded-full" style={{ background: BRAND.primary }} />
-            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الصنايعي المختار</p>
+            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الحِرَفي المختار</p>
           </div>
           <div className="p-4">
             {craftsman ? (
@@ -388,7 +388,7 @@ export default function RequestSummaryClient() {
                 </div>
               </div>
             ) : (
-              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>تعذّر تحميل بيانات الصنايعي</p>
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>تعذّر تحميل بيانات الحِرَفي</p>
             )}
           </div>
         </div>
@@ -490,7 +490,7 @@ export default function RequestSummaryClient() {
           </div>
           <div className="p-4 space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>الصنايعي</span>
+              <span className="text-sm" style={{ color: 'var(--muted-foreground)' }}>الحِرَفي</span>
               <span className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>{craftsman?.name || '—'}</span>
             </div>
             <div className="flex items-center justify-between">
@@ -529,10 +529,10 @@ export default function RequestSummaryClient() {
           </div>
           <div>
             <p className="text-sm font-bold text-amber-800 mb-0.5">
-              {requestData?.requestType === 'custom' ? 'سيتم فتح محادثة مع الصنايعي' : 'سيتم فتح محادثة بعد إرسال الطلب'}
+              {requestData?.requestType === 'custom' ? 'سيتم فتح محادثة مع الحِرَفي' : 'سيتم فتح محادثة بعد إرسال الطلب'}
             </p>
             <p className="text-xs text-amber-700 leading-relaxed">
-              {requestData?.requestType === 'custom' ?'الصنايعي سيرسل لك عرض السعر، ويمكنك قبوله أو رفضه من داخل المحادثة' :'يمكنك التواصل مع الصنايعي ومتابعة الطلب من خلال المحادثة'}
+              {requestData?.requestType === 'custom' ?'الحِرَفي سيرسل لك عرض السعر، ويمكنك قبوله أو رفضه من داخل المحادثة' :'يمكنك التواصل مع الحِرَفي ومتابعة الطلب من خلال المحادثة'}
             </p>
           </div>
         </div>

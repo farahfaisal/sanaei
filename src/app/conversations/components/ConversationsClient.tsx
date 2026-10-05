@@ -304,7 +304,7 @@ export default function ConversationsClient() {
                 {searchQuery
                   ? 'جرّب كلمة بحث مختلفة'
                   : isCraftsman
-                  ? 'ستظهر هنا محادثاتك مع العملاء' :'ابدأ بطلب خدمة للتواصل مع صنايعي'}
+                  ? 'ستظهر هنا محادثاتك مع العملاء' :'ابدأ بطلب خدمة للتواصل مع حِرَفي'}
               </p>
             </div>
             {!searchQuery && !isCraftsman && (
@@ -313,7 +313,7 @@ export default function ConversationsClient() {
                 className="px-6 py-3 rounded-2xl text-sm font-bold text-white"
                 style={{ background: 'linear-gradient(135deg, #2a724d, #1d5236)' }}
               >
-                ابحث عن صنايعي
+                ابحث عن حِرَفي
               </button>
             )}
           </div>

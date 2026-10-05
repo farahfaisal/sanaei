@@ -222,7 +222,7 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
 
         <div className="flex items-center gap-2">
           <div>
-            <h2 className="text-sm font-bold text-white text-right">الصنايعية القريبون منك</h2>
+            <h2 className="text-sm font-bold text-white text-right">الحِرَفيون القريبون منك</h2>
             <p className="text-xs text-right" style={{ color: 'rgba(255,255,255,0.7)' }}>
               {onlineCraftsmenNearby.length} متاح الآن بالقرب منك
             </p>
@@ -281,7 +281,7 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
         <div className="px-3 pb-3 pt-2">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</span>
-            <span className="text-xs font-bold text-gray-700">أقرب الصنايعية</span>
+            <span className="text-xs font-bold text-gray-700">أقرب الحِرَفيين</span>
           </div>
           <div className="flex flex-col gap-2">
             {nearbyCraftsmen.slice(0, 4).map((craftsman) => (

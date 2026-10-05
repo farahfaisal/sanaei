@@ -250,7 +250,7 @@ export default function HomeScreenClient() {
           dir="rtl">
           
           <Icon name="MagnifyingGlassIcon" size={18} className="text-gray-400 flex-shrink-0" />
-          <span className="text-sm text-gray-400">ابحث عن خدمة أو صنايعي...</span>
+          <span className="text-sm text-gray-400">ابحث عن خدمة أو حِرَفي...</span>
         </button>
 
         {/* Stats strip */}
@@ -258,7 +258,7 @@ export default function HomeScreenClient() {
           <div className="flex items-center gap-1.5">
             <div className="w-2 h-2 rounded-full" style={{ background: '#4ade80', boxShadow: '0 0 6px #4ade80' }} />
             <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.8)' }}>
-              {onlineCraftsmen} صنايعي متاح الآن
+              {onlineCraftsmen} حِرَفي متاح الآن
             </span>
           </div>
           <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.2)' }} />
@@ -420,7 +420,7 @@ export default function HomeScreenClient() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-800">أفضل الصنايعية</h2>
+            <h2 className="text-base font-bold text-gray-800">أفضل الحِرَفيين</h2>
           </div>
 
           {isLoading ?
@@ -431,7 +431,7 @@ export default function HomeScreenClient() {
             </div> :
           filteredCraftsmen.length === 0 ?
           <div className="text-center py-12 text-gray-400 text-sm">
-              لا يوجد صنايعية مسجلون حالياً
+              لا يوجد حِرَفيون مسجلون حالياً
             </div> :
 
           <div className="flex flex-col gap-3">

@@ -12,13 +12,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'صنايعي — نبني ثقة، ونصنع فرق',
-  description: 'منصة صنايعي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.',
+  title: 'حِرَفي — نبني ثقة، ونصنع فرق',
+  description: 'منصة حِرَفي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'صنايعي',
+    title: 'حِرَفي',
   },
   icons: {
     icon: [
@@ -47,7 +47,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="صنايعي" />
+        <meta name="apple-mobile-web-app-title" content="حِرَفي" />
         <link rel="apple-touch-icon" href="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg" />
         <style dangerouslySetInnerHTML={{ __html: `
           html, body {

@@ -391,7 +391,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
           )}
           {userLocation ? 'تحديث الموقع' : 'تحديد موقعي'}
         </button>
-        <h2 className="text-base font-bold text-gray-900">الصنايعية بالقرب منك</h2>
+        <h2 className="text-base font-bold text-gray-900">الحِرَفيون بالقرب منك</h2>
       </div>
 
       {locationError && (

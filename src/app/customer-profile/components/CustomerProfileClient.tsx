@@ -457,7 +457,7 @@ export default function CustomerProfileClient() {
           style={{ background: BRAND.gradient }}
         >
           <Icon name="MagnifyingGlassIcon" size={16} className="text-white" />
-          تصفح الصنايعية وطلب خدمة
+          تصفح الحِرَفيين وطلب خدمة
         </button>
       </div>
 
@@ -557,7 +557,7 @@ export default function CustomerProfileClient() {
                     className="mt-4 text-sm font-semibold px-5 py-2 rounded-xl text-white"
                     style={{ background: BRAND.primary }}
                   >
-                    ابحث عن صنايعي
+                    ابحث عن حِرَفي
                   </button>
                 )}
               </div>
@@ -935,7 +935,7 @@ export default function CustomerProfileClient() {
               </div>
               {[
                 { key: 'orders',   label: 'تحديثات الطلبات',  sub: 'إشعارات حالة الطلب والتأكيد',  val: notifOrders,   set: setNotifOrders },
-                { key: 'messages', label: 'الرسائل',           sub: 'رسائل الصنايعية والدعم',        val: notifMessages, set: setNotifMessages },
+                { key: 'messages', label: 'الرسائل',           sub: 'رسائل الحِرَفيين والدعم',        val: notifMessages, set: setNotifMessages },
                 { key: 'offers',   label: 'العروض والخصومات', sub: 'العروض الترويجية والتخفيضات',   val: notifOffers,   set: setNotifOffers },
               ].map((item, idx, arr) => (
                 <div

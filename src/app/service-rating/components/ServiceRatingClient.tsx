@@ -466,7 +466,7 @@ export default function ServiceRatingClient() {
           <textarea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="شاركنا تفاصيل تجربتك مع هذا الصنايعي..."
+            placeholder="شاركنا تفاصيل تجربتك مع هذا الحِرَفي..."
             rows={4}
             maxLength={500}
             className="w-full rounded-xl p-3 text-sm resize-none outline-none transition-all"

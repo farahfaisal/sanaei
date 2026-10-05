@@ -39,7 +39,7 @@ export default function SplashScreen() {
       <div className="flex flex-col items-center">
         <Image
           src="/assets/images/__________________24_-1790287739442.png"
-          alt="شعار صنايعي"
+          alt="شعار حِرَفي"
           width={200}
           height={200}
           className="object-contain"

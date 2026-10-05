@@ -25,9 +25,9 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; 
 };
 
 const TIMELINE_STEPS = [
-  { status: 'pending',     label: 'تم استلام الطلب',       sublabel: 'طلبك في انتظار الصنايعي',        icon: 'ClipboardDocumentListIcon' },
-  { status: 'accepted',    label: 'قبل الصنايعي الطلب',    sublabel: 'الصنايعي في طريقه إليك',          icon: 'CheckCircleIcon' },
-  { status: 'in_progress', label: 'جاري تنفيذ الخدمة',     sublabel: 'الصنايعي يعمل الآن',              icon: 'WrenchScrewdriverIcon' },
+  { status: 'pending',     label: 'تم استلام الطلب',       sublabel: 'طلبك في انتظار الحِرَفي',        icon: 'ClipboardDocumentListIcon' },
+  { status: 'accepted',    label: 'قبل الحِرَفي الطلب',    sublabel: 'الحِرَفي في طريقه إليك',          icon: 'CheckCircleIcon' },
+  { status: 'in_progress', label: 'جاري تنفيذ الخدمة',     sublabel: 'الحِرَفي يعمل الآن',              icon: 'WrenchScrewdriverIcon' },
   { status: 'completed',   label: 'اكتملت الخدمة',         sublabel: 'تم إنجاز الطلب بنجاح',            icon: 'CheckBadgeIcon' },
 ];
 
@@ -377,7 +377,7 @@ export default function OrderLiveStatusClient() {
             className="rounded-2xl p-4"
             style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
           >
-            <p className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>الصنايعي</p>
+            <p className="text-sm font-bold mb-3" style={{ color: 'var(--foreground)' }}>الحِرَفي</p>
             <div className="flex items-center gap-3">
               <div className="relative flex-shrink-0">
                 <div className="w-14 h-14 rounded-2xl overflow-hidden" style={{ border: `2px solid ${BRAND.primary}30` }}>
@@ -484,7 +484,7 @@ export default function OrderLiveStatusClient() {
                 <Icon name="CheckBadgeIcon" size={24} style={{ color: '#059669' }} />
               </div>
               <p className="font-bold text-sm mb-1" style={{ color: '#059669' }}>تم إنجاز الخدمة بنجاح 🎉</p>
-              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>شكراً لاستخدامك صنايعي</p>
+              <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>شكراً لاستخدامك حِرَفي</p>
             </div>
 
             {/* Rating CTA */}
@@ -505,7 +505,7 @@ export default function OrderLiveStatusClient() {
                 style={{ background: BRAND.primary, color: '#fff' }}
               >
                 <Icon name="StarIcon" size={18} variant="solid" className="text-yellow-300" />
-                قيّم الصنايعي
+                قيّم الحِرَفي
               </button>
             )}
           </div>
