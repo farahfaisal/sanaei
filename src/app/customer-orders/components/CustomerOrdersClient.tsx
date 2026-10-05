@@ -234,6 +234,21 @@ export default function CustomerOrdersClient() {
                       <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>السعر غير محدد</span>
                     )}
                   </div>
+
+                  {/* Rate button for completed orders */}
+                  {order.status === 'completed' && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/service-rating?orderId=${order.id}`);
+                      }}
+                      className="w-full mt-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                      style={{ background: 'rgba(42,114,77,0.12)', color: '#2a724d', border: '1.5px solid rgba(42,114,77,0.25)' }}
+                    >
+                      <Icon name="StarIcon" size={15} variant="solid" style={{ color: '#F59E0B' }} />
+                      قيّم الخدمة
+                    </button>
+                  )}
                 </div>
               );
             })
