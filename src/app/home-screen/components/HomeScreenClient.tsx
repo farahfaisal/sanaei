@@ -277,6 +277,27 @@ export default function HomeScreenClient() {
       {/* ── CONTENT ── */}
       <div className="px-4 pt-5 pb-28 space-y-6">
 
+        {/* ── QUICK ACTIONS ── */}
+        <div className="grid grid-cols-3 gap-2.5">
+          {[
+            { label: 'طلباتي', icon: 'ClipboardDocumentListIcon', href: '/my-requests', color: '#2a724d', bg: '#e8f5ee' },
+            { label: 'المحادثات', icon: 'ChatBubbleLeftRightIcon', href: '/conversations', color: '#0284C7', bg: '#e0f2fe' },
+            { label: 'حسابي', icon: 'UserCircleIcon', href: '/customer-profile', color: '#7C3AED', bg: '#f3e8ff' },
+          ].map(action => (
+            <button
+              key={action.href}
+              onClick={() => router.push(action.href)}
+              className="flex flex-col items-center gap-2 py-3.5 rounded-2xl transition-all active:scale-95"
+              style={{ background: action.bg, border: `1.5px solid ${action.color}20` }}
+            >
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: action.color }}>
+                <Icon name={action.icon as never} size={18} className="text-white" />
+              </div>
+              <span className="text-xs font-bold" style={{ color: action.color }}>{action.label}</span>
+            </button>
+          ))}
+        </div>
+
         {/* ── CATEGORIES ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
