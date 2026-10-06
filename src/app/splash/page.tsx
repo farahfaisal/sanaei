@@ -14,7 +14,6 @@ export default function SplashScreen() {
 
     const timer = setTimeout(() => {
       if (user && profile) {
-        // Redirect based on role
         if (profile?.role === 'craftsman') {
           router?.replace('/craftsman-orders');
         } else if (profile?.role === 'admin') {
@@ -23,28 +22,44 @@ export default function SplashScreen() {
           router?.replace('/home-screen');
         }
       } else if (user && !profile) {
-        // User exists but no profile yet — go home as fallback
         router?.replace('/home-screen');
       } else {
-        // Not logged in — go to onboarding
         router?.replace('/onboarding-role-selection');
       }
-    }, 2500);
+    }, 2800);
 
     return () => clearTimeout(timer);
   }, [router, user, profile, loading]);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-white">
+      <style>{`
+        @keyframes splashFadeIn {
+          0% { opacity: 0; transform: scale(0.6); }
+          60% { opacity: 1; transform: scale(1.08); }
+          80% { transform: scale(0.97); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes splashPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.85; }
+        }
+        .splash-logo {
+          animation: splashFadeIn 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                     splashPulse 2s ease-in-out 1s infinite;
+        }
+      `}</style>
       <div className="flex flex-col items-center">
-        <Image
-          src="/assets/images/__________________24_-1790287739442.png"
-          alt="شعار حِرَفي"
-          width={200}
-          height={200}
-          className="object-contain"
-          priority
-        />
+        <div className="splash-logo">
+          <Image
+            src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791326599819.png"
+            alt="شعار حِرَفي"
+            width={220}
+            height={220}
+            className="object-contain"
+            priority
+          />
+        </div>
       </div>
     </div>
   );
