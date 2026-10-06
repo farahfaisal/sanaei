@@ -22,7 +22,7 @@ export default function OnboardingClient() {
         {/* Logo image */}
         <div className="w-40 h-40 mb-4 flex items-center justify-center">
           <img
-            src="/assets/images/__________________24_-1790287739442.png"
+            src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791326599819.png"
             alt="شعار صنايعي"
             className="w-full h-full object-contain"
           />
