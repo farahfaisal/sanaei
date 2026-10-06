@@ -19,14 +19,7 @@ export default function OnboardingClient() {
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
       {/* Logo area */}
       <div className="flex flex-col items-center pt-16 pb-6 px-6">
-        {/* Logo image */}
-        <div className="w-40 h-40 mb-4 flex items-center justify-center">
-          <img
-            src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png"
-            alt="شعار حِرَفي"
-            className="w-full h-full object-contain"
-          />
-        </div>
+
       </div>
 
       {/* Welcome text */}
