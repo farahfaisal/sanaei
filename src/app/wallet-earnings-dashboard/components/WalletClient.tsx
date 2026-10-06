@@ -130,6 +130,11 @@ export default function WalletClient() {
     setIsWithdrawing(false);
   };
 
+  const handleTopUp = () => {
+    // Navigate to payment/top-up screen
+    window.location.href = '/payment-screen';
+  };
+
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
       {/* Header */}
@@ -183,18 +188,24 @@ export default function WalletClient() {
           </div>
         </div>
 
-        {/* Withdraw button */}
-        <button
-          onClick={handleWithdraw}
-          disabled={isWithdrawing}
-          className="w-full mt-3 py-3.5 bg-white text-primary font-bold rounded-2xl flex items-center justify-center gap-2"
-        >
-          <Icon name="BuildingLibraryIcon" size={18} className="text-primary" />
-          <span>{isWithdrawing ? 'جاري التحويل...' : 'سحب على الحساب البنكي'}</span>
-          {wallet?.bank_account && (
-            <span className="text-xs text-gray-400 font-normal">{wallet.bank_account}</span>
-          )}
-        </button>
+        {/* Top-up button — customers only */}
+        {isCustomer && (
+          <button
+            onClick={handleTopUp}
+            className="w-full mt-3 py-3.5 bg-white text-primary font-bold rounded-2xl flex items-center justify-center gap-2"
+          >
+            <Icon name="CreditCardIcon" size={18} className="text-primary" />
+            <span>شحن الرصيد ببطاقة فيزا</span>
+          </button>
+        )}
+
+        {/* Craftsman info notice */}
+        {!isCustomer && (
+          <div className="w-full mt-3 py-3 px-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center gap-2">
+            <Icon name="InformationCircleIcon" size={18} className="text-white/80" />
+            <span className="text-sm text-white/80">يتم تحويل أرباحك من قِبل الإدارة</span>
+          </div>
+        )}
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-24">
