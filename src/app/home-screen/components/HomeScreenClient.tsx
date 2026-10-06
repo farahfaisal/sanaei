@@ -72,10 +72,26 @@ function generateFallbackPosition(seed: string): {lat: number;lng: number;} {
   return { lat, lng };
 }
 
+function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 const PRIMARY = '#1a6b3c';
 const PRIMARY_LIGHT = '#2e8b57';
 const PRIMARY_PALE = '#e8f5ee';
 const ACCENT = '#f0a500';
+
+const SORT_OPTIONS = [
+  { value: 'rating', label: 'الأعلى تقييماً', icon: 'StarIcon' },
+  { value: 'distance', label: 'الأقرب مسافةً', icon: 'MapPinIcon' },
+  { value: 'availability', label: 'المتاحون الآن', icon: 'BoltIcon' },
+];
+
+const DISTANCE_OPTIONS = [5, 10, 20, 50, 100];
 
 export default function HomeScreenClient() {
   const { user, profile } = useAuth();
@@ -91,8 +107,28 @@ export default function HomeScreenClient() {
   const [bookingCraftsman, setBookingCraftsman] = useState<CraftsmanCard | null>(null);
   const [bookingSuccess, setBookingSuccess] = useState<string | null>(null);
 
+  // Search & Filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [minRating, setMinRating] = useState<number>(0);
+  const [maxRating, setMaxRating] = useState<number>(5);
+  const [selectedSpecialty, setSelectedSpecialty] = useState<string | null>(null);
+  const [distanceRadius, setDistanceRadius] = useState<number | null>(null);
+  const [sortBy, setSortBy] = useState<'rating' | 'distance' | 'availability'>('rating');
+  const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
+
   useEffect(() => {
     loadData();
+    // Try to get user location for distance filtering
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {
+          // Default to Riyadh center if denied
+          setUserLocation({ lat: 24.7136, lng: 46.6753 });
+        }
+      );
+    }
   }, []);
 
   useEffect(() => {
@@ -160,12 +196,64 @@ export default function HomeScreenClient() {
     }
   }, []);
 
-  const filteredCraftsmen = useMemo(
-    () => activeCategory ?
-    craftsmen.filter((c) => c?.specialty?.includes(activeCategory)) :
-    craftsmen,
-    [craftsmen, activeCategory]
-  );
+  const craftsmenWithDistance = useMemo(() => craftsmen.map((c) => {
+    const locStr = c.location || c.user_profiles?.location || null;
+    const parsed = parseLocation(locStr);
+    const fallback = generateFallbackPosition(c.id);
+    const pos = parsed ?? fallback;
+    const distance = userLocation
+      ? calcDistance(userLocation.lat, userLocation.lng, pos.lat, pos.lng)
+      : null;
+    return { ...c, _lat: pos.lat, _lng: pos.lng, _distance: distance };
+  }), [craftsmen, userLocation]);
+
+  const filteredCraftsmen = useMemo(() => {
+    let list = craftsmenWithDistance.filter((c) => {
+      // Search query
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        const name = (c.user_profiles?.full_name || '').toLowerCase();
+        const spec = (c.specialty || '').toLowerCase();
+        if (!name.includes(q) && !spec.includes(q)) return false;
+      }
+      // Category filter
+      if (activeCategory) {
+        if (!c.specialty?.includes(activeCategory)) return false;
+      }
+      // Specialty filter from filter panel
+      if (selectedSpecialty) {
+        const cat = categories.find((cat) => cat.id === selectedSpecialty);
+        if (cat) {
+          const spec = (c.specialty || '').toLowerCase();
+          if (!spec.includes(cat.name.toLowerCase()) && !spec.includes(cat.slug.toLowerCase())) return false;
+        }
+      }
+      // Min rating
+      if (minRating > 0 && (c.rating || 0) < minRating) return false;
+      // Max rating
+      if (maxRating < 5 && (c.rating || 0) > maxRating) return false;
+      // Distance radius
+      if (distanceRadius !== null && c._distance !== null && c._distance > distanceRadius) return false;
+      return true;
+    });
+
+    // Sort
+    list = [...list].sort((a, b) => {
+      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
+      if (sortBy === 'distance') {
+        if (a._distance !== null && b._distance !== null) return a._distance - b._distance;
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      if (sortBy === 'availability') {
+        if (a.is_online && !b.is_online) return -1;
+        if (!a.is_online && b.is_online) return 1;
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      return 0;
+    });
+
+    return list;
+  }, [craftsmenWithDistance, searchQuery, activeCategory, selectedSpecialty, minRating, maxRating, distanceRadius, sortBy, categories]);
 
   const mapCraftsmen = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
@@ -183,6 +271,24 @@ export default function HomeScreenClient() {
       status: c.is_online ? 'available' as const : 'offline' as const
     };
   }), [craftsmen]);
+
+  const activeFiltersCount = [
+    searchQuery !== '',
+    selectedSpecialty !== null,
+    minRating > 0,
+    maxRating < 5,
+    distanceRadius !== null,
+    sortBy !== 'rating',
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setSelectedSpecialty(null);
+    setMinRating(0);
+    setMaxRating(5);
+    setDistanceRadius(null);
+    setSortBy('rating');
+  };
 
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'مرحباً';
   const activeOffer = offers[activeOfferIndex] || offers[0];
@@ -243,18 +349,54 @@ export default function HomeScreenClient() {
         </div>
 
         {/* Search bar */}
-        <button
-          onClick={() => router.push('/search')}
-          className="w-full flex items-center gap-3 rounded-2xl px-4 py-3.5"
-          style={{
-            background: 'rgba(255,255,255,0.97)',
-            boxShadow: '0 8px 28px rgba(0,0,0,0.18)'
-          }}
-          dir="rtl">
-          
-          <Icon name="MagnifyingGlassIcon" size={18} className="text-gray-400 flex-shrink-0" />
-          <span className="text-sm text-gray-400">ابحث عن خدمة أو حِرَفي...</span>
-        </button>
+        <div className="relative">
+          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+            <Icon name="MagnifyingGlassIcon" size={18} className="text-gray-400 flex-shrink-0" />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="ابحث عن خدمة أو حِرَفي..."
+            className="w-full rounded-2xl px-4 py-3.5 pr-11 text-sm text-gray-800 placeholder:text-gray-400 outline-none"
+            style={{
+              background: 'rgba(255,255,255,0.97)',
+              boxShadow: '0 8px 28px rgba(0,0,0,0.18)'
+            }}
+            dir="rtl"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 left-12 flex items-center"
+            >
+              <Icon name="XMarkIcon" size={16} className="text-gray-400" />
+            </button>
+          )}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="absolute inset-y-0 left-3 flex items-center justify-center w-8 h-8 my-auto rounded-xl transition-all"
+            style={{
+              background: showFilters || activeFiltersCount > 0
+                ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                : 'rgba(0,0,0,0.06)',
+            }}
+          >
+            <Icon
+              name="AdjustmentsHorizontalIcon"
+              size={16}
+              style={{ color: showFilters || activeFiltersCount > 0 ? 'white' : '#6b7280' }}
+            />
+            {activeFiltersCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center"
+                style={{ background: ACCENT, fontSize: '9px', fontWeight: 700 }}
+              >
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Stats strip */}
         <div className="flex items-center gap-4 mt-4" style={{ position: 'relative' }}>
@@ -271,8 +413,243 @@ export default function HomeScreenClient() {
               {craftsmen.length}+ محترف مسجل
             </span>
           </div>
+          {(searchQuery || activeFiltersCount > 0) && (
+            <>
+              <div style={{ width: 1, height: 14, background: 'rgba(255,255,255,0.2)' }} />
+              <span className="text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                {filteredCraftsmen.length} نتيجة
+              </span>
+            </>
+          )}
         </div>
       </div>
+
+      {/* ── FILTER PANEL ── */}
+      {showFilters && (
+        <div
+          className="mx-4 mt-3 rounded-2xl p-4 space-y-4"
+          style={{
+            background: 'white',
+            boxShadow: '0 6px 24px rgba(0,0,0,0.1)',
+            border: `1px solid ${PRIMARY}20`,
+          }}
+        >
+          {/* Sort */}
+          <div>
+            <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
+              <Icon name="ArrowsUpDownIcon" size={13} style={{ color: PRIMARY }} />
+              ترتيب النتائج
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSortBy(opt.value as any)}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                  style={{
+                    background: sortBy === opt.value
+                      ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                      : '#f3f4f6',
+                    color: sortBy === opt.value ? 'white' : '#374151',
+                    border: `1px solid ${sortBy === opt.value ? PRIMARY : 'transparent'}`,
+                  }}
+                >
+                  <Icon name={opt.icon as never} size={12} style={{ color: sortBy === opt.value ? 'white' : PRIMARY }} />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Specialty */}
+          <div>
+            <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
+              <Icon name="WrenchScrewdriverIcon" size={13} style={{ color: PRIMARY }} />
+              التخصص
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setSelectedSpecialty(null)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                style={{
+                  background: selectedSpecialty === null
+                    ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                    : '#f3f4f6',
+                  color: selectedSpecialty === null ? 'white' : '#374151',
+                }}
+              >
+                الكل
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedSpecialty(selectedSpecialty === cat.id ? null : cat.id)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={{
+                    background: selectedSpecialty === cat.id
+                      ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                      : '#f3f4f6',
+                    color: selectedSpecialty === cat.id ? 'white' : '#374151',
+                  }}
+                >
+                  {cat.emoji} {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Rating Range */}
+          <div>
+            <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
+              <Icon name="StarIcon" size={13} style={{ color: PRIMARY }} />
+              نطاق التقييم
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1.5 text-center">الحد الأدنى</p>
+                <div className="flex gap-1.5 flex-wrap justify-center">
+                  {[0, 3, 3.5, 4, 4.5].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setMinRating(r)}
+                      className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                      style={{
+                        background: minRating === r
+                          ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                          : '#f3f4f6',
+                        color: minRating === r ? 'white' : '#374151',
+                      }}
+                    >
+                      {r === 0 ? 'الكل' : (
+                        <>
+                          <Icon name="StarIcon" size={9} variant="solid" style={{ color: minRating === r ? 'white' : ACCENT }} />
+                          {r}+
+                        </>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
+              <div className="flex-1">
+                <p className="text-xs text-gray-500 mb-1.5 text-center">الحد الأعلى</p>
+                <div className="flex gap-1.5 flex-wrap justify-center">
+                  {[5, 4.5, 4, 3.5].map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setMaxRating(r)}
+                      className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                      style={{
+                        background: maxRating === r
+                          ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                          : '#f3f4f6',
+                        color: maxRating === r ? 'white' : '#374151',
+                      }}
+                    >
+                      {r === 5 ? 'الكل' : (
+                        <>
+                          <Icon name="StarIcon" size={9} variant="solid" style={{ color: maxRating === r ? 'white' : ACCENT }} />
+                          {r}
+                        </>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Distance Radius */}
+          <div>
+            <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
+              <Icon name="MapPinIcon" size={13} style={{ color: PRIMARY }} />
+              نطاق المسافة (كم)
+            </p>
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setDistanceRadius(null)}
+                className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                style={{
+                  background: distanceRadius === null
+                    ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                    : '#f3f4f6',
+                  color: distanceRadius === null ? 'white' : '#374151',
+                }}
+              >
+                الكل
+              </button>
+              {DISTANCE_OPTIONS.map((d) => (
+                <button
+                  key={d}
+                  onClick={() => setDistanceRadius(distanceRadius === d ? null : d)}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                  style={{
+                    background: distanceRadius === d
+                      ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                      : '#f3f4f6',
+                    color: distanceRadius === d ? 'white' : '#374151',
+                  }}
+                >
+                  {d} كم
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 pt-1">
+            <button
+              onClick={clearFilters}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all"
+              style={{ background: '#fff5f5', color: '#ef4444', border: '1.5px solid #fecaca' }}
+            >
+              مسح الفلاتر
+            </button>
+            <button
+              onClick={() => setShowFilters(false)}
+              className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white transition-all"
+              style={{ background: `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})` }}
+            >
+              تطبيق ({filteredCraftsmen.length} نتيجة)
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Sort quick-bar (visible when not showing full filter panel) */}
+      {!showFilters && (
+        <div className="px-4 pt-3 pb-1">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setSortBy(opt.value as any)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold flex-shrink-0 transition-all"
+                style={{
+                  background: sortBy === opt.value
+                    ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
+                    : 'white',
+                  color: sortBy === opt.value ? 'white' : '#6b7280',
+                  border: `1.5px solid ${sortBy === opt.value ? PRIMARY : '#e5e7eb'}`,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                }}
+              >
+                <Icon name={opt.icon as never} size={12} style={{ color: sortBy === opt.value ? 'white' : PRIMARY }} />
+                {opt.label}
+              </button>
+            ))}
+            {activeFiltersCount > 0 && (
+              <button
+                onClick={clearFilters}
+                className="flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold transition-all"
+                style={{ background: '#fff5f5', color: '#ef4444', border: '1.5px solid #fecaca' }}
+              >
+                مسح الكل
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── CONTENT ── */}
       <div className="px-4 pt-5 pb-28 space-y-6">
@@ -444,7 +821,9 @@ export default function HomeScreenClient() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-800">أفضل الحِرَفيين</h2>
+            <h2 className="text-base font-bold text-gray-800">
+              {searchQuery || activeFiltersCount > 0 ? `نتائج البحث (${filteredCraftsmen.length})` : 'أفضل الحِرَفيين'}
+            </h2>
           </div>
 
           {isLoading ?
@@ -454,8 +833,18 @@ export default function HomeScreenClient() {
             )}
             </div> :
           filteredCraftsmen.length === 0 ?
-          <div className="text-center py-12 text-gray-400 text-sm">
-              لا يوجد حِرَفيون مسجلون حالياً
+          <div className="text-center py-12 space-y-3">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto" style={{ background: PRIMARY_PALE }}>
+                <Icon name="MagnifyingGlassIcon" size={28} style={{ color: PRIMARY }} />
+              </div>
+              <p className="text-gray-500 text-sm font-medium">لا توجد نتائج مطابقة</p>
+              <button
+                onClick={clearFilters}
+                className="text-xs font-bold px-4 py-2 rounded-xl"
+                style={{ background: PRIMARY_PALE, color: PRIMARY }}
+              >
+                مسح الفلاتر
+              </button>
             </div> :
 
           <div className="flex flex-col gap-3">
@@ -470,12 +859,12 @@ export default function HomeScreenClient() {
               }}>
               
                   {/* Top accent bar for #1 */}
-                  {index === 0 &&
+                  {index === 0 && !searchQuery && activeFiltersCount === 0 &&
               <div style={{ height: 3, background: `linear-gradient(90deg, ${PRIMARY}, ${PRIMARY_LIGHT}, #4ade80)` }} />
               }
 
                   <div className="p-4">
-                    {index === 0 &&
+                    {index === 0 && !searchQuery && activeFiltersCount === 0 &&
                 <div className="flex items-center gap-1 mb-2.5">
                         <Icon name="TrophyIcon" size={12} style={{ color: ACCENT }} />
                         <span className="text-xs font-bold" style={{ color: ACCENT }}>الأعلى تقييماً هذا الأسبوع</span>
@@ -531,7 +920,7 @@ export default function HomeScreenClient() {
                       }
                         </div>
                         <p className="text-xs text-gray-500 mb-1.5">{craftsman.specialty}</p>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <div className="flex items-center gap-1">
                             <Icon name="StarIcon" size={12} variant="solid" style={{ color: ACCENT }} />
                             <span className="text-xs font-bold text-gray-800">{craftsman.rating}</span>
@@ -547,6 +936,14 @@ export default function HomeScreenClient() {
                               <span className="text-xs font-semibold" style={{ color: '#16a34a' }}>● متاح</span>
                             </>
                       }
+                          {(craftsman as any)._distance !== null && sortBy === 'distance' && (
+                            <>
+                              <div style={{ width: 1, height: 12, background: '#e5e7eb' }} />
+                              <span className="text-xs text-gray-500">
+                                {((craftsman as any)._distance as number).toFixed(1)} كم
+                              </span>
+                            </>
+                          )}
                         </div>
                       </div>
 
