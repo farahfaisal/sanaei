@@ -52,7 +52,7 @@ export default function SplashScreen() {
       <div className="flex flex-col items-center">
         <div className="splash-logo">
           <Image
-            src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791326599819.png"
+            src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791326599819.png?v=2"
             alt="شعار حِرَفي"
             width={220}
             height={220}
