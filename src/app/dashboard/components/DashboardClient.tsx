@@ -12,8 +12,9 @@ import BroadcastTab from './BroadcastTab';
 import OffersTab from './OffersTab';
 import ChatsTab from './ChatsTab';
 import ActivityFeedTab from './ActivityFeedTab';
+import TermsTab from './TermsTab';
 
-type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast' | 'offers' | 'chats' | 'activity';
+type Tab = 'overview' | 'users' | 'craftsmen' | 'orders' | 'payments' | 'map' | 'broadcast' | 'offers' | 'chats' | 'activity' | 'terms';
 
 interface Stats {
   totalUsers: number;
@@ -37,6 +38,7 @@ const NAV_ITEMS: { id: Tab; label: string; icon: string }[] = [
   { id: 'map', label: 'خريطة الحرفيين', icon: 'MapPinIcon' },
   { id: 'broadcast', label: 'إشعار جماعي', icon: 'BellAlertIcon' },
   { id: 'offers', label: 'العروض والخصومات', icon: 'TagIcon' },
+  { id: 'terms', label: 'الشروط والأحكام', icon: 'DocumentTextIcon' },
 ];
 
 export default function DashboardClient() {
@@ -376,6 +378,7 @@ export default function DashboardClient() {
           {activeTab === 'broadcast' && <BroadcastTab />}
           {activeTab === 'offers' && <OffersTab />}
           {activeTab === 'activity' && <ActivityFeedTab />}
+          {activeTab === 'terms' && <TermsTab />}
         </main>
       </div>
     </div>
