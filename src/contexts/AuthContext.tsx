@@ -86,36 +86,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // Phone-based Sign In — maps phone number to a derived email and uses password login
-  // (Phone OTP provider is not enabled; demo accounts use email/password credentials)
+  // Phone-based Sign In — Step 1: send real OTP via SMS
   const sendOtp = async (phone: string) => {
-    // No-op: we no longer call Supabase phone OTP.
-    // The actual sign-in happens in verifyOtp using email/password.
-    return {};
+    const { data, error } = await supabase.auth.signInWithOtp({
+      phone,
+    });
+    if (error) throw error;
+    return data;
   };
 
-  // Phone OTP Sign In - Step 2: verify OTP
-  // Maps phone → email (phone@sanaei.app) and uses the OTP code as the password
+  // Phone OTP Sign In - Step 2: verify real OTP token
   const verifyOtp = async (phone: string, token: string, role: string = 'customer') => {
-    // Derive email from phone number: strip leading + and non-digits, append domain
-    const normalizedPhone = phone.replace(/\D/g, '');
-    const email = `${normalizedPhone}@sanaei.app`;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password: token,
+    const { data, error } = await supabase.auth.verifyOtp({
+      phone,
+      token,
+      type: 'sms',
     });
 
     if (error) {
-      // Detect unregistered user — Supabase returns "Invalid login credentials" for unknown email
       if (
-        error.message?.toLowerCase().includes('invalid login credentials') ||
-        error.message?.toLowerCase().includes('user not found') ||
-        error.status === 400
+        error.message?.toLowerCase().includes('token has expired') ||
+        error.message?.toLowerCase().includes('otp expired')
       ) {
-        const notRegisteredError = new Error('USER_NOT_REGISTERED');
-        (notRegisteredError as any).code = 'USER_NOT_REGISTERED';
-        throw notRegisteredError;
+        throw new Error('انتهت صلاحية رمز التحقق، يرجى طلب رمز جديد');
+      }
+      if (
+        error.message?.toLowerCase().includes('invalid') ||
+        error.message?.toLowerCase().includes('incorrect')
+      ) {
+        throw new Error('رمز التحقق غير صحيح');
       }
       throw error;
     }

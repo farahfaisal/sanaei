@@ -81,18 +81,11 @@ export default function PhoneLoginClient() {
     setIsLoading(true);
     try {
       await sendOtp(fullPhone);
-      // Auto-verify using the OTP code 123456 for all users
-      const data = await verifyOtp(fullPhone, '123456', selectedRole);
-      // After login, fetch the actual role from the returned profile or use selectedRole
-      const actualRole = data?.user?.user_metadata?.role || selectedRole;
-      router.push(getRedirectPath(actualRole));
+      setStep('otp');
+      setCountdown(42);
+      setCanResend(false);
     } catch (err: any) {
-      // If user is not registered, redirect to registration page
-      if (err?.code === 'USER_NOT_REGISTERED' || err?.message === 'USER_NOT_REGISTERED') {
-        router.push(`/register?phone=${encodeURIComponent(fullPhone)}&role=${selectedRole}`);
-        return;
-      }
-      setError(err?.message || 'رقم الجوال غير مسجل أو رمز الدخول غير صحيح');
+      setError(err?.message || 'تعذر إرسال رمز التحقق، يرجى المحاولة مجدداً');
     } finally {
       setIsLoading(false);
     }
