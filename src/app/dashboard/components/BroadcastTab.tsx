@@ -133,7 +133,7 @@ export default function BroadcastTab() {
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-emerald-700 flex items-center justify-center flex-shrink-0">
                 <img
-                  src="/assets/images/__________________24_-1790287739442.png"
+                  src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png"
                   alt="شعار صنايعي"
                   className="w-full h-full object-contain rounded-lg"
                 />

@@ -162,7 +162,7 @@ export default function PhoneLoginClient() {
             <div className="text-center mb-8 mt-4">
               <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
                 <img
-                  src="/assets/images/__________________24_-1790287739442.png"
+                  src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png"
                   alt="شعار صنايعي"
                   className="w-full h-full object-contain"
                 />
