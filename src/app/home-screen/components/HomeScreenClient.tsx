@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import BottomTabBar from '@/components/BottomTabBar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
@@ -208,8 +209,9 @@ export default function HomeScreenClient() {
         <div className="flex items-center justify-between mb-5" style={{ position: 'relative' }}>
           <div className="flex items-center gap-2">
             <NotificationBell />
+            <Link href="/customer-profile">
             <div
-              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center"
+              className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center cursor-pointer"
               style={{ border: '2px solid rgba(255,255,255,0.35)', background: 'rgba(255,255,255,0.12)' }}>
               
               {profile?.avatar_url ?
@@ -218,6 +220,7 @@ export default function HomeScreenClient() {
               <Icon name="UserCircleIcon" size={22} className="text-white" />
               }
             </div>
+            </Link>
           </div>
 
           <div className="text-right">
