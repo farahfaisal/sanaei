@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Light by default: stop phones/browsers from auto-darkening the app.
+   Dark only when the user turns it on (data-theme="dark"). */
+:root:not([data-theme='dark']) {
+  color-scheme: only light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 :root {
   --background: #0F1117;
   --foreground: #F1F5F9;

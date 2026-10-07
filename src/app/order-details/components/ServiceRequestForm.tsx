@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
+import { getOrCreateConversation } from '@/lib/supabase/chat';
 import { useAuth } from '@/contexts/AuthContext';
 import { sendPushToUser } from '@/lib/pushNotifications';
 import BookingSuccessScreen from './BookingSuccessScreen';
@@ -218,20 +219,20 @@ export default function ServiceRequestForm({
 
       // Create conversation linked to this order
       if (craftsmanUserId) {
-        const { data: conversation } = await supabase
-          .from('conversations')
-          .insert({
-            customer_id: user.id,
-            craftsman_id: craftsmanUserId,
-            order_id: order.id,
-            last_message: `طلب خدمة جديد${displayServiceName ? ': ' + displayServiceName : ''}`,
-            last_message_at: new Date().toISOString(),
-          })
-          .select('id')
-          .single();
+        // One thread per customer–craftsman pair (like WhatsApp): reuse it and switch it to this order.
+        let conversation: { id: string } | null = null;
+        try {
+          const conversationId = await getOrCreateConversation(supabase, {
+            customerId: user.id,
+            craftsmanUserId,
+            orderId: order.id,
+          });
+          conversation = { id: conversationId };
+        } catch (convError) {
+          console.error('Failed to open conversation for order:', convError);
+        }
 
         if (conversation) {
-          await supabase.from('orders').update({ conversation_id: conversation.id }).eq('id', order.id);
           await supabase.from('messages').insert({
             conversation_id: conversation.id,
             sender_id: user.id,

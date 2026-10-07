@@ -1,51 +1,82 @@
-// Service Worker for Web Push Notifications + PWA Offline Caching
+// Service Worker for Web Push Notifications + PWA
+//
+// Caching rules (important):
+//  - NEVER cache API/data requests (Supabase etc.) — caching them made chats and
+//    orders show old data (new messages "disappeared" from the history).
+//  - Static build files and images: cache-first (they never change).
+//  - Pages: network-first, cached copy only when offline.
+// Bumping CACHE_NAME deletes every older cache on activation.
 
-const CACHE_NAME = 'sanaei-cache-v1';
+const CACHE_NAME = 'herafi-static-v2';
 const STATIC_ASSETS = [
-  '/',
-  '/home-screen',
   '/assets/images/app_logo.png',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
   '/favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS).catch(() => {});
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS).catch(() => {}))
   );
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
-  if (event.request.method !== 'GET') return;
-  // Skip non-http(s) requests
-  if (!event.request.url.startsWith('http')) return;
-
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type === 'opaque') {
-          return response;
-        }
-        const cloned = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
-        return response;
-      }).catch(() => cached);
-    })
+function isStaticAsset(url) {
+  return (
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/assets/') ||
+    url.pathname.startsWith('/icons/') ||
+    /\.(?:png|jpg|jpeg|webp|svg|ico|woff2?)$/.test(url.pathname)
   );
+}
+
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+  // Other origins (Supabase API, realtime, fonts, analytics): always go to the network.
+  if (url.origin !== self.location.origin) return;
+
+  if (isStaticAsset(url)) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/')))
+    );
+  }
+  // Anything else (same-origin API routes, RSC data): network only.
 });
 
 self.addEventListener('push', (event) => {
@@ -58,14 +89,14 @@ self.addEventListener('push', (event) => {
     data = { title: 'إشعار جديد', body: event.data.text() };
   }
 
-  const title = data.title || 'صنايعي';
+  const title = data.title || 'حِرَفي';
   const options = {
     body: data.body || '',
-    icon: '/assets/images/app_logo.png',
-    badge: '/assets/images/app_logo.png',
+    icon: '/icons/icon-192.png',
+    badge: '/icons/icon-192.png',
     dir: 'rtl',
     lang: 'ar',
-    tag: data.tag || 'sanaei-notification',
+    tag: data.tag || 'herafi-notification',
     data: {
       url: data.url || '/home-screen',
       orderId: data.orderId || null,

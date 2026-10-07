@@ -10,7 +10,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {},
 });
 
@@ -54,12 +54,13 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>('dark');
+  // Light is the default; dark only if the user switched to it.
+  const [theme, setTheme] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('app-theme') as Theme | null;
-    const initial = saved === 'light' ? 'light' : 'dark';
+    const initial: Theme = saved === 'dark' ? 'dark' : 'light';
     setTheme(initial);
     applyTheme(initial);
     setMounted(true);

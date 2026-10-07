@@ -6,6 +6,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getOrCreateConversation } from '@/lib/supabase/chat';
 
 interface Message {
   id: string;
@@ -119,6 +120,7 @@ export default function ChatClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [messageText, setMessageText] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState('');
   const [uploadingFile, setUploadingFile] = useState(false);
   const [chatStep, setChatStep] = useState<ChatStep>('chat');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'card' | 'wallet'>('cash');
@@ -241,21 +243,27 @@ export default function ChatClient() {
         const newStatus = (payload.new as any).status as string;
         const oldStatus = (payload.old as any).status as string;
         if (newStatus && newStatus !== oldStatus && STATUS_SYSTEM_MESSAGES[newStatus]) {
-          // Only insert if not already present (avoid duplicates from own actions)
-          const { data: existing } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('conversation_id', conversation.id)
-            .eq('message_type', 'system')
-            .eq('content', STATUS_SYSTEM_MESSAGES[newStatus])
-            .maybeSingle();
-          if (!existing) {
-            await supabase.from('messages').insert({
-              conversation_id: conversation.id,
-              sender_id: user.id,
-              content: STATUS_SYSTEM_MESSAGES[newStatus],
-              message_type: 'system',
-            });
+          // Skip if the same status message was just posted (by our own action or the other party).
+          // Scoped to the last minute: the thread is shared by all orders between this pair.
+          try {
+            const { data: recent } = await supabase
+              .from('messages')
+              .select('id')
+              .eq('conversation_id', conversation.id)
+              .eq('message_type', 'system')
+              .eq('content', STATUS_SYSTEM_MESSAGES[newStatus])
+              .gte('created_at', new Date(Date.now() - 60_000).toISOString())
+              .limit(1);
+            if (!recent || recent.length === 0) {
+              await insertMessage({
+                conversation_id: conversation.id,
+                sender_id: user.id,
+                content: STATUS_SYSTEM_MESSAGES[newStatus],
+                message_type: 'system',
+              });
+            }
+          } catch (e) {
+            console.error('Failed to post status message:', e);
           }
         }
       })
@@ -279,43 +287,56 @@ export default function ChatClient() {
     }
   }, [conversation?.id, user]);
 
+  /**
+   * Inserts a message and shows it right away (doesn't wait for realtime).
+   * The realtime listener skips messages already in the list, so no duplicates.
+   */
+  const insertMessage = async (row: {
+    conversation_id: string;
+    sender_id: string;
+    content: string | null;
+    message_type: string;
+    media_url?: string | null;
+    file_name?: string | null;
+    file_size?: number | null;
+  }) => {
+    const { data, error } = await supabase
+      .from('messages')
+      .insert(row)
+      .select('*, sender:sender_id(full_name, avatar_url, role)')
+      .single();
+    if (error) throw error;
+    const saved = { ...(data as any), sender: Array.isArray((data as any).sender) ? (data as any).sender[0] : (data as any).sender } as Message;
+    setMessages((prev) => (prev.some((m) => m.id === saved.id) ? prev : [...prev, saved]));
+    return saved;
+  };
+
+  // Chat about a specific order: opens the single thread with that craftsman and switches it to this order.
   const findOrCreateConversation = async (oId: string) => {
     setIsLoading(true);
     try {
-      const { data: existing } = await supabase.from('conversations').select('id').eq('order_id', oId).maybeSingle();
-      if (existing) { await loadConversation(existing.id); return; }
-      const { data: order } = await supabase.from('orders').select('id, customer_id, craftsman_id, craftsman_profiles(user_id)').eq('id', oId).maybeSingle();
-      if (!order) { setIsLoading(false); return; }
-      const craftsmanUserId = (order as any).craftsman_profiles?.user_id;
-      const { data: newConv, error } = await supabase.from('conversations').insert({ customer_id: order.customer_id, craftsman_id: craftsmanUserId, order_id: oId }).select('id').single();
-      if (error) throw error;
-      await supabase.from('orders').update({ conversation_id: newConv.id }).eq('id', oId);
-      await loadConversation(newConv.id);
-    } catch (e) { setIsLoading(false); }
+      const { data: order } = await supabase.from('orders').select('id, customer_id, craftsman_profiles(user_id)').eq('id', oId).maybeSingle();
+      const craftsmanUserId = (order as any)?.craftsman_profiles?.user_id as string | undefined;
+      if (!order || !craftsmanUserId) { setIsLoading(false); return; }
+      const convId = await getOrCreateConversation(supabase, { customerId: order.customer_id, craftsmanUserId, orderId: oId });
+      await loadConversation(convId);
+    } catch (e) {
+      console.error('Failed to open order conversation:', e);
+      setIsLoading(false);
+    }
   };
 
+  // Direct chat with a craftsman: always the same single thread (like WhatsApp).
   const findOrCreateDirectConversation = async (craftsmanUserId: string) => {
     if (!user) return;
     setIsLoading(true);
     try {
-      // Look for existing direct conversation between this customer and craftsman
-      const { data: existing } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('customer_id', user.id)
-        .eq('craftsman_id', craftsmanUserId)
-        .is('order_id', null)
-        .maybeSingle();
-      if (existing) { await loadConversation(existing.id); return; }
-      // Create a new direct conversation
-      const { data: newConv, error } = await supabase
-        .from('conversations')
-        .insert({ customer_id: user.id, craftsman_id: craftsmanUserId, order_id: null })
-        .select('id')
-        .single();
-      if (error) throw error;
-      await loadConversation(newConv.id);
-    } catch (e) { setIsLoading(false); }
+      const convId = await getOrCreateConversation(supabase, { customerId: user.id, craftsmanUserId });
+      await loadConversation(convId);
+    } catch (e) {
+      console.error('Failed to open conversation:', e);
+      setIsLoading(false);
+    }
   };
 
   const loadConversation = async (convId: string) => {
@@ -354,8 +375,9 @@ export default function ChatClient() {
     if (!conversation || !user) return;
     if (type === 'text' && !content.trim()) return;
     setIsSending(true);
+    setSendError('');
     try {
-      await supabase.from('messages').insert({
+      await insertMessage({
         conversation_id: conversation.id,
         sender_id: user.id,
         content: type === 'text' ? content.trim() : null,
@@ -364,11 +386,14 @@ export default function ChatClient() {
         file_name: fileName || null,
         file_size: fileSize || null,
       });
-      const lastMsg = type === 'text' ? content.trim() : type === 'image' ? '📷 صورة' : `📎 ${fileName || 'ملف'}`;
-      await supabase.from('conversations').update({ last_message: lastMsg, last_message_at: new Date().toISOString() }).eq('id', conversation.id);
-      setMessageText('');
-      if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
+      // The conversation preview is updated by a database trigger.
+      if (type === 'text') {
+        setMessageText('');
+        if (textareaRef.current) { textareaRef.current.style.height = 'auto'; }
+      }
     } catch (e) {
+      console.error('Failed to send message:', e);
+      setSendError('تعذّر إرسال الرسالة، تحقق من الاتصال وحاول مجدداً');
     } finally { setIsSending(false); }
   };
 
@@ -387,6 +412,8 @@ export default function ChatClient() {
         await sendMessage('', 'file', urlData.publicUrl, file.name, file.size);
       }
     } catch (e) {
+      console.error('Failed to upload file:', e);
+      setSendError('تعذّر رفع الملف، حاول مجدداً');
     } finally { setUploadingFile(false); }
   };
 
@@ -399,7 +426,7 @@ export default function ChatClient() {
       const { data: quote, error } = await supabase.from('price_quotes').insert({ order_id: conversation.order_id, craftsman_id: cp.id, amount: parseFloat(quoteAmount), description: quoteDescription.trim() || null, quote_status: 'pending' }).select().single();
       if (error) throw error;
       setQuotes((prev) => [quote as any, ...prev]);
-      await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user.id, content: `💰 عرض سعر: ${parseFloat(quoteAmount).toLocaleString('ar-SA')} ر.س\n${quoteDescription || ''}`, message_type: 'quote' });
+      await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💰 عرض سعر: ${parseFloat(quoteAmount).toLocaleString('ar-SA')} ر.س\n${quoteDescription || ''}`, message_type: 'quote' });
       await supabase.from('conversations').update({ last_message: `💰 عرض سعر: ${quoteAmount} ر.س`, last_message_at: new Date().toISOString() }).eq('id', conversation.id);
       setShowQuoteForm(false); setQuoteAmount(''); setQuoteDescription('');
     } catch (e: any) { alert(e?.message || 'حدث خطأ'); } finally { setIsSubmittingQuote(false); }
@@ -415,18 +442,18 @@ export default function ChatClient() {
       if (action === 'accepted') {
         await supabase.from('orders').update({ amount: quote.amount, status: 'accepted' }).eq('id', conversation.order_id);
         // System message for accepted status
-        await supabase.from('messages').insert({
+        await insertMessage({
           conversation_id: conversation.id,
           sender_id: user!.id,
           content: STATUS_SYSTEM_MESSAGES['accepted'],
           message_type: 'system',
         });
-        await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user!.id, content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ر.س`, message_type: 'text' });
+        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ر.س`, message_type: 'text' });
         setChatStep('payment_method');
       } else if (action === 'rejected') {
-        await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user!.id, content: '❌ تم رفض عرض السعر', message_type: 'text' });
+        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: '❌ تم رفض عرض السعر', message_type: 'text' });
       } else if (action === 'modification_requested') {
-        await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user!.id, content: `🔄 طلب تعديل على عرض السعر${modificationNote ? ': ' + modificationNote : ''}`, message_type: 'text' });
+        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: `🔄 طلب تعديل على عرض السعر${modificationNote ? ': ' + modificationNote : ''}`, message_type: 'text' });
         setShowModificationInput(null); setModificationNote('');
       }
     } catch (e: any) { alert(e?.message || 'حدث خطأ'); }
@@ -438,13 +465,13 @@ export default function ChatClient() {
     try {
       await supabase.from('orders').update({ payment_method: selectedPaymentMethod, payment_status: 'paid', escrow_status: 'held', status: 'in_progress' }).eq('id', conversation.order_id);
       // System message for in_progress status
-      await supabase.from('messages').insert({
+      await insertMessage({
         conversation_id: conversation.id,
         sender_id: user.id,
         content: STATUS_SYSTEM_MESSAGES['in_progress'],
         message_type: 'system',
       });
-      await supabase.from('messages').insert({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'text' });
+      await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'text' });
       setConversation((prev) => prev ? { ...prev, order: prev.order ? { ...prev.order, escrow_status: 'held', payment_status: 'paid' } as any : prev.order } : prev);
       setChatStep('payment_held'); setPaymentDone(true);
     } catch (e: any) { alert(e?.message || 'حدث خطأ في الدفع'); } finally { setIsProcessingPayment(false); }
@@ -778,6 +805,13 @@ export default function ChatClient() {
               <button onClick={() => setShowQuoteForm(false)} className="px-4 py-2.5 rounded-xl text-sm font-bold text-gray-600 bg-gray-100">إلغاء</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {sendError && (
+        <div role="alert" className="mx-3 mb-1 px-3 py-2 rounded-xl text-xs font-semibold text-red-700 bg-red-50 flex items-center justify-between flex-shrink-0">
+          <span>{sendError}</span>
+          <button type="button" onClick={() => setSendError('')} aria-label="إغلاق" className="text-red-400 px-1">✕</button>
         </div>
       )}
 

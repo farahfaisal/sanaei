@@ -137,15 +137,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw error;
     }
 
-    // Update profile role if provided
+    // An account is permanently either a customer or a craftsman: never switch it on login.
     if (data?.user) {
-      await supabase
+      const { data: existing } = await supabase
         .from('user_profiles')
-        .upsert({
-          id: data.user.id,
-          phone,
-          role: role as any,
-        }, { onConflict: 'id' });
+        .select('role, is_active')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        // First login for this phone: create the profile with the chosen account type.
+        await supabase.from('user_profiles').insert({ id: data.user.id, phone, role: role as any });
+      } else if (existing.role !== role && existing.role !== 'admin') {
+        await supabase.auth.signOut();
+        setProfile(null);
+        const label = existing.role === 'craftsman' ? 'حِرَفي' : 'زبون';
+        throw new Error(`هذا الرقم مسجَّل كحساب «${label}». اختر «${label}» لتسجيل الدخول، أو استخدم رقمًا آخر لإنشاء حساب جديد.`);
+      } else if (existing.is_active === false) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        throw new Error('هذا الحساب موقوف. يرجى التواصل مع الدعم.');
+      }
     }
 
     return data;

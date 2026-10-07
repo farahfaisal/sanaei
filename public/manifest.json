@@ -4,29 +4,42 @@
     "description": "منصة حِرَفي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.",
     "start_url": "/home-screen",
     "display": "standalone",
-    "background_color": "#0f3d25",
-    "theme_color": "#145230",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FFFFFF",
     "orientation": "portrait",
     "lang": "ar",
     "dir": "rtl",
     "scope": "/",
     "icons": [
         {
-            "src": "/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg",
+            "src": "/icons/icon-192.png",
             "sizes": "192x192",
-            "type": "image/jpeg",
-            "purpose": "any maskable"
+            "type": "image/png",
+            "purpose": "any"
         },
         {
-            "src": "/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg",
+            "src": "/icons/icon-512.png",
             "sizes": "512x512",
-            "type": "image/jpeg",
-            "purpose": "any maskable"
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icons/maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
         }
     ],
     "categories": [
         "utilities",
         "lifestyle"
     ],
-    "screenshots": []
+    "screenshots": [],
+    "id": "/"
 }

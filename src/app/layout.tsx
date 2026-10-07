@@ -34,12 +34,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#145230" />
+        <meta name="theme-color" content="#FFFFFF" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="حِرَفي" />
-        <link rel="apple-touch-icon" href="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
         <style dangerouslySetInnerHTML={{ __html: `
           html, body {
             margin: 0;
