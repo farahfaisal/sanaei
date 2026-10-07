@@ -57,7 +57,15 @@ export async function listConversations(supabase: SupabaseClient, userId: string
     .order('last_message_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []) as unknown as Conversation[];
+  // Safety net: show one row per person even if old duplicate rows still exist
+  // (the list is already newest-first, so the first one seen is the latest).
+  const seen = new Set<string>();
+  return ((data ?? []) as unknown as Conversation[]).filter((c) => {
+    const key = `${c.customer_id}:${c.craftsman_id}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function getConversation(supabase: SupabaseClient, conversationId: string): Promise<Conversation | null> {
@@ -70,13 +78,14 @@ export async function getConversation(supabase: SupabaseClient, conversationId: 
   return (data as unknown as Conversation | null) ?? null;
 }
 
-/** Opens the existing chat between a customer and a craftsman, or starts a new one. */
-export async function getOrCreateConversation(
+const UNIQUE_VIOLATION = '23505';
+
+async function findConversationId(
   supabase: SupabaseClient,
   customerId: string,
   craftsmanUserId: string
-): Promise<string> {
-  const { data: existing, error: findError } = await supabase
+): Promise<string | null> {
+  const { data, error } = await supabase
     .from('conversations')
     .select('id')
     .eq('customer_id', customerId)
@@ -84,15 +93,36 @@ export async function getOrCreateConversation(
     .order('created_at', { ascending: true })
     .limit(1)
     .maybeSingle();
-  if (findError) throw findError;
-  if (existing) return existing.id as string;
+  if (error) throw error;
+  return (data?.id as string | undefined) ?? null;
+}
 
-  const { data: created, error: createError } = await supabase
+/**
+ * Opens THE conversation between a customer and a craftsman (one per pair, like
+ * WhatsApp), creating it the first time they talk.
+ */
+export async function getOrCreateConversation(
+  supabase: SupabaseClient,
+  customerId: string,
+  craftsmanUserId: string
+): Promise<string> {
+  const existing = await findConversationId(supabase, customerId, craftsmanUserId);
+  if (existing) return existing;
+
+  const { data: created, error } = await supabase
     .from('conversations')
     .insert({ customer_id: customerId, craftsman_id: craftsmanUserId })
     .select('id')
     .single();
-  if (createError) throw createError;
+
+  if (error) {
+    // Opened at the same moment from another tab/device: use the one that won.
+    if (error.code === UNIQUE_VIOLATION) {
+      const winner = await findConversationId(supabase, customerId, craftsmanUserId);
+      if (winner) return winner;
+    }
+    throw error;
+  }
   return created.id as string;
 }
 
