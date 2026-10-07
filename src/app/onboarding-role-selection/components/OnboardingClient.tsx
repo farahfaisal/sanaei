@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Icon from '@/components/ui/AppIcon';
+import Image from 'next/image';
+import SplashScreen from '@/components/SplashScreen';
 
 type Role = 'customer' | 'craftsman' | null;
 
@@ -11,23 +13,19 @@ export default function OnboardingClient() {
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
+      <SplashScreen />
       {/* Logo area */}
-      <div className="flex flex-col items-center pt-16 pb-6 px-6">
-        {/* Logo icon */}
-        <div className="w-24 h-24 mb-4 flex items-center justify-center">
-          <svg viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-            {/* Wrench */}
-            <path d="M20 76 L52 44" stroke="#1B5E20" strokeWidth="5" strokeLinecap="round"/>
-            <circle cx="18" cy="78" r="8" fill="#1B5E20"/>
-            <path d="M52 44 C52 44 60 30 70 28 C72 36 68 44 60 48 L52 44Z" fill="#1B5E20"/>
-            {/* Handshake */}
-            <path d="M48 52 C54 46 64 44 72 48 L80 56 C76 62 68 64 62 60 L56 56 L48 52Z" fill="#F9A825"/>
-            <path d="M44 56 C38 62 36 70 40 76 L48 68 L52 60 L44 56Z" fill="#F9A825"/>
-          </svg>
-        </div>
-        {/* App name */}
-        <h1 className="text-4xl font-black text-primary mb-1">صنايعي</h1>
-        <p className="text-sm font-medium" style={{ color: '#F9A825' }}>نبني ثقة، ونصنع فرق</p>
+      <div className="flex flex-col items-center pt-12 pb-6 px-6">
+        {/* Logo (includes app name and tagline) */}
+        <h1 className="sr-only">حرفي — يوصل الحرفي بالزبون</h1>
+        <Image
+          src="/assets/images/app_logo.png"
+          alt="شعار حرفي"
+          width={180}
+          height={205}
+          priority
+          className="w-44 h-auto"
+        />
       </div>
 
       {/* Welcome text */}

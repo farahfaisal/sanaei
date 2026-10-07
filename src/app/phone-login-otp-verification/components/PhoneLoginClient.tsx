@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 const COUNTRY_CODES = [
   { code: '+970', flag: '🇵🇸', name: 'فلسطين' },
@@ -137,7 +138,14 @@ export default function PhoneLoginClient() {
           <>
             {/* Welcome */}
             <div className="text-center mb-8 mt-4">
-              <div className="text-5xl mb-4">👋</div>
+              <Image
+                src="/assets/images/app_logo.png"
+                alt="شعار حرفي"
+                width={120}
+                height={137}
+                priority
+                className="w-28 h-auto mx-auto mb-4"
+              />
               <h2 className="text-2xl font-bold text-gray-900 mb-1">أهلاً بك</h2>
               <p className="text-sm text-gray-500">أدخل رقم جوالك للمتابعة</p>
             </div>
