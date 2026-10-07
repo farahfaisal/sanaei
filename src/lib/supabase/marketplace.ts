@@ -24,6 +24,20 @@ export interface CreateJobPayload {
   serviceImages?: string[];
 }
 
+export interface CreateOpenJobPayload {
+  serviceType: string;
+  categoryId?: string;
+  description: string;
+  address: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  urgency?: JobUrgency;
+  scheduledAt?: string;
+  amount?: number;
+  notes?: string;
+}
+
 export interface MarketplaceJob {
   id: string;
   customerId: string;
@@ -110,6 +124,47 @@ export async function createJob(payload: CreateJobPayload): Promise<{ id: string
 
   if (error) {
     console.error('createJob error:', error.message);
+    return null;
+  }
+
+  return { id: data.id };
+}
+
+/**
+ * Create an open job request (customer posts without specifying a craftsman)
+ */
+export async function createOpenJob(
+  customerId: string,
+  payload: CreateOpenJobPayload
+): Promise<{ id: string } | null> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('orders')
+    .insert({
+      customer_id: customerId,
+      craftsman_id: null,
+      service_id: null,
+      category_id: payload.categoryId ?? null,
+      service_type: payload.serviceType,
+      description: payload.description,
+      address: payload.address,
+      city: payload.city ?? null,
+      latitude: payload.latitude ?? null,
+      longitude: payload.longitude ?? null,
+      urgency: payload.urgency ?? 'normal',
+      scheduled_at: payload.scheduledAt ?? null,
+      amount: payload.amount ?? null,
+      payment_method: 'cash',
+      notes: payload.notes ?? null,
+      service_images: [],
+      status: 'pending',
+    })
+    .select('id')
+    .single();
+
+  if (error) {
+    console.error('createOpenJob error:', error.message);
     return null;
   }
 
