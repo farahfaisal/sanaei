@@ -8,6 +8,7 @@ import AppImage from '@/components/ui/AppImage';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import {
+import LogoLoader from '@/components/LogoLoader';
   formatChatTime,
   listConversations,
   otherParticipant,
@@ -72,9 +73,7 @@ export default function ConversationsClient() {
       </header>
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
+        <LogoLoader size={56} />
       ) : error ? (
         <div className="text-center py-16 px-6">
           <p className="text-sm text-red-500 mb-3">{error}</p>

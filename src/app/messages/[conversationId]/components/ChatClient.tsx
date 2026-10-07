@@ -7,6 +7,7 @@ import AppImage from '@/components/ui/AppImage';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import {
+import LogoLoader from '@/components/LogoLoader';
   formatMessageTime,
   getConversation,
   listMessages,
@@ -153,8 +154,8 @@ export default function ChatClient() {
 
   if (isLoading || authLoading) {
     return (
-      <div className="screen-container min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="screen-container min-h-screen flex items-center justify-center bg-white">
+        <LogoLoader />
       </div>
     );
   }

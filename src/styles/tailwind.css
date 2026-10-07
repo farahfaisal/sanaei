@@ -98,6 +98,15 @@
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
   }
 
+  .logo-loader-pulse {
+    animation: logo-loader-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes logo-loader-pulse {
+    0%, 100% { transform: scale(0.92); opacity: 0.85; }
+    50% { transform: scale(1); opacity: 1; }
+  }
+
   .btn-press {
     transition: transform 150ms ease, box-shadow 150ms ease;
   }
