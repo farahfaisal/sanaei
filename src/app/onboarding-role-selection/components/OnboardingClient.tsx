@@ -30,7 +30,7 @@ export default function OnboardingClient() {
 
       {/* Welcome text */}
       <div className="text-center px-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في صنايعي</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في حرفي</h2>
         <p className="text-sm text-gray-500">كيف تريد استخدام التطبيق؟</p>
       </div>
 
@@ -66,7 +66,7 @@ export default function OnboardingClient() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500">
-                  أبحث عن صنايعي موثوق بالقرب مني
+                  أبحث عن حرفي موثوق بالقرب مني
                 </p>
               </div>
               <div
@@ -104,7 +104,7 @@ export default function OnboardingClient() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-base font-bold text-gray-900">أنا صنايعي</h3>
+                  <h3 className="text-base font-bold text-gray-900">أنا حرفي</h3>
                   {selectedRole === 'craftsman' && (
                     <span className="text-xs px-2 py-0.5 bg-yellow-500 text-white rounded-full font-medium">
                       ✓ انضم إلينا

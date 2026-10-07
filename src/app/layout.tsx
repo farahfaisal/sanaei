@@ -23,8 +23,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'صنايعي — نبني ثقة، ونصنع فرق',
-  description: 'منصة صنايعي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.',
+  title: 'حرفي — يوصل الحرفي بالزبون',
+  description: 'منصة حرفي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.',
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

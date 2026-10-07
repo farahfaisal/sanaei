@@ -122,7 +122,7 @@ export default function PaymentClient() {
     }
   };
 
-  const craftsmanName = serviceData?.craftsman_profiles?.user_profiles?.full_name || 'الصنايعي';
+  const craftsmanName = serviceData?.craftsman_profiles?.user_profiles?.full_name || 'الحرفي';
   const serviceName = serviceData?.name || 'خدمة صيانة';
   const amount = serviceData?.base_price || 120;
   const avatarUrl = serviceData?.craftsman_profiles?.avatar_url;

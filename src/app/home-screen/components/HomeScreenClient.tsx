@@ -191,7 +191,7 @@ export default function HomeScreenClient() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <button className="text-primary text-sm font-semibold">عرض الكل</button>
-            <h2 className="text-base font-bold text-gray-900">أفضل الصنايعية بالقرب منك</h2>
+            <h2 className="text-base font-bold text-gray-900">أفضل الحرفيين بالقرب منك</h2>
           </div>
 
           {isLoading ? (
@@ -202,7 +202,7 @@ export default function HomeScreenClient() {
             </div>
           ) : filteredCraftsmen.length === 0 ? (
             <div className="text-center py-8 text-gray-400 text-sm">
-              لا يوجد صنايعية متاحون حالياً
+              لا يوجد حرفيون متاحون حالياً
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -216,7 +216,7 @@ export default function HomeScreenClient() {
                           {craftsman.avatar_url ? (
                             <AppImage
                               src={craftsman.avatar_url}
-                              alt={`صورة ${craftsman.user_profiles?.full_name || 'الصنايعي'}`}
+                              alt={`صورة ${craftsman.user_profiles?.full_name || 'الحرفي'}`}
                               width={56}
                               height={56}
                               className="w-full h-full object-cover"
@@ -236,7 +236,7 @@ export default function HomeScreenClient() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <h3 className="text-sm font-bold text-gray-900">
-                            {craftsman.user_profiles?.full_name || 'صنايعي'}
+                            {craftsman.user_profiles?.full_name || 'حرفي'}
                           </h3>
                           {craftsman.is_verified && (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold text-white" style={{ background: 'linear-gradient(135deg, #D97706, #F59E0B)' }}>

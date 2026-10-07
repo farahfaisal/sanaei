@@ -166,7 +166,7 @@ export default function PhoneLoginClient() {
                   selectedRole === 'craftsman' ?'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
                 }`}
               >
-                🔧 صنايعي
+                🔧 حرفي
               </button>
             </div>
 
@@ -253,7 +253,7 @@ export default function PhoneLoginClient() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-primary font-tabular font-semibold">+970599000002</span>
-                  <span className="text-xs text-gray-500">صنايعي: </span>
+                  <span className="text-xs text-gray-500">حرفي: </span>
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-gray-200">
                   <span className="text-xs font-bold text-primary font-tabular">123456</span>

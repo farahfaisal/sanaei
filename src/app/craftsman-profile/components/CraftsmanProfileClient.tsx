@@ -41,7 +41,7 @@ interface PortfolioItem {
 }
 
 const ACHIEVEMENTS = [
-  { id: 'ach-001', emoji: '🏆', label: 'أفضل صنايعي' },
+  { id: 'ach-001', emoji: '🏆', label: 'أفضل حرفي' },
   { id: 'ach-002', emoji: '⭐', label: '100+ تقييم ممتاز' },
   { id: 'ach-003', emoji: '⚡', label: 'استجابة سريعة' },
   { id: 'ach-004', emoji: '🛡️', label: 'موثوق رسمياً' },
@@ -135,7 +135,7 @@ export default function CraftsmanProfileClient() {
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center px-6">
           <div className="text-4xl mb-3">😕</div>
-          <p className="text-gray-500 text-sm">لم يتم العثور على الصنايعي</p>
+          <p className="text-gray-500 text-sm">لم يتم العثور على الحرفي</p>
           <button onClick={() => router.back()} className="mt-4 text-primary text-sm font-semibold">
             العودة
           </button>
@@ -144,7 +144,7 @@ export default function CraftsmanProfileClient() {
     );
   }
 
-  const name = craftsman.user_profiles?.full_name || 'صنايعي';
+  const name = craftsman.user_profiles?.full_name || 'حرفي';
 
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
@@ -153,7 +153,7 @@ export default function CraftsmanProfileClient() {
         {craftsman.cover_image_url ? (
           <AppImage
             src={craftsman.cover_image_url}
-            alt="صورة غلاف الصنايعي"
+            alt="صورة غلاف الحرفي"
             width={430}
             height={176}
             className="w-full h-full object-cover"
@@ -316,7 +316,7 @@ export default function CraftsmanProfileClient() {
                 <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
                   <AppImage
                     src={item.image_url}
-                    alt={item.label || 'صورة من أعمال الصنايعي'}
+                    alt={item.label || 'صورة من أعمال الحرفي'}
                     width={120}
                     height={120}
                     className="w-full h-full object-cover"
