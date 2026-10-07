@@ -96,7 +96,7 @@ export default function ServiceRequestForm({
         setCraftsman({
           id: data.id,
           userId: data.user_id,
-          name: (up as any)?.full_name || 'الصنايعي',
+          name: (up as any)?.full_name || 'الحرفي',
           specialty: data.specialty,
           rating: data.rating || 0,
           avatarUrl: data.avatar_url,
@@ -286,7 +286,7 @@ export default function ServiceRequestForm({
       <BookingSuccessScreen
         orderId={bookingSuccess.orderId}
         craftsman={{
-          name: craftsman?.name || 'الصنايعي',
+          name: craftsman?.name || 'الحرفي',
           specialty: craftsman?.specialty || null,
           rating: craftsman?.rating || 0,
           avatarUrl: craftsman?.avatarUrl || null,
@@ -347,7 +347,7 @@ export default function ServiceRequestForm({
         >
           <div className="flex items-center gap-2 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="w-1 h-4 rounded-full" style={{ background: BRAND.primary }} />
-            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الصنايعي المختار</p>
+            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الحرفي المختار</p>
             <div className="mr-auto">
               <span
                 className="text-xs font-semibold px-2 py-0.5 rounded-full"
@@ -400,7 +400,7 @@ export default function ServiceRequestForm({
                 </div>
               </div>
             ) : (
-              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>تعذّر تحميل بيانات الصنايعي</p>
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>تعذّر تحميل بيانات الحرفي</p>
             )}
           </div>
         </div>

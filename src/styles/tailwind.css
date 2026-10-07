@@ -12,6 +12,13 @@
   color-scheme: dark;
 }
 
+/* Leaflet gives its map layers z-index 400–1000, which put the map above
+   bottom sheets and modals (z-50). Each map gets its own stacking layer. */
+.leaflet-container {
+  isolation: isolate;
+  z-index: 0;
+}
+
 :root {
   --background: #0F1117;
   --foreground: #F1F5F9;

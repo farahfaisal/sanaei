@@ -207,7 +207,7 @@ export default function OrderLiveStatusClient() {
   const currentStep = STATUS_ORDER.indexOf(order.status);
   const isCancelled = order.status === 'cancelled';
   const isCompleted = order.status === 'completed';
-  const craftsmanName = order.craftsman?.user_profiles?.full_name ?? 'الصنايعي';
+  const craftsmanName = order.craftsman?.user_profiles?.full_name ?? 'الحرفي';
   const craftsmanPhone = order.craftsman?.user_profiles?.phone ?? null;
   const craftsmanAvatar = order.craftsman?.user_profiles?.avatar_url ?? null;
 
@@ -519,7 +519,7 @@ export default function OrderLiveStatusClient() {
         <RatingModal
           orderId={order.id}
           craftsmanId={order.craftsman.id}
-          craftsmanName={order.craftsman.user_profiles?.full_name ?? 'الصنايعي'}
+          craftsmanName={order.craftsman.user_profiles?.full_name ?? 'الحرفي'}
           craftsmanAvatar={order.craftsman.user_profiles?.avatar_url ?? null}
           onClose={() => setShowRatingModal(false)}
           onSuccess={() => {

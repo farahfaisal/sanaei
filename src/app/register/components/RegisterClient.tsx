@@ -206,7 +206,7 @@ function RegisterForm() {
     }
   };
 
-  const roleLabel = role === 'craftsman' ? 'صنايعي' : 'زبون';
+  const roleLabel = role === 'craftsman' ? 'حرفي' : 'زبون';
   const roleEmoji = role === 'craftsman' ? '🔧' : '👤';
   const canSubmit =
     fullName.trim().length >= 2 &&
@@ -323,7 +323,7 @@ function RegisterForm() {
             {/* Divider */}
             <div className="flex items-center gap-3 mb-5">
               <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">معلومات الصنايعي</span>
+              <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">معلومات الحرفي</span>
               <div className="flex-1 h-px bg-gray-200" />
             </div>
 

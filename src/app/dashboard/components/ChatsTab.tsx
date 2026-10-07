@@ -105,7 +105,7 @@ export default function ChatsTab() {
 
   const handleReleasePayment = async (conv: ConversationRow) => {
     if (!conv.order_id) return;
-    if (!confirm('هل تريد تحرير المبلغ للصنايعي؟')) return;
+    if (!confirm('هل تريد تحرير المبلغ للحرفي؟')) return;
     try {
       await supabase
         .from('orders')
@@ -124,7 +124,7 @@ export default function ChatsTab() {
           prev ? { ...prev, order: prev.order ? { ...prev.order, escrow_status: 'released', status: 'completed' } : prev.order } : prev
         );
       }
-      alert('تم تحرير المبلغ للصنايعي بنجاح ✅');
+      alert('تم تحرير المبلغ للحرفي بنجاح ✅');
     } catch (e: any) {
       alert(e?.message || 'حدث خطأ');
     }
@@ -233,7 +233,7 @@ export default function ChatsTab() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1 mb-0.5">
                         <p className="text-xs font-bold text-white truncate">
-                          {conv.customer?.full_name || 'زبون'} ↔ {conv.craftsman?.full_name || 'صنايعي'}
+                          {conv.customer?.full_name || 'زبون'} ↔ {conv.craftsman?.full_name || 'حرفي'}
                         </p>
                         {badge && (
                           <span className={`text-xs px-1.5 py-0.5 rounded-full flex-shrink-0 ${badge.color}`}>
@@ -269,7 +269,7 @@ export default function ChatsTab() {
             <div className="p-4 border-b border-gray-800 flex items-center justify-between">
               <div>
                 <p className="text-sm font-bold text-white">
-                  {selectedConv.customer?.full_name || 'زبون'} ↔ {selectedConv.craftsman?.full_name || 'صنايعي'}
+                  {selectedConv.customer?.full_name || 'زبون'} ↔ {selectedConv.craftsman?.full_name || 'حرفي'}
                 </p>
                 {selectedConv.order?.description && (
                   <p className="text-xs text-gray-400 mt-0.5 truncate max-w-xs">{selectedConv.order.description}</p>
@@ -282,7 +282,7 @@ export default function ChatsTab() {
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-xs text-white font-semibold transition-colors"
                   >
                     <Icon name="BanknotesIcon" size={14} />
-                    تحرير المبلغ للصنايعي
+                    تحرير المبلغ للحرفي
                   </button>
                 )}
                 {selectedConv.order?.escrow_status === 'released' && (

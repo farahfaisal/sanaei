@@ -157,12 +157,12 @@ export default function DashboardClient() {
           <div className="w-9 h-9 rounded-xl overflow-hidden bg-emerald-900 flex items-center justify-center flex-shrink-0">
             <img
               src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png"
-              alt="شعار صنايعي"
+              alt="شعار حِرَفي"
               className="w-full h-full object-contain"
             />
           </div>
           <div>
-            <p className="text-sm font-bold text-white">صنايعي</p>
+            <p className="text-sm font-bold text-white">حِرَفي</p>
             <p className="text-xs text-gray-400">لوحة التحكم</p>
           </div>
           <button
@@ -323,7 +323,7 @@ export default function DashboardClient() {
                   <div className="bg-gray-900/60 border border-amber-800/30 rounded-xl p-4">
                     <div className="flex items-center gap-2 mb-3">
                       <span className="text-base">🔧</span>
-                      <span className="text-xs font-bold text-amber-300">حساب الصنايعي</span>
+                      <span className="text-xs font-bold text-amber-300">حساب الحرفي</span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -335,7 +335,7 @@ export default function DashboardClient() {
                         <span className="text-xs text-gray-400">رمز التحقق</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-300">محمد الصنايعي</span>
+                        <span className="text-xs text-gray-300">محمد الحرفي</span>
                         <span className="text-xs text-gray-400">الاسم</span>
                       </div>
                     </div>

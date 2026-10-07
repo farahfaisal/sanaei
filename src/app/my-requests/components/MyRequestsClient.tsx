@@ -258,7 +258,7 @@ export default function MyRequestsClient() {
             filteredRequests.map(req => {
               const statusInfo = STATUS_CONFIG[req.status] || { label: req.status, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', dot: '#9CA3AF', icon: 'QuestionMarkCircleIcon' };
               const craftsmanProfile = req.craftsman?.user_profiles;
-              const craftsmanName = craftsmanProfile?.full_name || 'صنايعي';
+              const craftsmanName = craftsmanProfile?.full_name || 'حرفي';
               const craftsmanSpecialty = req.craftsman?.specialty || '';
               const craftsmanAvatar = (craftsmanProfile as any)?.avatar_url || null;
               const serviceLabel = req.service ? `${req.service.emoji} ${req.service.name}` : null;

@@ -587,7 +587,7 @@ export default function CustomerProfileClient() {
               <div className="flex flex-col gap-3">
                 {displayedOrders.map(order => {
                   const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', dot: '#9CA3AF' };
-                  const craftsmanName = order.craftsman?.user_profiles?.full_name || 'صنايعي';
+                  const craftsmanName = order.craftsman?.user_profiles?.full_name || 'حرفي';
                   const specialty     = order.craftsman?.specialty || '';
                   const date          = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
 

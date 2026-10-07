@@ -95,7 +95,7 @@ export default function BookingSuccessScreen({
           </div>
           <div className="text-center">
             <h1 className="text-xl font-black text-white leading-tight">تم إرسال طلبك بنجاح! 🎉</h1>
-            <p className="text-sm text-white opacity-75 mt-1">سيتواصل معك الصنايعي قريباً</p>
+            <p className="text-sm text-white opacity-75 mt-1">سيتواصل معك الحرفي قريباً</p>
           </div>
         </div>
       </div>
@@ -140,7 +140,7 @@ export default function BookingSuccessScreen({
         >
           <div className="flex items-center gap-2 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="w-1 h-4 rounded-full" style={{ background: BRAND.primary }} />
-            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الصنايعي المختار</p>
+            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>الحرفي المختار</p>
           </div>
           <div className="p-4 flex items-center gap-3">
             <div
@@ -244,7 +244,7 @@ export default function BookingSuccessScreen({
                     <p className="text-xs font-semibold" style={{ color: 'var(--muted-foreground)' }}>التكلفة التقديرية</p>
                     <p className="text-sm font-black mt-0.5" style={{ color: '#059669' }}>{estimatedCost}</p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
-                      السعر النهائي يُحدد بعد معاينة الصنايعي
+                      السعر النهائي يُحدد بعد معاينة الحرفي
                     </p>
                   </div>
                 </div>
@@ -261,7 +261,7 @@ export default function BookingSuccessScreen({
           <p className="text-sm font-bold mb-3" style={{ color: BRAND.primary }}>ماذا يحدث الآن؟</p>
           <div className="space-y-2.5">
             {[
-              { icon: 'BellAlertIcon', text: 'سيتلقى الصنايعي إشعاراً بطلبك فوراً' },
+              { icon: 'BellAlertIcon', text: 'سيتلقى الحرفي إشعاراً بطلبك فوراً' },
               { icon: 'ChatBubbleLeftRightIcon', text: 'يمكنك التواصل معه عبر المحادثة' },
               { icon: 'CreditCardIcon', text: 'أتمم الدفع لتأكيد الحجز' },
             ].map((step, i) => (

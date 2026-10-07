@@ -243,8 +243,9 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
         </div>
       )}
 
-      {/* Map */}
-      <div className="relative" style={{ height: 300 }}>
+      {/* Map — `isolate` keeps Leaflet's internal layers (z-index 400–1000) inside this box,
+          so booking sheets and other modals always appear above the map. */}
+      <div className="relative isolate" style={{ height: 300 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div key={mapKey} ref={mapRef} style={{ width: '100%', height: '100%' }} />
 

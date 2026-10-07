@@ -114,7 +114,7 @@ export default function RequestSummaryClient() {
         setCraftsman({
           id: data.id,
           userId: data.user_id,
-          name: (up as any)?.full_name || 'الصنايعي',
+          name: (up as any)?.full_name || 'الحرفي',
           specialty: data.specialty,
           rating: data.rating || 0,
           totalReviews: data.total_reviews || 0,

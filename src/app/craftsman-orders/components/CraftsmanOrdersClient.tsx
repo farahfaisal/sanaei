@@ -132,7 +132,7 @@ export default function CraftsmanOrdersClient() {
     activeTab === 'scheduled' ? scheduledOrders :
     previousOrders;
 
-  const craftsmanName = profile?.full_name || 'الصنايعي';
+  const craftsmanName = profile?.full_name || 'الحرفي';
 
   if (authLoading || loading) {
     return (

@@ -261,7 +261,7 @@ export default function HomeScreenClient() {
     const fallback = generateFallbackPosition(c.id);
     return {
       id: c.id,
-      full_name: c.user_profiles?.full_name || 'صنايعي',
+      full_name: c.user_profiles?.full_name || 'حرفي',
       specialty: c.specialty || null,
       is_online: c.is_online,
       is_verified: c.is_verified,
@@ -946,7 +946,7 @@ export default function HomeScreenClient() {
       <RequestServiceModal
         craftsmanProfileId={bookingCraftsman.id}
         craftsmanUserId={bookingCraftsman.user_id}
-        craftsmanName={bookingCraftsman.user_profiles?.full_name || 'صنايعي'}
+        craftsmanName={bookingCraftsman.user_profiles?.full_name || 'حرفي'}
         services={[]}
         onClose={() => setBookingCraftsman(null)}
         onSuccess={(orderId) => {

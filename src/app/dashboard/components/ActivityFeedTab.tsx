@@ -141,7 +141,7 @@ export default function ActivityFeedTab() {
             id: `order-status-${order.id}`,
             type: 'order_status',
             title: `تغيير حالة الطلب إلى "${STATUS_LABELS[order.status] || order.status}"`,
-            description: `${customerName || 'عميل'} ← ${craftsmanName || 'صنايعي'}${order.description ? `: ${order.description.slice(0, 60)}` : ''}`,
+            description: `${customerName || 'عميل'} ← ${craftsmanName || 'حرفي'}${order.description ? `: ${order.description.slice(0, 60)}` : ''}`,
             timestamp: order.created_at,
             actionLabel: 'عرض الطلب',
             actionHref: `/order-details?orderId=${order.id}`,
@@ -174,7 +174,7 @@ export default function ActivityFeedTab() {
           id: `review-${review.id}`,
           type: 'review',
           title: `تقييم جديد ${Array.from({ length: review.rating || 0 }).map(() => '⭐').join('')}`,
-          description: `${customerName || 'عميل'} قيّم ${craftsmanName || 'صنايعي'}${review.comment ? `: "${review.comment.slice(0, 60)}"` : ''}`,
+          description: `${customerName || 'عميل'} قيّم ${craftsmanName || 'حرفي'}${review.comment ? `: "${review.comment.slice(0, 60)}"` : ''}`,
           timestamp: review.created_at,
           meta: { rating: review.rating },
         });

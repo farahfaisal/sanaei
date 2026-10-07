@@ -117,7 +117,7 @@ export default function CreateJobClient() {
           </div>
           <h2 className="text-2xl font-bold mb-2" style={{ color: BRAND.accent }}>تم إرسال طلبك!</h2>
           <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-            سيتواصل معك الصنايعية المتاحون قريباً. يمكنك متابعة حالة طلبك من صفحة طلباتي.
+            سيتواصل معك الحرفيين المتاحون قريباً. يمكنك متابعة حالة طلبك من صفحة طلباتي.
           </p>
           <div className="flex flex-col gap-3">
             <button

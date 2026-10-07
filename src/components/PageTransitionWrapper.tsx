@@ -59,8 +59,8 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
               }}
             >
               <img
-                src="/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg"
-                alt="صنايعي"
+                src="/icons/icon-192.png"
+                alt="حِرَفي"
                 style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '50%' }}
               />
             </div>
@@ -75,7 +75,7 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
               fontWeight: 700,
             }}
           >
-            صنايعي
+            حِرَفي
           </p>
 
           <div className="flex gap-2 mt-4">

@@ -401,7 +401,7 @@ export default function NearbyMapSection({ craftsmen }: NearbyMapSectionProps) {
       )}
 
       {/* Map container — position relative so overlay button sits on top */}
-      <div className="relative rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
+      <div className="relative isolate rounded-2xl overflow-hidden border border-gray-200 shadow-sm" style={{ height: 280 }}>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
         <div key={mapKey} ref={mapRef} style={{ width: '100%', height: '100%' }} />
 

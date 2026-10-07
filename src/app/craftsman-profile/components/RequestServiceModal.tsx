@@ -166,7 +166,7 @@ export default function RequestServiceModal({
             <Icon name="WrenchScrewdriverIcon" size={18} className="text-white" />
           </div>
           <div>
-            <p className="text-xs text-gray-500">الصنايعي</p>
+            <p className="text-xs text-gray-500">الحرفي</p>
             <p className="text-sm font-bold text-gray-900">{craftsmanName}</p>
           </div>
         </div>
@@ -203,7 +203,7 @@ export default function RequestServiceModal({
               </label>
               {services.length === 0 ? (
                 <div className="p-4 bg-gray-50 rounded-xl text-center">
-                  <p className="text-sm text-gray-400">لا توجد خدمات محددة لهذا الصنايعي</p>
+                  <p className="text-sm text-gray-400">لا توجد خدمات محددة لهذا الحرفي</p>
                   <button
                     onClick={() => setRequestType('custom')}
                     className="mt-2 text-xs text-primary font-semibold underline"
@@ -259,7 +259,7 @@ export default function RequestServiceModal({
               <div className="mt-2 flex items-start gap-2 p-3 bg-blue-50 rounded-xl border border-blue-100">
                 <Icon name="InformationCircleIcon" size={15} className="text-blue-500 flex-shrink-0 mt-0.5" />
                 <p className="text-xs text-blue-700 leading-relaxed">
-                  سيتواصل معك الصنايعي عبر المحادثة ويرسل لك عرض السعر المناسب، ويمكنك قبوله أو رفضه.
+                  سيتواصل معك الحرفي عبر المحادثة ويرسل لك عرض السعر المناسب، ويمكنك قبوله أو رفضه.
                 </p>
               </div>
             </div>
@@ -375,10 +375,10 @@ export default function RequestServiceModal({
           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-3 text-xs text-amber-800 space-y-1">
             <p className="font-semibold text-amber-900 flex items-center gap-1">
               <Icon name="ChatBubbleLeftEllipsisIcon" size={13} className="text-amber-700" />
-              {requestType === 'custom' ?'سيتم فتح محادثة مع الصنايعي' :'سيتم فتح محادثة بعد إرسال الطلب'}
+              {requestType === 'custom' ?'سيتم فتح محادثة مع الحرفي' :'سيتم فتح محادثة بعد إرسال الطلب'}
             </p>
             <p className="text-amber-700">
-              {requestType === 'custom' ?'الصنايعي سيرسل لك عرض السعر، ويمكنك قبوله أو رفضه من داخل المحادثة' :'يمكنك التواصل مع الصنايعي ومتابعة الطلب من خلال المحادثة'}
+              {requestType === 'custom' ?'الحرفي سيرسل لك عرض السعر، ويمكنك قبوله أو رفضه من داخل المحادثة' :'يمكنك التواصل مع الحرفي ومتابعة الطلب من خلال المحادثة'}
             </p>
           </div>
 

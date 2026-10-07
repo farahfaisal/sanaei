@@ -99,7 +99,7 @@ const SystemMessage = ({ content }: { content: string }) => (
 
 // Status label map
 const STATUS_SYSTEM_MESSAGES: Record<string, string> = {
-  accepted:    '✅ تم قبول الطلب من قِبَل الصنايعي',
+  accepted:    '✅ تم قبول الطلب من قِبَل الحرفي',
   in_progress: '🔧 بدأ تنفيذ الخدمة',
   completed:   '🎉 اكتملت الخدمة بنجاح',
   cancelled:   '❌ تم إلغاء الطلب',
@@ -422,7 +422,7 @@ export default function ChatClient() {
     setIsSubmittingQuote(true);
     try {
       const { data: cp } = await supabase.from('craftsman_profiles').select('id').eq('user_id', user.id).maybeSingle();
-      if (!cp) throw new Error('لم يتم العثور على ملف الصنايعي');
+      if (!cp) throw new Error('لم يتم العثور على ملف الحرفي');
       const { data: quote, error } = await supabase.from('price_quotes').insert({ order_id: conversation.order_id, craftsman_id: cp.id, amount: parseFloat(quoteAmount), description: quoteDescription.trim() || null, quote_status: 'pending' }).select().single();
       if (error) throw error;
       setQuotes((prev) => [quote as any, ...prev]);
@@ -479,7 +479,7 @@ export default function ChatClient() {
 
   const activeQuote = quotes.find((q) => q.quote_status === 'pending');
   const acceptedQuote = quotes.find((q) => q.quote_status === 'accepted');
-  const otherPartyName = isCraftsman ? conversation?.customer?.full_name || 'الزبون' : conversation?.craftsman?.full_name || 'الصنايعي';
+  const otherPartyName = isCraftsman ? conversation?.customer?.full_name || 'الزبون' : conversation?.craftsman?.full_name || 'الحرفي';
   const otherPartyAvatar = isCraftsman ? conversation?.customer?.avatar_url : conversation?.craftsman?.avatar_url;
 
   // Group messages by date
@@ -673,7 +673,7 @@ export default function ChatClient() {
         {chatStep === 'payment_held' && (
           <div className="mx-3 mt-2 rounded-xl p-3 flex items-center gap-2" style={{ background: '#dcf8c6', border: '1px solid #b7e4a0' }}>
             <Icon name="LockClosedIcon" size={15} style={{ color: '#075E54' } as any} />
-            <p className="text-xs font-semibold" style={{ color: '#075E54' }}>المبلغ محجوز لدى الإدارة — سيُحرَّر للصنايعي عند إتمام الخدمة</p>
+            <p className="text-xs font-semibold" style={{ color: '#075E54' }}>المبلغ محجوز لدى الإدارة — سيُحرَّر للحرفي عند إتمام الخدمة</p>
           </div>
         )}
       </div>

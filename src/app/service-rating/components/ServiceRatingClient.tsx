@@ -179,7 +179,7 @@ export default function ServiceRatingClient() {
 
   if (!order) return null;
 
-  const craftsmanName = order.craftsman?.user_profiles?.full_name ?? 'الصنايعي';
+  const craftsmanName = order.craftsman?.user_profiles?.full_name ?? 'الحرفي';
   const craftsmanAvatar = (order.craftsman?.user_profiles as any)?.avatar_url ?? null;
   const craftsmanSpecialty = order.craftsman?.specialty ?? '';
   const serviceLabel = order.service ? `${order.service.emoji} ${order.service.name}` : 'خدمة';

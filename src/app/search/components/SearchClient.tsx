@@ -191,9 +191,9 @@ export default function SearchClient() {
 
         <div className="flex items-center gap-3 mb-4" style={{ position: 'relative' }}>
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-white">البحث عن صنايعي</h1>
+            <h1 className="text-xl font-bold text-white">البحث عن حرفي</h1>
             <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-              {isLoading ? '...' : `${filteredCraftsmen.length} صنايعي متاح`}
+              {isLoading ? '...' : `${filteredCraftsmen.length} حرفي متاح`}
             </p>
           </div>
         </div>
@@ -529,7 +529,7 @@ export default function SearchClient() {
                     {craftsman.avatar_url ? (
                       <AppImage
                         src={craftsman.avatar_url}
-                        alt={`صورة ${craftsman.user_profiles?.full_name || 'الصنايعي'}`}
+                        alt={`صورة ${craftsman.user_profiles?.full_name || 'الحرفي'}`}
                         width={56}
                         height={56}
                         className="w-full h-full object-cover"
@@ -552,7 +552,7 @@ export default function SearchClient() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 mb-0.5 flex-wrap">
                     <h3 className="text-sm font-bold text-gray-900">
-                      {craftsman.user_profiles?.full_name || 'صنايعي'}
+                      {craftsman.user_profiles?.full_name || 'حرفي'}
                     </h3>
                     {craftsman.is_verified && (
                       <span
@@ -640,7 +640,7 @@ export default function SearchClient() {
         <RequestServiceModal
           craftsmanProfileId={bookingCraftsman.id}
           craftsmanUserId={bookingCraftsman.user_id}
-          craftsmanName={bookingCraftsman.user_profiles?.full_name || 'صنايعي'}
+          craftsmanName={bookingCraftsman.user_profiles?.full_name || 'حرفي'}
           services={[]}
           onClose={() => setBookingCraftsman(null)}
           onSuccess={() => setBookingCraftsman(null)}

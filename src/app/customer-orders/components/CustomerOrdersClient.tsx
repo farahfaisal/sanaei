@@ -196,7 +196,7 @@ export default function CustomerOrdersClient() {
             displayedOrders.map(order => {
               const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', dot: '#9CA3AF' };
               const craftsmanProfile = order.craftsman?.user_profiles;
-              const craftsmanName = craftsmanProfile?.full_name || 'صنايعي';
+              const craftsmanName = craftsmanProfile?.full_name || 'حرفي';
               const craftsmanSpecialty = order.craftsman?.specialty || '';
               const craftsmanAvatar = (craftsmanProfile as any)?.avatar_url || null;
               const date = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });

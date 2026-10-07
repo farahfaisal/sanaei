@@ -210,7 +210,7 @@ export default function CraftsmanAccountClient() {
   }
 
   const avatarUrl = craftsmanProfile?.avatar_url || profile?.avatar_url;
-  const displayName = profile?.full_name || 'الصنايعي';
+  const displayName = profile?.full_name || 'الحرفي';
 
   const TABS: { id: AccountTab; label: string; icon: string }[] = [
     { id: 'profile', label: 'الملف الشخصي', icon: 'UserCircleIcon' },

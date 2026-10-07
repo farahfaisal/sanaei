@@ -42,7 +42,7 @@ const PAYMENT_STATUS_LABELS: Record<string, { label: string; color: string }> = 
 // Timeline steps in order
 const TIMELINE_STEPS = [
   { status: 'pending',     label: 'تم استلام الطلب',    icon: 'ClipboardDocumentListIcon' },
-  { status: 'accepted',    label: 'قبل الصنايعي الطلب', icon: 'CheckCircleIcon' },
+  { status: 'accepted',    label: 'قبل الحرفي الطلب', icon: 'CheckCircleIcon' },
   { status: 'in_progress', label: 'جاري تنفيذ الخدمة',  icon: 'WrenchScrewdriverIcon' },
   { status: 'completed',   label: 'اكتملت الخدمة',      icon: 'CheckBadgeIcon' },
 ];
@@ -214,7 +214,7 @@ function CustomerOrdersList() {
             const craftsmanProfiles = Array.isArray((craftsman as any)?.user_profiles)
               ? (craftsman as any)?.user_profiles[0]
               : (craftsman as any)?.user_profiles;
-            const craftsmanName = craftsmanProfiles?.full_name || 'الصنايعي';
+            const craftsmanName = craftsmanProfiles?.full_name || 'الحرفي';
             const serviceName = (service as any)?.name || 'خدمة صيانة';
             const serviceEmoji = (service as any)?.emoji || '🔧';
             const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
@@ -245,7 +245,7 @@ function CustomerOrdersList() {
                       </span>
                     </div>
                     <p className="text-xs mb-1" style={{ color: 'var(--muted-foreground)' }}>
-                      الصنايعي: {craftsmanName}
+                      الحرفي: {craftsmanName}
                     </p>
                     {order.address && (
                       <p className="text-xs truncate mb-1" style={{ color: 'var(--muted-foreground)' }}>
@@ -340,7 +340,7 @@ function CraftsmanOrdersList() {
   const completedOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status));
   const displayedOrders = activeTab === 'active' ? activeOrders : completedOrders;
 
-  const craftsmanName = profile?.full_name || 'الصنايعي';
+  const craftsmanName = profile?.full_name || 'الحرفي';
 
   return (
     <div className="screen-container" style={{ background: 'var(--background)' }} dir="rtl">
@@ -541,7 +541,7 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
   const statusInfo  = order ? (STATUS_CONFIG[order.status] || STATUS_CONFIG.pending) : STATUS_CONFIG.pending;
   const currentStep = order ? STATUS_ORDER.indexOf(order.status) : 0;
 
-  const craftsmanName  = order?.craftsman?.user_profiles?.full_name || 'الصنايعي';
+  const craftsmanName  = order?.craftsman?.user_profiles?.full_name || 'الحرفي';
   const craftsmanPhone = order?.craftsman?.user_profiles?.phone || null;
   const craftsmanRating = order?.craftsman?.rating || 0;
   const craftsmanAvatar = order?.craftsman?.avatar_url || null;
@@ -737,7 +737,7 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
           {/* Section header strip */}
           <div className="flex items-center gap-2 px-4 pt-4 pb-3" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="w-1 h-4 rounded-full" style={{ background: BRAND.primary }} />
-            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>معلومات الصنايعي</p>
+            <p className="text-sm font-bold" style={{ color: 'var(--foreground)' }}>معلومات الحرفي</p>
           </div>
 
           <div className="p-4">

@@ -142,7 +142,7 @@ function NearbyCraftsmenMap({ craftsmen, centerLat, centerLng }: {
           iconSize: [12, 12],
           iconAnchor: [6, 6],
         });
-        const name = c.user_profiles?.full_name || 'صنايعي';
+        const name = c.user_profiles?.full_name || 'حرفي';
         const status = c.is_online ? 'متصل' : 'غير متصل';
         L.marker([lat, lng], { icon })
           .addTo(map)
@@ -954,7 +954,7 @@ export default function CraftsmanProfileClient() {
             </button>
             <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
               <Icon name="MapPinIcon" size={14} className="text-primary" />
-              الصنايعية القريبون منك
+              الحرفيين القريبون منك
             </h3>
           </div>
 
@@ -990,7 +990,7 @@ export default function CraftsmanProfileClient() {
               className="w-full h-[120px] bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-400 hover:border-primary hover:text-primary transition-colors"
             >
               <Icon name="MapIcon" size={28} className="text-gray-300" />
-              <span className="text-xs font-medium">اضغط لعرض خريطة الصنايعية القريبين</span>
+              <span className="text-xs font-medium">اضغط لعرض خريطة الحرفيين القريبين</span>
             </button>
           )}
 
@@ -1002,7 +1002,7 @@ export default function CraftsmanProfileClient() {
                   <div className="flex items-center gap-2 py-1.5">
                     <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${c.is_online ? 'bg-primary' : 'bg-gray-400'}`} />
                     <span className="text-sm text-gray-800 font-medium flex-1 truncate">
-                      {c.user_profiles?.full_name || 'صنايعي'}
+                      {c.user_profiles?.full_name || 'حرفي'}
                     </span>
                     <span className="text-xs text-gray-400">{c.specialty || ''}</span>
                     <div className="flex items-center gap-0.5">
@@ -1203,7 +1203,7 @@ export default function CraftsmanProfileClient() {
         <RequestServiceModal
           craftsmanProfileId={craftsman.id}
           craftsmanUserId={craftsman.user_id}
-          craftsmanName={craftsman.user_profiles?.full_name || 'الصنايعي'}
+          craftsmanName={craftsman.user_profiles?.full_name || 'الحرفي'}
           serviceId={requestServiceId}
           serviceName={requestServiceName}
           services={services}
