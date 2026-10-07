@@ -7,7 +7,7 @@ import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import type { UserRole } from '@/lib/auth/roles';
 
-type TabId = 'home' | 'search' | 'orders' | 'wallet' | 'profile';
+type TabId = 'home' | 'search' | 'orders' | 'messages' | 'wallet' | 'profile';
 
 interface Tab {
   id: TabId;
@@ -21,10 +21,12 @@ const CUSTOMER_TABS: Tab[] = [
   { id: 'home', label: 'الرئيسية', icon: 'HomeIcon', href: '/home-screen' },
   { id: 'search', label: 'البحث', icon: 'MagnifyingGlassIcon', href: '/home-screen' },
   { id: 'orders', label: 'طلباتي', icon: 'ClipboardDocumentListIcon', href: '/home-screen' },
+  { id: 'messages', label: 'المحادثات', icon: 'ChatBubbleLeftRightIcon', href: '/messages' },
 ];
 
 const CRAFTSMAN_TABS: Tab[] = [
   { id: 'wallet', label: 'الأرباح', icon: 'WalletIcon', href: '/wallet-earnings-dashboard' },
+  { id: 'messages', label: 'المحادثات', icon: 'ChatBubbleLeftRightIcon', href: '/messages' },
   { id: 'profile', label: 'ملفي', icon: 'UserCircleIcon', href: '/craftsman-profile' },
 ];
 

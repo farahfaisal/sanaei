@@ -8,6 +8,8 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getOrCreateConversation } from '@/lib/chat';
+import { LOGIN_PATH } from '@/lib/auth/roles';
 
 interface CraftsmanData {
   id: string;
@@ -59,6 +61,8 @@ export default function CraftsmanProfileClient() {
   const [services, setServices] = useState<ServiceItem[]>([]);
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOpeningChat, setIsOpeningChat] = useState(false);
+  const [chatError, setChatError] = useState('');
 
   useEffect(() => {
     if (craftsmanId) {
@@ -85,6 +89,30 @@ export default function CraftsmanProfileClient() {
       // ignore
     }
     setIsLoading(false);
+  };
+
+  const handleMessage = async () => {
+    if (!craftsman) return;
+    setChatError('');
+    if (!user) {
+      const next = `/craftsman-profile?id=${craftsman.id}`;
+      router.push(`${LOGIN_PATH}?role=customer&next=${encodeURIComponent(next)}`);
+      return;
+    }
+    if (role !== 'customer') {
+      setChatError('المراسلة متاحة لحسابات الزبائن فقط');
+      return;
+    }
+    setIsOpeningChat(true);
+    try {
+      // Conversations reference the craftsman's user id, not the craftsman profile id.
+      const conversationId = await getOrCreateConversation(supabase, user.id, craftsman.user_id);
+      router.push(`/messages/${conversationId}`);
+    } catch (err) {
+      console.error('Failed to open conversation:', err);
+      setChatError('تعذّر فتح المحادثة، يرجى المحاولة مجدداً');
+      setIsOpeningChat(false);
+    }
   };
 
   const loadCraftsmanData = async (id: string) => {
@@ -260,15 +288,23 @@ export default function CraftsmanProfileClient() {
             <Icon name="PhoneIcon" size={15} className="text-primary" />
             اتصال
           </button>
-          <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
-            <Icon name="ChatBubbleLeftEllipsisIcon" size={15} className="text-primary" />
-            رسالة
-          </button>
+          {craftsman.user_id !== user?.id && (
+            <button
+              type="button"
+              onClick={handleMessage}
+              disabled={isOpeningChat}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700 disabled:opacity-60"
+            >
+              <Icon name="ChatBubbleLeftEllipsisIcon" size={15} className="text-primary" />
+              {isOpeningChat ? 'جاري الفتح…' : 'رسالة'}
+            </button>
+          )}
           <button className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gray-100 rounded-xl text-sm font-semibold text-gray-700">
             <Icon name="HeartIcon" size={15} className="text-red-500" />
             حفظ
           </button>
         </div>
+        {chatError && <p className="text-xs text-red-500 mt-2 text-center">{chatError}</p>}
       </div>
 
       <div className="px-4 py-4 space-y-4 pb-24">

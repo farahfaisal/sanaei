@@ -33,6 +33,7 @@ const PROTECTED_ROUTES: ReadonlyArray<{ prefix: string; roles: readonly UserRole
   { prefix: '/home-screen', roles: ['customer', 'admin'] },
   { prefix: '/payment-screen', roles: ['customer', 'admin'] },
   { prefix: '/wallet-earnings-dashboard', roles: ['craftsman', 'admin'] },
+  { prefix: '/messages', roles: ['customer', 'craftsman', 'admin'] },
 ];
 
 export function getAllowedRoles(pathname: string): readonly UserRole[] | null {
