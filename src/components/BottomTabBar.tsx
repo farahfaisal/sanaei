@@ -32,7 +32,7 @@ export default function BottomTabBar({ activeTab }: { activeTab: TabId }) {
 
   const tabs = BASE_TABS.map((tab) => {
     if (tab.id === 'profile') {
-      return { ...tab, href: isCraftsman ? '/craftsman-profile' : '/customer-profile' };
+      return { ...tab, href: isCraftsman ? '/craftsman-account' : '/customer-profile' };
     }
     if (tab.id === 'orders') {
       return { ...tab, href: isCraftsman ? '/craftsman-orders' : '/customer-orders' };
