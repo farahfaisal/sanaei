@@ -44,7 +44,7 @@ export default function SplashScreen({ duration = 1800 }: { duration?: number })
     >
       <Image
         src="/assets/images/app_logo.png"
-        alt="شعار حرفي"
+        alt="شعار حِرَفي"
         width={220}
         height={250}
         priority

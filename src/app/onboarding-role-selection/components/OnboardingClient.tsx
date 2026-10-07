@@ -17,10 +17,10 @@ export default function OnboardingClient() {
       {/* Logo area */}
       <div className="flex flex-col items-center pt-12 pb-6 px-6">
         {/* Logo (includes app name and tagline) */}
-        <h1 className="sr-only">حرفي — يوصل الحرفي بالزبون</h1>
+        <h1 className="sr-only">حِرَفي — نبني ثقة، ونصنع فرق</h1>
         <Image
           src="/assets/images/app_logo.png"
-          alt="شعار حرفي"
+          alt="شعار حِرَفي"
           width={180}
           height={205}
           priority
@@ -30,7 +30,7 @@ export default function OnboardingClient() {
 
       {/* Welcome text */}
       <div className="text-center px-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في حرفي</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">مرحباً بك في حِرَفي</h2>
         <p className="text-sm text-gray-500">كيف تريد استخدام التطبيق؟</p>
       </div>
 

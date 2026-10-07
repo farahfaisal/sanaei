@@ -140,7 +140,7 @@ export default function PhoneLoginClient() {
             <div className="text-center mb-8 mt-4">
               <Image
                 src="/assets/images/app_logo.png"
-                alt="شعار حرفي"
+                alt="شعار حِرَفي"
                 width={120}
                 height={137}
                 priority
@@ -253,7 +253,7 @@ export default function PhoneLoginClient() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-primary font-tabular font-semibold">+970599000002</span>
-                  <span className="text-xs text-gray-500">حرفي: </span>
+                  <span className="text-xs text-gray-500">حِرَفي: </span>
                 </div>
                 <div className="flex items-center justify-between pt-1 border-t border-gray-200">
                   <span className="text-xs font-bold text-primary font-tabular">123456</span>
