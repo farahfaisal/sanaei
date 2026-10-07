@@ -3,6 +3,8 @@
 @tailwind utilities;
 
 :root {
+  /* Always light mode: opt out of OS/browser automatic dark themes */
+  color-scheme: only light;
   --background: #F8F9FA;
   --foreground: #1A1A1A;
   --primary: #1B5E20;
