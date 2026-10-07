@@ -1,10 +1,17 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
-import Image from 'next/image';
+import {
+  getAllowedRoles,
+  isSelfServiceRole,
+  ROLE_HOME,
+  type SelfServiceRole,
+  type UserRole,
+} from '@/lib/auth/roles';
 
 const COUNTRY_CODES = [
   { code: '+970', flag: '🇵🇸', name: 'فلسطين' },
@@ -14,29 +21,50 @@ const COUNTRY_CODES = [
   { code: '+965', flag: '🇰🇼', name: 'الكويت' },
 ];
 
+const OTP_LENGTH = 6;
+const RESEND_SECONDS = 42;
+
+/** Only follow `next` if it is a local path the signed-in role may open. */
+function resolveRedirect(next: string | null, role: UserRole): string {
+  if (next && next.startsWith('/') && !next.startsWith('//')) {
+    const allowed = getAllowedRoles(next);
+    if (!allowed || allowed.includes(role)) return next;
+  }
+  return ROLE_HOME[role];
+}
+
+function errorMessage(err: unknown, fallback: string): string {
+  return err instanceof Error && err.message ? err.message : fallback;
+}
+
 export default function PhoneLoginClient() {
   const router = useRouter();
-  const { sendOtp, verifyOtp, user, loading } = useAuth();
+  const searchParams = useSearchParams();
+  const roleParam = searchParams?.get('role');
+  const nextParam = searchParams?.get('next') ?? null;
+  const { sendOtp, verifyOtp, user, role, loading } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp'>('phone');
   const [selectedCountry, setSelectedCountry] = useState(COUNTRY_CODES[0]);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [countdown, setCountdown] = useState(42);
+  const [otp, setOtp] = useState<string[]>(() => Array(OTP_LENGTH).fill(''));
+  const [countdown, setCountdown] = useState(RESEND_SECONDS);
   const [isLoading, setIsLoading] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'customer' | 'craftsman'>('customer');
+  const [selectedRole, setSelectedRole] = useState<SelfServiceRole>(
+    isSelfServiceRole(roleParam) ? roleParam : 'customer'
+  );
 
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Redirect if already logged in
+  // Already signed in: go to this account's own home.
   useEffect(() => {
-    if (!loading && user) {
-      router.replace('/home-screen');
+    if (!loading && user && role) {
+      router.replace(resolveRedirect(nextParam, role));
     }
-  }, [user, loading, router]);
+  }, [user, role, loading, router, nextParam]);
 
   useEffect(() => {
     if (step === 'otp') {
@@ -66,12 +94,13 @@ export default function PhoneLoginClient() {
     setError('');
     setIsLoading(true);
     try {
-      await sendOtp(fullPhone);
+      await sendOtp(fullPhone, selectedRole);
       setStep('otp');
-      setCountdown(42);
+      setOtp(Array(OTP_LENGTH).fill(''));
+      setCountdown(RESEND_SECONDS);
       setCanResend(false);
-    } catch (err: any) {
-      setError(err?.message || 'فشل إرسال رمز التحقق، يرجى المحاولة مجدداً');
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'فشل إرسال رمز التحقق، يرجى المحاولة مجدداً'));
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +111,7 @@ export default function PhoneLoginClient() {
     const newOtp = [...otp];
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
-    if (value && index < 5) {
+    if (value && index < OTP_LENGTH - 1) {
       otpRefs.current[index + 1]?.focus();
     }
   };
@@ -95,17 +124,17 @@ export default function PhoneLoginClient() {
 
   const handleVerify = async () => {
     const code = otp.join('');
-    if (code.length < 6) {
+    if (code.length < OTP_LENGTH) {
       setError('يرجى إدخال رمز التحقق كاملاً');
       return;
     }
     setError('');
     setIsLoading(true);
     try {
-      await verifyOtp(fullPhone, code, selectedRole);
-      router.push('/home-screen');
-    } catch (err: any) {
-      setError(err?.message || 'رمز التحقق غير صحيح، يرجى المحاولة مجدداً');
+      const profile = await verifyOtp(fullPhone, code, selectedRole);
+      router.replace(resolveRedirect(nextParam, profile.role));
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'رمز التحقق غير صحيح، يرجى المحاولة مجدداً'));
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +145,7 @@ export default function PhoneLoginClient() {
     : '';
 
   const circumference = 2 * Math.PI * 13;
-  const dashOffset = circumference - (countdown / 42) * circumference;
+  const dashOffset = circumference - (countdown / RESEND_SECONDS) * circumference;
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
@@ -153,7 +182,9 @@ export default function PhoneLoginClient() {
             {/* Role selection */}
             <div className="flex gap-2 mb-5">
               <button
-                onClick={() => setSelectedRole('customer')}
+                type="button"
+                aria-pressed={selectedRole === 'customer'}
+                onClick={() => { setSelectedRole('customer'); setError(''); }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
                   selectedRole === 'customer' ?'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
                 }`}
@@ -161,7 +192,9 @@ export default function PhoneLoginClient() {
                 👤 زبون
               </button>
               <button
-                onClick={() => setSelectedRole('craftsman')}
+                type="button"
+                aria-pressed={selectedRole === 'craftsman'}
+                onClick={() => { setSelectedRole('craftsman'); setError(''); }}
                 className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition-all ${
                   selectedRole === 'craftsman' ?'border-primary bg-green-50 text-primary' :'border-gray-200 text-gray-500'
                 }`}
@@ -334,7 +367,7 @@ export default function PhoneLoginClient() {
                 <button
                   onClick={() => {
                     setCanResend(false);
-                    setCountdown(42);
+                    setCountdown(RESEND_SECONDS);
                     handleSendOtp();
                   }}
                   className="text-primary text-sm font-semibold"
@@ -347,9 +380,9 @@ export default function PhoneLoginClient() {
             {/* Verify button */}
             <button
               onClick={handleVerify}
-              disabled={isLoading || otp.join('').length < 6}
+              disabled={isLoading || otp.join('').length < OTP_LENGTH}
               className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-              style={{ background: '#1B5E20', opacity: (isLoading || otp.join('').length < 6) ? 0.6 : 1 }}
+              style={{ background: '#1B5E20', opacity: (isLoading || otp.join('').length < OTP_LENGTH) ? 0.6 : 1 }}
             >
               {isLoading ? 'جاري التحقق...' : 'تأكيد'}
             </button>

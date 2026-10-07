@@ -7,6 +7,7 @@ import BottomTabBar from '@/components/BottomTabBar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CraftsmanData {
   id: string;
@@ -52,6 +53,7 @@ export default function CraftsmanProfileClient() {
   const searchParams = useSearchParams();
   const craftsmanId = searchParams?.get('id');
   const supabase = createClient();
+  const { user, role, loading: authLoading } = useAuth();
 
   const [craftsman, setCraftsman] = useState<CraftsmanData | null>(null);
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -61,21 +63,19 @@ export default function CraftsmanProfileClient() {
   useEffect(() => {
     if (craftsmanId) {
       loadCraftsmanData(craftsmanId);
-    } else {
-      // Load first craftsman as default
-      loadDefaultCraftsman();
+    } else if (!authLoading) {
+      // No id: a signed-in craftsman sees their own profile, anyone else the top-rated one.
+      loadDefaultCraftsman(role === 'craftsman' ? user?.id ?? null : null);
     }
-  }, [craftsmanId]);
+  }, [craftsmanId, authLoading, role, user?.id]);
 
-  const loadDefaultCraftsman = async () => {
+  const loadDefaultCraftsman = async (ownerUserId: string | null) => {
     setIsLoading(true);
     try {
-      const { data } = await supabase
-        .from('craftsman_profiles')
-        .select('*, user_profiles(full_name)')
-        .order('rating', { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const query = supabase.from('craftsman_profiles').select('id');
+      const { data } = ownerUserId
+        ? await query.eq('user_id', ownerUserId).maybeSingle()
+        : await query.order('rating', { ascending: false }).limit(1).maybeSingle();
 
       if (data) {
         await loadCraftsmanData(data.id);

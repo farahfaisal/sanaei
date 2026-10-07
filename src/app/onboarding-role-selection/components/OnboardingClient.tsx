@@ -1,15 +1,20 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import Image from 'next/image';
 import SplashScreen from '@/components/SplashScreen';
-
-type Role = 'customer' | 'craftsman' | null;
+import { LOGIN_PATH, type SelfServiceRole } from '@/lib/auth/roles';
 
 export default function OnboardingClient() {
-  const [selectedRole, setSelectedRole] = useState<Role>(null);
+  const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<SelfServiceRole | null>(null);
+
+  const handleContinue = () => {
+    if (!selectedRole) return;
+    router.push(`${LOGIN_PATH}?role=${selectedRole}`);
+  };
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
@@ -38,6 +43,8 @@ export default function OnboardingClient() {
       <div className="flex flex-col gap-4 px-5 mb-6">
         {/* Customer Card */}
         <button
+          type="button"
+          aria-pressed={selectedRole === 'customer'}
           onClick={() => setSelectedRole('customer')}
           className="w-full text-right"
         >
@@ -84,6 +91,8 @@ export default function OnboardingClient() {
 
         {/* Craftsman Card */}
         <button
+          type="button"
+          aria-pressed={selectedRole === 'craftsman'}
           onClick={() => setSelectedRole('craftsman')}
           className="w-full text-right"
         >
@@ -134,18 +143,18 @@ export default function OnboardingClient() {
 
       {/* CTA */}
       <div className="px-5 pb-4">
-        <Link href="/phone-login-otp-verification">
-          <button
-            className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
-            style={{
-              background: selectedRole ? '#1B5E20' : '#9CA3AF',
-              opacity: selectedRole ? 1 : 0.7,
-            }}
-            disabled={!selectedRole}
-          >
-            متابعة
-          </button>
-        </Link>
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="w-full py-4 rounded-2xl font-bold text-white text-base transition-all"
+          style={{
+            background: selectedRole ? '#1B5E20' : '#9CA3AF',
+            opacity: selectedRole ? 1 : 0.7,
+          }}
+          disabled={!selectedRole}
+        >
+          متابعة
+        </button>
       </div>
 
       {/* Terms */}
