@@ -86,6 +86,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // Real-time profile sync
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`profile-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'user_profiles', filter: `id=eq.${user.id}` },
+        (payload) => {
+          if (payload.new) {
+            setProfile((prev: any) => ({ ...prev, ...payload.new }));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   // Phone-based Sign In — Step 1: send real OTP via SMS
   const sendOtp = async (phone: string) => {
     const { data, error } = await supabase.auth.signInWithOtp({

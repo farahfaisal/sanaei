@@ -127,6 +127,28 @@ export default function CustomerProfileClient() {
     if (profileTab === 'payments'  && user) loadPaymentMethods();
   }, [profileTab, user]);
 
+  // Real-time subscription for order status updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`customer-profile-orders-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.new) {
+            setOrders(prev => prev.map(o =>
+              o.id === (payload.new as any).id
+                ? { ...o, status: (payload.new as any).status, amount: (payload.new as any).amount }
+                : o
+            ));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   // ── Data loaders ─────────────────────────────────────────────────────────────
   const loadOrders = async () => {
     if (!user) return;

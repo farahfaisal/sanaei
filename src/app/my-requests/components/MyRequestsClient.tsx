@@ -66,6 +66,28 @@ export default function MyRequestsClient() {
     loadRequests();
   }, [user, authLoading]);
 
+  // Real-time subscription for order status updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`my-requests-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.new) {
+            setRequests(prev => prev.map(r =>
+              r.id === (payload.new as any).id
+                ? { ...r, status: (payload.new as any).status, amount: (payload.new as any).amount }
+                : r
+            ));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const loadRequests = useCallback(async () => {
     if (!user) return;
     setLoading(true);

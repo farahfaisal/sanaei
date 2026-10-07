@@ -87,6 +87,24 @@ export default function CraftsmanAccountClient() {
     }
   }, [activeTab, craftsmanProfile]);
 
+  // Real-time subscription for craftsman profile updates
+  useEffect(() => {
+    if (!craftsmanProfile?.id) return;
+    const channel = supabase
+      .channel(`craftsman-profile-realtime-${craftsmanProfile.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'craftsman_profiles', filter: `id=eq.${craftsmanProfile.id}` },
+        (payload) => {
+          if (payload.new) {
+            setCraftsmanProfile(prev => prev ? { ...prev, ...(payload.new as Partial<CraftsmanProfile>) } : prev);
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [craftsmanProfile?.id]);
+
   const loadCraftsmanProfile = async () => {
     if (!user) return;
     setLoadingProfile(true);

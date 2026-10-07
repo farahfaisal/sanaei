@@ -48,6 +48,28 @@ export default function CustomerOrdersClient() {
     loadOrders();
   }, [user, authLoading]);
 
+  // Real-time subscription for order status updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(`customer-orders-realtime-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
+        (payload) => {
+          if (payload.eventType === 'UPDATE') {
+            setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, status: (payload.new as any).status, amount: (payload.new as any).amount } : o));
+          } else if (payload.eventType === 'INSERT') {
+            loadOrders();
+          } else if (payload.eventType === 'DELETE') {
+            setOrders(prev => prev.filter(o => o.id !== (payload.old as any).id));
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
   const loadOrders = async () => {
     if (!user) return;
     setLoading(true);

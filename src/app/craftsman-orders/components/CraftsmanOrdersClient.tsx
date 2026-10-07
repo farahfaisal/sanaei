@@ -52,6 +52,45 @@ export default function CraftsmanOrdersClient() {
     loadOrders();
   }, [user, authLoading, profile]);
 
+  // Real-time subscription for order updates
+  useEffect(() => {
+    if (!user) return;
+    let craftsmanProfileId: string | null = null;
+
+    const setupRealtime = async () => {
+      const { data: cp } = await supabase
+        .from('craftsman_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!cp) return;
+      craftsmanProfileId = cp.id;
+
+      const channel = supabase
+        .channel(`craftsman-orders-realtime-${cp.id}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders', filter: `craftsman_id=eq.${cp.id}` },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              setOrders(prev => prev.map(o => o.id === (payload.new as any).id ? { ...o, status: (payload.new as any).status, amount: (payload.new as any).amount } : o));
+            } else if (payload.eventType === 'INSERT') {
+              loadOrders();
+            } else if (payload.eventType === 'DELETE') {
+              setOrders(prev => prev.filter(o => o.id !== (payload.old as any).id));
+            }
+          }
+        )
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    };
+
+    let cleanup: (() => void) | undefined;
+    setupRealtime().then(fn => { cleanup = fn; });
+    return () => { cleanup?.(); };
+  }, [user]);
+
   const loadOrders = async () => {
     if (!user) return;
     setLoading(true);
