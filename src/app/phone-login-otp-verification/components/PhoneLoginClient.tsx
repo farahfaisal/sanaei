@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 const COUNTRY_CODES = [
   { code: '+970', flag: '🇵🇸', name: 'فلسطين' },
@@ -153,13 +154,14 @@ export default function PhoneLoginClient() {
           <>
             {/* Welcome */}
             <div className="text-center mb-8 mt-4">
-              <div className="w-28 h-28 mx-auto mb-4 flex items-center justify-center">
-                <img
-                  src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png"
-                  alt="شعار صنايعي"
-                  className="w-full h-full object-contain"
-                />
-              </div>
+              <Image
+                src="/assets/images/app_logo.png"
+                alt="شعار حِرَفي"
+                width={120}
+                height={137}
+                priority
+                className="w-28 h-auto mx-auto mb-4"
+              />
               <h2 className="text-2xl font-bold text-gray-900 mb-1">أهلاً بك</h2>
               <p className="text-sm text-gray-500">أدخل رقم جوالك للمتابعة</p>
             </div>
@@ -180,7 +182,7 @@ export default function PhoneLoginClient() {
                   selectedRole === 'craftsman' ?'border-primary bg-primary/10 text-primary' :'border-gray-200 text-gray-500'
                 }`}
               >
-                🔧 صنايعي
+                🔧 حرفي
               </button>
             </div>
 
@@ -251,6 +253,30 @@ export default function PhoneLoginClient() {
             >
               {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
             </button>
+
+            {/* Demo accounts */}
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0">
+                  <span className="text-white text-xs font-bold">!</span>
+                </div>
+                <span className="text-xs font-semibold text-gray-700">أرقام تجريبية</span>
+              </div>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-gray-500 font-tabular">+970599000001</span>
+                  <span className="text-xs text-gray-500">زبون: </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-primary font-tabular font-semibold">+970599000002</span>
+                  <span className="text-xs text-gray-500">حِرَفي: </span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-gray-200">
+                  <span className="text-xs font-bold text-primary font-tabular">123456</span>
+                  <span className="text-xs text-gray-500">رمز التحقق: </span>
+                </div>
+              </div>
+            </div>
 
             <p className="text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
               <Icon name="LockClosedIcon" size={12} className="text-gray-400" />

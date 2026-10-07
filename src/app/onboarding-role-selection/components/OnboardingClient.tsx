@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
+import Image from 'next/image';
+import SplashScreen from '@/components/SplashScreen';
 
 type Role = 'customer' | 'craftsman' | null;
 
@@ -17,9 +19,19 @@ export default function OnboardingClient() {
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
+      <SplashScreen />
       {/* Logo area */}
-      <div className="flex flex-col items-center pt-16 pb-6 px-6">
-        <img src="/assets/images/a_clean_vector_style_transparent_background_logo_g__1_-1791328639649.png" alt="شعار حِرَفي" className="h-24 w-auto object-contain" />
+      <div className="flex flex-col items-center pt-12 pb-6 px-6">
+        {/* Logo (includes app name and tagline) */}
+        <h1 className="sr-only">حِرَفي — نبني ثقة، ونصنع فرق</h1>
+        <Image
+          src="/assets/images/app_logo.png"
+          alt="شعار حِرَفي"
+          width={180}
+          height={205}
+          priority
+          className="w-44 h-auto"
+        />
       </div>
 
       {/* Welcome text */}
@@ -60,7 +72,7 @@ export default function OnboardingClient() {
                   )}
                 </div>
                 <p className="text-xs text-gray-500">
-                  أبحث عن صنايعي موثوق بالقرب مني
+                  أبحث عن حرفي موثوق بالقرب مني
                 </p>
               </div>
               <div
@@ -98,7 +110,7 @@ export default function OnboardingClient() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <h3 className="text-base font-bold text-gray-900">أنا صنايعي</h3>
+                  <h3 className="text-base font-bold text-gray-900">أنا حرفي</h3>
                   {selectedRole === 'craftsman' && (
                     <span className="text-xs px-2 py-0.5 bg-yellow-500 text-white rounded-full font-medium">
                       ✓ انضم إلينا

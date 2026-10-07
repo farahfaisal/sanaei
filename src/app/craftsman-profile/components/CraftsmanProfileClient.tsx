@@ -83,7 +83,7 @@ interface NearbyCraftsman {
 }
 
 const ACHIEVEMENTS = [
-  { id: 'ach-001', emoji: '🏆', label: 'أفضل صنايعي' },
+  { id: 'ach-001', emoji: '🏆', label: 'أفضل حرفي' },
   { id: 'ach-002', emoji: '⭐', label: '100+ تقييم ممتاز' },
   { id: 'ach-003', emoji: '⚡', label: 'استجابة سريعة' },
   { id: 'ach-004', emoji: '🛡️', label: 'موثوق رسمياً' },
@@ -605,7 +605,7 @@ export default function CraftsmanProfileClient() {
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center px-6">
           <div className="text-4xl mb-3">😕</div>
-          <p className="text-gray-500 text-sm">لم يتم العثور على الصنايعي</p>
+          <p className="text-gray-500 text-sm">لم يتم العثور على الحرفي</p>
           <button onClick={() => router.back()} className="mt-4 text-primary text-sm font-semibold">
             العودة
           </button>
@@ -614,39 +614,7 @@ export default function CraftsmanProfileClient() {
     );
   }
 
-  if (orderSuccess) {
-    return (
-      <div className="screen-container flex flex-col items-center justify-center min-h-screen bg-white px-6" dir="rtl">
-        <div className="text-center">
-          <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style={{ background: '#2a724d' }}>
-            <Icon name="CheckIcon" size={44} className="text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">تم إرسال الطلب!</h2>
-          <p className="text-gray-500 text-sm mb-2">
-            تم إرسال طلبك إلى {craftsman?.user_profiles?.full_name || 'الصنايعي'} بنجاح
-          </p>
-          <p className="text-gray-400 text-xs mb-8">سيتم إشعارك عند قبول الطلب</p>
-          <div className="bg-primary/10 rounded-2xl p-4 mb-8 text-right border border-primary/20">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-400 font-tabular">#{orderSuccess.slice(-8).toUpperCase()}</span>
-              <span className="text-sm font-bold text-primary">قيد الانتظار ⏳</span>
-            </div>
-          </div>
-          <button
-            onClick={() => router.push('/home-screen')}
-            className="w-full py-4 rounded-2xl font-bold text-white text-base"
-            style={{ background: '#2a724d' }}
-          >
-            العودة للرئيسية
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const name = craftsman.user_profiles?.full_name || 'صنايعي';
-  const centerLat = craftsman.latitude ?? 24.7136;
-  const centerLng = craftsman.longitude ?? 46.6753;
+  const name = craftsman.user_profiles?.full_name || 'حرفي';
 
   return (
     <div className="screen-container bg-gray-50" dir="rtl">
@@ -655,7 +623,7 @@ export default function CraftsmanProfileClient() {
         {craftsman.cover_image_url ? (
           <AppImage
             src={craftsman.cover_image_url}
-            alt="صورة غلاف الصنايعي"
+            alt="صورة غلاف الحرفي"
             width={430}
             height={176}
             className="w-full h-full object-cover overflow-hidden"
@@ -1093,77 +1061,23 @@ export default function CraftsmanProfileClient() {
           </div>
         )}
 
-        {/* Portfolio & Reviews Tabs */}
-        {(portfolio.length > 0 || reviews.length > 0 || isOwnProfile) && (
-          <div className="bg-white rounded-2xl overflow-hidden">
-            {/* Tab Header */}
-            <div className="flex border-b border-gray-100">
-              <button
-                onClick={() => setActiveTab('portfolio')}
-                className={`flex-1 py-3 text-sm font-bold transition-colors ${
-                  activeTab === 'portfolio' ?'text-primary border-b-2 border-primary' :'text-gray-400'
-                }`}
-              >
-                الأعمال السابقة
-                {portfolio.length > 0 && (
-                  <span className="mr-1 text-xs font-normal text-gray-400">({portfolio.length})</span>
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab('reviews')}
-                className={`flex-1 py-3 text-sm font-bold transition-colors ${
-                  activeTab === 'reviews' ?'text-primary border-b-2 border-primary' :'text-gray-400'
-                }`}
-              >
-                التقييمات
-                {reviews.length > 0 && (
-                  <span className="mr-1 text-xs font-normal text-gray-400">({reviews.length})</span>
-                )}
-              </button>
-            </div>
-
-            <div className="p-4">
-              {/* Portfolio Tab */}
-              {activeTab === 'portfolio' && (
-                <>
-                  {/* Add button for own profile */}
-                  {isOwnProfile && (
-                    <button
-                      onClick={openAddPortfolioModal}
-                      className="w-full mb-3 flex items-center justify-center gap-2 py-2.5 rounded-xl border-2 border-dashed border-primary/40 text-primary text-sm font-semibold hover:bg-primary/10 transition-colors"
-                    >
-                      <Icon name="PlusIcon" size={16} className="text-primary" />
-                      إضافة عمل سابق
-                    </button>
-                  )}
-                  {portfolio.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                      <span className="text-3xl mb-2">🖼️</span>
-                      <p className="text-sm">لا توجد أعمال سابقة بعد</p>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      {portfolio.map((item) => (
-                        <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
-                          <AppImage
-                            src={item.image_url}
-                            alt={item.label || 'صورة من أعمال الصنايعي'}
-                            width={120}
-                            height={120}
-                            className="w-full h-full object-cover"
-                          />
-                          {(item.label || item.price != null) && (
-                            <div className="absolute bottom-0 inset-x-0 bg-black/50 px-1.5 py-1">
-                              {item.label && (
-                                <p className="text-white text-xs font-medium truncate">{item.label}</p>
-                              )}
-                              {item.price != null && (
-                                <p className="text-yellow-300 text-xs font-bold">{item.price} ₪</p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+        {/* Portfolio */}
+        {portfolio.length > 0 && (
+          <div className="bg-white rounded-2xl p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">أعمالي</h3>
+            <div className="grid grid-cols-3 gap-2">
+              {portfolio.map((item) => (
+                <div key={item.id} className="relative rounded-xl overflow-hidden aspect-square">
+                  <AppImage
+                    src={item.image_url}
+                    alt={item.label || 'صورة من أعمال الحرفي'}
+                    width={120}
+                    height={120}
+                    className="w-full h-full object-cover"
+                  />
+                  {item.label && (
+                    <div className="absolute bottom-0 inset-x-0 bg-black/40 px-1.5 py-1">
+                      <p className="text-white text-xs font-medium truncate">{item.label}</p>
                     </div>
                   )}
                 </>

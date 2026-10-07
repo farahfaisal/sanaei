@@ -14,21 +14,12 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'حِرَفي — نبني ثقة، ونصنع فرق',
   description: 'منصة حِرَفي تربطك بأفضل الحرفيين المحليين الموثوقين لجميع خدمات المنزل بسرعة وأمان.',
-  manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'حِرَفي',
-  },
   icons: {
     icon: [
-      { url: '/favicon.ico', type: 'image/x-icon' },
-      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', type: 'image/jpeg', sizes: '192x192' },
-      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', type: 'image/jpeg', sizes: '512x512' },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
     ],
-    apple: [
-      { url: '/assets/images/93868c02-d855-48e7-94fe-334fec5e2aae-1790579413433.jpg', sizes: '180x180', type: 'image/jpeg' },
-    ],
+    apple: [{ url: '/apple-icon.png', sizes: '180x180' }],
   },
 };
 

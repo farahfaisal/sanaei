@@ -480,82 +480,40 @@ export default function HomeScreenClient() {
               >
                 الكل
               </button>
-              {categories.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedSpecialty(selectedSpecialty === cat.id ? null : cat.id)}
-                  className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                  style={{
-                    background: selectedSpecialty === cat.id
-                      ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
-                      : '#f3f4f6',
-                    color: selectedSpecialty === cat.id ? 'white' : '#374151',
-                  }}
-                >
-                  {cat.emoji} {cat.name}
-                </button>
-              ))}
+            </div>
+            <div className="relative w-20 h-20 flex-shrink-0 mr-3">
+              <div className="w-full h-full rounded-xl overflow-hidden">
+                <AppImage
+                  src="https://img.rocket.new/generatedImages/rocket_gen_img_1122596dd-1785829864899.png"
+                  alt="فني تكييف يعمل على وحدة تكييف"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -top-2 -right-2 w-9 h-9 bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-xs font-black">20%</span>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Rating Range */}
-          <div>
-            <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
-              <Icon name="StarIcon" size={13} style={{ color: PRIMARY }} />
-              نطاق التقييم
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 mb-1.5 text-center">الحد الأدنى</p>
-                <div className="flex gap-1.5 flex-wrap justify-center">
-                  {[0, 3, 3.5, 4, 4.5].map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setMinRating(r)}
-                      className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{
-                        background: minRating === r
-                          ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
-                          : '#f3f4f6',
-                        color: minRating === r ? 'white' : '#374151',
-                      }}
-                    >
-                      {r === 0 ? 'الكل' : (
-                        <>
-                          <Icon name="StarIcon" size={9} variant="solid" style={{ color: minRating === r ? 'white' : ACCENT }} />
-                          {r}+
-                        </>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div style={{ width: 1, height: 40, background: '#e5e7eb' }} />
-              <div className="flex-1">
-                <p className="text-xs text-gray-500 mb-1.5 text-center">الحد الأعلى</p>
-                <div className="flex gap-1.5 flex-wrap justify-center">
-                  {[5, 4.5, 4, 3.5].map((r) => (
-                    <button
-                      key={r}
-                      onClick={() => setMaxRating(r)}
-                      className="flex items-center gap-0.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all"
-                      style={{
-                        background: maxRating === r
-                          ? `linear-gradient(135deg, ${PRIMARY}, ${PRIMARY_LIGHT})`
-                          : '#f3f4f6',
-                        color: maxRating === r ? 'white' : '#374151',
-                      }}
-                    >
-                      {r === 5 ? 'الكل' : (
-                        <>
-                          <Icon name="StarIcon" size={9} variant="solid" style={{ color: maxRating === r ? 'white' : ACCENT }} />
-                          {r}
-                        </>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
+        {/* Nearby Craftsmen */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <button className="text-primary text-sm font-semibold">عرض الكل</button>
+            <h2 className="text-base font-bold text-gray-900">أفضل الحرفيين بالقرب منك</h2>
+          </div>
+
+          {isLoading ? (
+            <div className="flex flex-col gap-3">
+              {[1,2,3].map((i) => (
+                <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : filteredCraftsmen.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              لا يوجد حرفيون متاحون حالياً
             </div>
           </div>
 
@@ -874,24 +832,18 @@ export default function HomeScreenClient() {
                     <div className="flex items-center gap-3">
                       {/* Avatar */}
                       <div className="relative flex-shrink-0">
-                        <div
-                      className="w-14 h-14 rounded-2xl overflow-hidden bg-gray-100"
-                      style={{
-                        border: craftsman.is_online ? `2px solid ${PRIMARY}` : '2px solid #e5e7eb',
-                        boxShadow: craftsman.is_online ? `0 4px 14px ${PRIMARY}30` : 'none'
-                      }}>
-                      
-                          {craftsman.avatar_url ?
-                      <AppImage
-                        src={craftsman.avatar_url}
-                        alt={`صورة ${craftsman.user_profiles?.full_name || 'الصنايعي'}`}
-                        width={56}
-                        height={56}
-                        className="w-full h-full object-cover" /> :
-
-
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: PRIMARY_PALE }}>
-                              <Icon name="UserCircleIcon" size={30} style={{ color: PRIMARY }} />
+                        <div className="w-14 h-14 rounded-xl overflow-hidden bg-gray-100">
+                          {craftsman.avatar_url ? (
+                            <AppImage
+                              src={craftsman.avatar_url}
+                              alt={`صورة ${craftsman.user_profiles?.full_name || 'الحرفي'}`}
+                              width={56}
+                              height={56}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Icon name="UserCircleIcon" size={32} className="text-gray-300" />
                             </div>
                       }
                         </div>
@@ -907,7 +859,7 @@ export default function HomeScreenClient() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
                           <h3 className="text-sm font-bold text-gray-900">
-                            {craftsman.user_profiles?.full_name || 'صنايعي'}
+                            {craftsman.user_profiles?.full_name || 'حرفي'}
                           </h3>
                           {craftsman.is_verified &&
                       <span
