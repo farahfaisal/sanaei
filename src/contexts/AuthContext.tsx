@@ -175,12 +175,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
     });
     if (signInError) throw signInError;
+    if (!signInData?.user) throw new Error('فشل تسجيل الدخول بعد إنشاء الحساب');
 
     // Save profile to user_profiles table AFTER sign-in so auth.uid() is set for RLS
+    // Use signInData.user.id (active session) and upsert to handle trigger-created rows
     const { error: profileError } = await supabase
       .from('user_profiles')
       .upsert({
-        id: data.user.id,
+        id: signInData.user.id,
         phone,
         full_name: fullName,
         role: role as any,
