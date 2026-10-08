@@ -168,19 +168,16 @@ export function getNotificationPermission(): NotificationPermission | 'unsupport
   return Notification.permission;
 }
 
-// Send push notification via Edge Function (server-side trigger)
+/**
+ * @deprecated Pushes are now sent by the database (orders, quotes, chat, broadcasts).
+ * The push function only accepts calls from the server, so this is intentionally a no-op.
+ * To notify someone, insert a row in `notifications` from a database function/trigger.
+ */
 export async function sendPushToUser(
-  userId: string,
-  title: string,
-  body: string,
-  options?: { url?: string; orderId?: string }
+  _userId: string,
+  _title: string,
+  _body: string,
+  _options?: { url?: string; orderId?: string }
 ): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.functions.invoke('send-push-notification', {
-      body: { userId, title, body, ...options },
-    });
-  } catch {
-    // ignore
-  }
+  return;
 }

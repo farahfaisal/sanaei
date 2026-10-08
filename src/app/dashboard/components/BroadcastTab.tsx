@@ -26,45 +26,17 @@ export default function BroadcastTab() {
     setError(null);
 
     try {
-      // Fetch all push subscriptions
-      const { data: subscriptions, error: subErr } = await supabase
-        .from('push_subscriptions')
-        .select('user_id')
-        .limit(1000);
+      // The database saves an in-app notification for every active user and
+      // pushes it to their phones (FCM) and browsers (Web Push). Admins only.
+      const { data: count, error: rpcErr } = await supabase.rpc('broadcast_notification', {
+        p_title: title.trim(),
+        p_body: message.trim(),
+        p_role: null,
+      });
+      if (rpcErr) throw new Error(rpcErr.message);
 
-      if (subErr) throw new Error(subErr.message);
-
-      if (!subscriptions || subscriptions.length === 0) {
-        setError('لا يوجد مستخدمون مشتركون في الإشعارات حالياً');
-        setIsSending(false);
-        return;
-      }
-
-      // Get unique user IDs
-      const userIds = [...new Set(subscriptions.map((s) => s.user_id))];
-
-      let sent = 0;
-      let failed = 0;
-
-      // Send to each user via the edge function
-      await Promise.all(
-        userIds.map(async (userId) => {
-          try {
-            const { error: fnErr } = await supabase.functions.invoke('send-push-notification', {
-              body: { userId, title: title.trim(), body: message.trim(), url: '/home-screen' },
-            });
-            if (fnErr) {
-              failed++;
-            } else {
-              sent++;
-            }
-          } catch {
-            failed++;
-          }
-        })
-      );
-
-      setResult({ sent, total: userIds.length, failed });
+      const sent = typeof count === 'number' ? count : 0;
+      setResult({ sent, total: sent, failed: 0 });
       setTitle('');
       setMessage('');
     } catch (err: any) {

@@ -48,12 +48,23 @@ interface ConversationInfo {
     service_images: string[] | null;
     payment_method: string | null;
     payment_status?: string | null;
+    progress_step?: ProgressStep | null;
     escrow_status: string;
     amount: number | null;
   };
 }
 
 type ChatStep = 'chat' | 'payment_method' | 'payment_held';
+
+type ProgressStep = 'on_the_way' | 'arrived' | 'work_started' | 'work_done';
+
+// Craftsman job steps, in order. Each step notifies the customer (push + chat).
+const PROGRESS_STEPS: { step: ProgressStep; action: string; done: string; icon: string }[] = [
+  { step: 'on_the_way',   action: 'أنا في الطريق',  done: 'في الطريق',   icon: '🚗' },
+  { step: 'arrived',      action: 'وصلت',           done: 'وصل',         icon: '📍' },
+  { step: 'work_started', action: 'بدأت العمل',     done: 'بدأ العمل',   icon: '🔧' },
+  { step: 'work_done',    action: 'أنهيت العمل',    done: 'انتهى العمل', icon: '✅' },
+];
 
 // WhatsApp-style double tick SVG
 const DoubleTick = ({ read, readAt }: { read: boolean; readAt?: string | null }) => (
@@ -126,6 +137,7 @@ export default function ChatClient() {
   const [quoteDescription, setQuoteDescription] = useState('');
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
   const [isRespondingToQuote, setIsRespondingToQuote] = useState(false);
+  const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
 
   const [showModificationInput, setShowModificationInput] = useState<string | null>(null);
   const [modificationNote, setModificationNote] = useState('');
@@ -245,7 +257,7 @@ export default function ChatClient() {
       }, (payload) => {
         const updated = payload.new as any;
         setConversation((prev) => prev && prev.order
-          ? { ...prev, order: { ...prev.order, status: updated.status, amount: updated.amount, payment_status: updated.payment_status, escrow_status: updated.escrow_status, payment_method: updated.payment_method } as any }
+          ? { ...prev, order: { ...prev.order, status: updated.status, amount: updated.amount, payment_status: updated.payment_status, escrow_status: updated.escrow_status, payment_method: updated.payment_method, progress_step: updated.progress_step } as any }
           : prev);
         if (updated.escrow_status === 'held') setChatStep('payment_held');
       })
@@ -338,7 +350,7 @@ export default function ChatClient() {
         craftsman: Array.isArray((conv as any).craftsman) ? (conv as any).craftsman[0] : (conv as any).craftsman,
       };
       if (conv.order_id) {
-        const { data: orderData } = await supabase.from('orders').select('id, status, description, service_images, payment_method, payment_status, escrow_status, amount').eq('id', conv.order_id).maybeSingle();
+        const { data: orderData } = await supabase.from('orders').select('id, status, description, service_images, payment_method, payment_status, escrow_status, amount, progress_step').eq('id', conv.order_id).maybeSingle();
         if (orderData) { convData.order = orderData as any; if ((orderData as any).escrow_status === 'held') setChatStep('payment_held'); }
       }
       setConversation(convData);
@@ -456,6 +468,21 @@ export default function ChatClient() {
     } finally { setIsRespondingToQuote(false); }
   };
 
+  // Craftsman marks the next job step; the database notifies the customer.
+  const handleProgress = async (step: ProgressStep) => {
+    if (!conversation?.order_id || isUpdatingProgress) return;
+    setIsUpdatingProgress(true);
+    setSendError('');
+    try {
+      const { data, error } = await supabase.rpc('set_order_progress', { p_order_id: conversation.order_id, p_step: step });
+      if (error) throw error;
+      const updated = data as any;
+      setConversation((prev) => prev && prev.order ? { ...prev, order: { ...prev.order, progress_step: updated?.progress_step ?? step } } : prev);
+    } catch (e: any) {
+      setSendError(e?.message || 'تعذّر تحديث مرحلة العمل');
+    } finally { setIsUpdatingProgress(false); }
+  };
+
   const handlePayment = async () => {
     if (!conversation?.order_id || !user) return;
     setIsProcessingPayment(true);
@@ -463,7 +490,7 @@ export default function ChatClient() {
       const { error: payError } = await supabase.from('orders').update({ payment_method: selectedPaymentMethod, payment_status: 'paid', escrow_status: 'held', status: 'in_progress' }).eq('id', conversation.order_id);
       if (payError) throw payError;
       // "بدأ تنفيذ الخدمة" is posted by the database when the status changes.
-      await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'text' });
+      await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'system' });
       setConversation((prev) => prev ? { ...prev, order: prev.order ? { ...prev.order, escrow_status: 'held', payment_status: 'paid' } as any : prev.order } : prev);
       setChatStep('payment_held'); setPaymentDone(true);
     } catch (e: any) { alert(e?.message || 'حدث خطأ في الدفع'); } finally { setIsProcessingPayment(false); }
@@ -684,6 +711,30 @@ export default function ChatClient() {
             </button>
           </div>
         )}
+
+        {/* Job progress — craftsman moves it forward, customer sees where it is */}
+        {conversation.order && ['accepted', 'in_progress'].includes(conversation.order.status) && (isCraftsman || conversation.order.progress_step) && (() => {
+          const current = PROGRESS_STEPS.findIndex((p) => p.step === conversation.order?.progress_step);
+          const next = PROGRESS_STEPS[current + 1];
+          return (
+            <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid #b7e4a0' }}>
+              <div className="flex items-center justify-between gap-1 mb-2">
+                {PROGRESS_STEPS.map((p, i) => (
+                  <div key={p.step} className="flex-1 flex flex-col items-center gap-0.5">
+                    <span className={`text-base ${i <= current ? '' : 'grayscale opacity-40'}`}>{p.icon}</span>
+                    <span className={`text-[10px] font-semibold ${i <= current ? 'text-green-800' : 'text-gray-400'}`}>{p.done}</span>
+                  </div>
+                ))}
+              </div>
+              {isCraftsman && next && (
+                <button onClick={() => handleProgress(next.step)} disabled={isUpdatingProgress}
+                  className="w-full py-2 rounded-xl text-sm font-bold text-white disabled:opacity-60" style={{ background: '#075E54' }}>
+                  {isUpdatingProgress ? 'جاري التحديث…' : `${next.icon} ${next.action}`}
+                </button>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Payment held */}
         {chatStep === 'payment_held' && (

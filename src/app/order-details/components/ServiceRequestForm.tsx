@@ -7,7 +7,6 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { getOrCreateConversation } from '@/lib/supabase/chat';
 import { useAuth } from '@/contexts/AuthContext';
-import { sendPushToUser } from '@/lib/pushNotifications';
 import BookingSuccessScreen from './BookingSuccessScreen';
 
 const BRAND = {
@@ -241,21 +240,7 @@ export default function ServiceRequestForm({
           });
         }
 
-        // Notification for craftsman
-        await supabase.from('notifications').insert({
-          user_id: craftsmanUserId,
-          title: 'طلب خدمة جديد 🔔',
-          body: `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
-          type: 'new_order',
-          order_id: order.id,
-        });
-
-        sendPushToUser(
-          craftsmanUserId,
-          'طلب خدمة جديد 🔔',
-          `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`,
-          { url: '/order-details', orderId: order.id }
-        );
+        // The craftsman's notification + push is sent by the database when the order is created.
       }
 
       // Build payment params

@@ -1,6 +1,10 @@
 // Supabase Edge Function: send-push-notification
 // Supports both Web Push (VAPID) and Firebase Cloud Messaging (FCM)
 // FCM is used for WebView apps via JS-Native bridge
+//
+// SECURITY: only the database may call this function (Authorization: Bearer
+// <service_role key>, sent by public.queue_push()). App users can't send pushes
+// directly — events in the database (orders, quotes, chat…) trigger them.
 
 declare const Deno: {
   serve: (handler: (req: Request) => Promise<Response>) => void;
@@ -80,7 +84,8 @@ async function sendFCMNotification(
   body: string,
   data: Record<string, string>,
   projectId: string,
-  accessToken: string
+  accessToken: string,
+  tag?: string
 ): Promise<{ success: boolean; expired: boolean }> {
   const message = {
     message: {
@@ -91,11 +96,14 @@ async function sendFCMNotification(
         priority: "high",
         notification: {
           sound: "default",
+          // Keep this id: the Android app creates the notification channel with it.
           channel_id: "sanaei_notifications",
           click_action: "FLUTTER_NOTIFICATION_CLICK",
+          ...(tag ? { tag } : {}),
         },
       },
       apns: {
+        headers: tag ? { "apns-collapse-id": tag.slice(0, 64) } : {},
         payload: {
           aps: {
             sound: "default",
@@ -290,8 +298,18 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Only the database (service role) may send pushes.
+  const serviceRoleKeyEnv = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const bearer = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!serviceRoleKeyEnv || bearer !== serviceRoleKeyEnv) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+
   try {
-    const { userId, title, body, url, orderId, channel } = await req.json();
+    const { userId, title, body, url, orderId, tag } = await req.json();
 
     if (!userId || !title || !body) {
       return new Response(JSON.stringify({ error: "Missing required fields" }), {
@@ -339,8 +357,9 @@ Deno.serve(async (req: Request) => {
         if (accessToken) {
           const expiredFcmIds: string[] = [];
           const notifData: Record<string, string> = {
-            url: url || "/home-screen",
+            url: url || "/",
             orderId: orderId || "",
+            tag: tag || "",
           };
 
           for (const row of fcmTokens) {
@@ -350,7 +369,8 @@ Deno.serve(async (req: Request) => {
               body,
               notifData,
               fcmProjectId,
-              accessToken
+              accessToken,
+              tag || undefined
             ).catch(() => ({ success: false, expired: false }));
 
             if (result.success) {
@@ -396,9 +416,9 @@ Deno.serve(async (req: Request) => {
         const payload = JSON.stringify({
           title,
           body,
-          url: url || "/home-screen",
+          url: url || "/",
           orderId: orderId || null,
-          tag: orderId ? `order-${orderId}` : "sanaei-notification",
+          tag: tag || (orderId ? `order-${orderId}` : "herafi-notification"),
         });
 
         const expired: string[] = [];

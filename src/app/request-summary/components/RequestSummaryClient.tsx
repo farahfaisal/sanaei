@@ -7,7 +7,6 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { getOrCreateConversation } from '@/lib/supabase/chat';
 import { useAuth } from '@/contexts/AuthContext';
-import { sendPushToUser } from '@/lib/pushNotifications';
 
 const BRAND = {
   primary: '#2a724d',
@@ -223,23 +222,7 @@ export default function RequestSummaryClient() {
         }
       }
 
-      const notifTitle = requestType === 'custom' ? 'طلب خدمة مخصصة 🔔' : 'طلب خدمة جديد 🔔';
-      const notifBody = requestType === 'custom'
-        ? `لديك طلب خدمة مخصصة: ${customServiceTitle.trim() || 'خدمة مخصصة'} — أرسل عرض سعرك`
-        : `لديك طلب خدمة جديد${displayServiceName ? ` - ${displayServiceName}` : ''} بانتظار موافقتك`;
-
-      await supabase.from('notifications').insert({
-        user_id: craftsmanUserId,
-        title: notifTitle,
-        body: notifBody,
-        type: 'new_order',
-        order_id: order.id,
-      });
-
-      sendPushToUser(craftsmanUserId, notifTitle, notifBody, {
-        url: '/craftsman-profile',
-        orderId: order.id,
-      });
+      // The craftsman's notification + push is sent by the database when the order is created.
 
       if (conversation) {
         router.push(`/chat?conversation_id=${conversation.id}`);
