@@ -47,6 +47,7 @@ interface ConversationInfo {
     description: string | null;
     service_images: string[] | null;
     payment_method: string | null;
+    payment_status?: string | null;
     escrow_status: string;
     amount: number | null;
   };
@@ -98,13 +99,6 @@ const SystemMessage = ({ content }: { content: string }) => (
 );
 
 // Status label map
-const STATUS_SYSTEM_MESSAGES: Record<string, string> = {
-  accepted:    '✅ تم قبول الطلب من قِبَل الحرفي',
-  in_progress: '🔧 بدأ تنفيذ الخدمة',
-  completed:   '🎉 اكتملت الخدمة بنجاح',
-  cancelled:   '❌ تم إلغاء الطلب',
-};
-
 export default function ChatClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -131,6 +125,7 @@ export default function ChatClient() {
   const [quoteAmount, setQuoteAmount] = useState('');
   const [quoteDescription, setQuoteDescription] = useState('');
   const [isSubmittingQuote, setIsSubmittingQuote] = useState(false);
+  const [isRespondingToQuote, setIsRespondingToQuote] = useState(false);
 
   const [showModificationInput, setShowModificationInput] = useState<string | null>(null);
   const [modificationNote, setModificationNote] = useState('');
@@ -228,51 +223,44 @@ export default function ChatClient() {
     };
   }, [conversation?.id, user]);
 
-  // Listen for order status changes and insert system messages
+  // Reload this order's quotes (used on load and when a quote changes).
+  const refreshQuotes = useCallback(async (orderId: string) => {
+    const { data } = await supabase.from('price_quotes').select('*').eq('order_id', orderId).order('created_at', { ascending: false });
+    if (data) setQuotes(data as any);
+  }, []);
+
+  // Live order + quote updates. Status messages ("تم قبول الطلب"…) are posted once
+  // by the database, so here we only keep the screen in sync.
   useEffect(() => {
     if (!conversation?.order_id || !conversation?.id || !user) return;
+    const orderId = conversation.order_id;
 
     const orderChannel = supabase
-      .channel(`order-status:${conversation.order_id}`)
+      .channel(`order-live:${orderId}`)
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'orders',
-        filter: `id=eq.${conversation.order_id}`,
-      }, async (payload) => {
-        const newStatus = (payload.new as any).status as string;
-        const oldStatus = (payload.old as any).status as string;
-        if (newStatus && newStatus !== oldStatus && STATUS_SYSTEM_MESSAGES[newStatus]) {
-          // Skip if the same status message was just posted (by our own action or the other party).
-          // Scoped to the last minute: the thread is shared by all orders between this pair.
-          try {
-            const { data: recent } = await supabase
-              .from('messages')
-              .select('id')
-              .eq('conversation_id', conversation.id)
-              .eq('message_type', 'system')
-              .eq('content', STATUS_SYSTEM_MESSAGES[newStatus])
-              .gte('created_at', new Date(Date.now() - 60_000).toISOString())
-              .limit(1);
-            if (!recent || recent.length === 0) {
-              await insertMessage({
-                conversation_id: conversation.id,
-                sender_id: user.id,
-                content: STATUS_SYSTEM_MESSAGES[newStatus],
-                message_type: 'system',
-              });
-            }
-          } catch (e) {
-            console.error('Failed to post status message:', e);
-          }
-        }
+        filter: `id=eq.${orderId}`,
+      }, (payload) => {
+        const updated = payload.new as any;
+        setConversation((prev) => prev && prev.order
+          ? { ...prev, order: { ...prev.order, status: updated.status, amount: updated.amount, payment_status: updated.payment_status, escrow_status: updated.escrow_status, payment_method: updated.payment_method } as any }
+          : prev);
+        if (updated.escrow_status === 'held') setChatStep('payment_held');
       })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'price_quotes',
+        filter: `order_id=eq.${orderId}`,
+      }, () => { void refreshQuotes(orderId); })
       .subscribe();
 
     return () => {
       supabase.removeChannel(orderChannel);
     };
-  }, [conversation?.order_id, conversation?.id, user]);
+  }, [conversation?.order_id, conversation?.id, user, refreshQuotes]);
 
   const sendTypingIndicator = useCallback(() => {
     if (!conversation?.id || !user || !chatChannelRef.current) return;
@@ -350,16 +338,13 @@ export default function ChatClient() {
         craftsman: Array.isArray((conv as any).craftsman) ? (conv as any).craftsman[0] : (conv as any).craftsman,
       };
       if (conv.order_id) {
-        const { data: orderData } = await supabase.from('orders').select('id, status, description, service_images, payment_method, escrow_status, amount').eq('id', conv.order_id).maybeSingle();
+        const { data: orderData } = await supabase.from('orders').select('id, status, description, service_images, payment_method, payment_status, escrow_status, amount').eq('id', conv.order_id).maybeSingle();
         if (orderData) { convData.order = orderData as any; if ((orderData as any).escrow_status === 'held') setChatStep('payment_held'); }
       }
       setConversation(convData);
       const { data: msgs } = await supabase.from('messages').select('*, sender:sender_id(full_name, avatar_url, role)').eq('conversation_id', convId).order('created_at', { ascending: true });
       if (msgs) setMessages(msgs.map((m: any) => ({ ...m, sender: Array.isArray(m.sender) ? m.sender[0] : m.sender })));
-      if (conv.order_id) {
-        const { data: quotesData } = await supabase.from('price_quotes').select('*').eq('order_id', conv.order_id).order('created_at', { ascending: false });
-        if (quotesData) setQuotes(quotesData as any);
-      }
+      if (conv.order_id) await refreshQuotes(conv.order_id);
       // Mark all unread messages as read
       if (user) {
         await supabase.rpc('mark_messages_read', {
@@ -417,60 +402,67 @@ export default function ChatClient() {
     } finally { setUploadingFile(false); }
   };
 
+  // The craftsman sends a quote. The database checks it's their order, replaces any
+  // earlier pending quote and posts the quote message — all in one step.
   const submitQuote = async () => {
-    if (!conversation?.order_id || !user || !quoteAmount) return;
+    if (!conversation || !user) return;
+    if (!conversation.order_id) {
+      setSendError('لا يوجد طلب خدمة مرتبط بهذه المحادثة بعد — يرسل الزبون الطلب أولاً');
+      return;
+    }
+    const amount = Number(quoteAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setSendError('أدخل مبلغاً صحيحاً أكبر من صفر');
+      return;
+    }
     setIsSubmittingQuote(true);
+    setSendError('');
     try {
-      const { data: cp } = await supabase.from('craftsman_profiles').select('id').eq('user_id', user.id).maybeSingle();
-      if (!cp) throw new Error('لم يتم العثور على ملف الحرفي');
-      const { data: quote, error } = await supabase.from('price_quotes').insert({ order_id: conversation.order_id, craftsman_id: cp.id, amount: parseFloat(quoteAmount), description: quoteDescription.trim() || null, quote_status: 'pending' }).select().single();
+      const { error } = await supabase.rpc('submit_quote', {
+        p_order_id: conversation.order_id,
+        p_amount: amount,
+        p_description: quoteDescription.trim() || null,
+      });
       if (error) throw error;
-      setQuotes((prev) => [quote as any, ...prev]);
-      await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💰 عرض سعر: ${parseFloat(quoteAmount).toLocaleString('ar-SA')} ر.س\n${quoteDescription || ''}`, message_type: 'quote' });
-      await supabase.from('conversations').update({ last_message: `💰 عرض سعر: ${quoteAmount} ر.س`, last_message_at: new Date().toISOString() }).eq('id', conversation.id);
+      await refreshQuotes(conversation.order_id);
       setShowQuoteForm(false); setQuoteAmount(''); setQuoteDescription('');
-    } catch (e: any) { alert(e?.message || 'حدث خطأ'); } finally { setIsSubmittingQuote(false); }
+    } catch (e: any) {
+      setSendError(e?.message || 'تعذّر إرسال عرض السعر');
+    } finally { setIsSubmittingQuote(false); }
   };
 
+  // The customer answers a quote. The database updates the quote, the order (on accept)
+  // and posts the chat message together, so the screen never shows a half-done state.
   const handleQuoteAction = async (quote: PriceQuote, action: 'accepted' | 'rejected' | 'modification_requested') => {
-    if (!conversation?.order_id) return;
+    if (!conversation?.order_id || isRespondingToQuote) return;
+    setIsRespondingToQuote(true);
+    setSendError('');
     try {
-      const updateData: any = { quote_status: action };
-      if (action === 'modification_requested' && modificationNote.trim()) updateData.modification_note = modificationNote.trim();
-      await supabase.from('price_quotes').update(updateData).eq('id', quote.id);
-      setQuotes((prev) => prev.map((q) => q.id === quote.id ? { ...q, ...updateData } : q));
+      const { error } = await supabase.rpc('respond_to_quote', {
+        p_quote_id: quote.id,
+        p_action: action,
+        p_note: action === 'modification_requested' ? modificationNote.trim() || null : null,
+      });
+      if (error) throw error;
+      await refreshQuotes(conversation.order_id);
       if (action === 'accepted') {
-        await supabase.from('orders').update({ amount: quote.amount, status: 'accepted' }).eq('id', conversation.order_id);
-        // System message for accepted status
-        await insertMessage({
-          conversation_id: conversation.id,
-          sender_id: user!.id,
-          content: STATUS_SYSTEM_MESSAGES['accepted'],
-          message_type: 'system',
-        });
-        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: `✅ تم قبول عرض السعر: ${quote.amount.toLocaleString('ar-SA')} ر.س`, message_type: 'text' });
+        setConversation((prev) => prev && prev.order ? { ...prev, order: { ...prev.order, status: 'accepted', amount: quote.amount } as any } : prev);
         setChatStep('payment_method');
-      } else if (action === 'rejected') {
-        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: '❌ تم رفض عرض السعر', message_type: 'text' });
-      } else if (action === 'modification_requested') {
-        await insertMessage({ conversation_id: conversation.id, sender_id: user!.id, content: `🔄 طلب تعديل على عرض السعر${modificationNote ? ': ' + modificationNote : ''}`, message_type: 'text' });
-        setShowModificationInput(null); setModificationNote('');
       }
-    } catch (e: any) { alert(e?.message || 'حدث خطأ'); }
+      if (action === 'modification_requested') { setShowModificationInput(null); setModificationNote(''); }
+    } catch (e: any) {
+      setSendError(e?.message || 'تعذّر تنفيذ العملية، حاول مجدداً');
+      await refreshQuotes(conversation.order_id);
+    } finally { setIsRespondingToQuote(false); }
   };
 
   const handlePayment = async () => {
     if (!conversation?.order_id || !user) return;
     setIsProcessingPayment(true);
     try {
-      await supabase.from('orders').update({ payment_method: selectedPaymentMethod, payment_status: 'paid', escrow_status: 'held', status: 'in_progress' }).eq('id', conversation.order_id);
-      // System message for in_progress status
-      await insertMessage({
-        conversation_id: conversation.id,
-        sender_id: user.id,
-        content: STATUS_SYSTEM_MESSAGES['in_progress'],
-        message_type: 'system',
-      });
+      const { error: payError } = await supabase.from('orders').update({ payment_method: selectedPaymentMethod, payment_status: 'paid', escrow_status: 'held', status: 'in_progress' }).eq('id', conversation.order_id);
+      if (payError) throw payError;
+      // "بدأ تنفيذ الخدمة" is posted by the database when the status changes.
       await insertMessage({ conversation_id: conversation.id, sender_id: user.id, content: `💳 تم الدفع بنجاح — المبلغ محجوز لدى الإدارة حتى إتمام الخدمة`, message_type: 'text' });
       setConversation((prev) => prev ? { ...prev, order: prev.order ? { ...prev.order, escrow_status: 'held', payment_status: 'paid' } as any : prev.order } : prev);
       setChatStep('payment_held'); setPaymentDone(true);
@@ -478,6 +470,7 @@ export default function ChatClient() {
   };
 
   const activeQuote = quotes.find((q) => q.quote_status === 'pending');
+  const latestQuote = quotes[0];
   const acceptedQuote = quotes.find((q) => q.quote_status === 'accepted');
   const otherPartyName = isCraftsman ? conversation?.customer?.full_name || 'الزبون' : conversation?.craftsman?.full_name || 'الحرفي';
   const otherPartyAvatar = isCraftsman ? conversation?.customer?.avatar_url : conversation?.craftsman?.avatar_url;
@@ -644,15 +637,15 @@ export default function ChatClient() {
                 <textarea rows={2} placeholder="اشرح التعديل المطلوب..." value={modificationNote} onChange={(e) => setModificationNote(e.target.value)}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none bg-gray-50 resize-none" />
                 <div className="flex gap-2">
-                  <button onClick={() => handleQuoteAction(activeQuote, 'modification_requested')} className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-orange-500">إرسال طلب التعديل</button>
+                  <button disabled={isRespondingToQuote} onClick={() => handleQuoteAction(activeQuote, 'modification_requested')} className="flex-1 py-2 rounded-xl text-xs font-bold text-white bg-orange-500 disabled:opacity-60">إرسال طلب التعديل</button>
                   <button onClick={() => { setShowModificationInput(null); setModificationNote(''); }} className="px-3 py-2 rounded-xl text-xs font-bold text-gray-600 bg-gray-100">إلغاء</button>
                 </div>
               </div>
             ) : (
               <div className="flex gap-2">
-                <button onClick={() => handleQuoteAction(activeQuote, 'accepted')} className="flex-1 py-2 rounded-xl text-sm font-bold text-white" style={{ background: '#25D366' }}>✅ قبول</button>
-                <button onClick={() => handleQuoteAction(activeQuote, 'rejected')} className="flex-1 py-2 rounded-xl text-sm font-bold text-white bg-red-500">❌ رفض</button>
-                <button onClick={() => setShowModificationInput(activeQuote.id)} className="flex-1 py-2 rounded-xl text-sm font-bold text-orange-600 bg-orange-50 border border-orange-200">🔄 تعديل</button>
+                <button disabled={isRespondingToQuote} onClick={() => handleQuoteAction(activeQuote, 'accepted')} className="flex-1 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-60" style={{ background: '#25D366' }}>✅ قبول</button>
+                <button disabled={isRespondingToQuote} onClick={() => handleQuoteAction(activeQuote, 'rejected')} className="flex-1 py-2 rounded-xl text-sm font-bold text-white bg-red-500 disabled:opacity-60">❌ رفض</button>
+                <button disabled={isRespondingToQuote} onClick={() => setShowModificationInput(activeQuote.id)} className="flex-1 py-2 rounded-xl text-sm font-bold text-orange-600 bg-orange-50 border border-orange-200">🔄 تعديل</button>
               </div>
             )}
           </div>
@@ -666,6 +659,29 @@ export default function ChatClient() {
               <p className="text-sm font-black text-yellow-800">{activeQuote.amount.toLocaleString('ar-SA')} ر.س</p>
             </div>
             {activeQuote.description && <p className="text-xs text-yellow-600 mt-1">{activeQuote.description}</p>}
+          </div>
+        )}
+
+        {/* Customer asked for a change — tell the craftsman what to do next */}
+        {isCraftsman && !activeQuote && latestQuote?.quote_status === 'modification_requested' && conversation.order?.status === 'pending' && (
+          <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: '#fff7ed', border: '1px solid #fdba74' }}>
+            <p className="text-xs font-bold text-orange-700">🔄 الزبون طلب تعديل عرض السعر</p>
+            {latestQuote.modification_note && <p className="text-xs text-orange-600 mt-1">«{latestQuote.modification_note}»</p>}
+            <button onClick={() => setShowQuoteForm(true)} className="mt-2 w-full py-2 rounded-xl text-xs font-bold text-white" style={{ background: '#25D366' }}>
+              💰 إرسال عرض جديد
+            </button>
+          </div>
+        )}
+
+        {/* Quote accepted but not paid yet — let the customer get back to payment */}
+        {isCustomer && chatStep === 'chat' && conversation.order?.status === 'accepted' && conversation.order?.payment_status !== 'paid' && (
+          <div className="mx-3 mt-2 rounded-xl p-3 flex items-center gap-3" style={{ background: '#dcf8c6', border: '1px solid #25D366' }}>
+            <p className="flex-1 text-xs font-semibold" style={{ color: '#075E54' }}>
+              تم قبول العرض{acceptedQuote ? ` (${Number(acceptedQuote.amount).toLocaleString('ar-SA')} ر.س)` : ''} — أكمل الدفع لبدء الخدمة
+            </p>
+            <button onClick={() => setChatStep('payment_method')} className="px-4 py-2 rounded-xl text-xs font-bold text-white flex-shrink-0" style={{ background: '#075E54' }}>
+              ادفع الآن
+            </button>
           </div>
         )}
 
@@ -840,7 +856,11 @@ export default function ChatClient() {
             onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFileUpload(file, false); e.target.value = ''; }} />
 
           {isCraftsman && !showQuoteForm && (
-            <button onClick={() => setShowQuoteForm(true)} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }} title="إرسال عرض سعر">
+            <button onClick={() => {
+              if (!conversation.order_id) { setSendError('لا يوجد طلب خدمة مرتبط بهذه المحادثة بعد — يرسل الزبون الطلب أولاً'); return; }
+              if (conversation.order && conversation.order.status !== 'pending') { setSendError('لا يمكن إرسال عرض سعر بعد قبول الطلب أو إلغائه'); return; }
+              setShowQuoteForm(true);
+            }} className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'white' }} title="إرسال عرض سعر">
               <Icon name="CurrencyDollarIcon" size={20} style={{ color: '#25D366' } as any} />
             </button>
           )}
