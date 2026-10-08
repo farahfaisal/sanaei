@@ -59,7 +59,7 @@ export default function PageTransitionWrapper({ children }: { children: React.Re
               }}
             >
               <img
-                src="/icons/icon-192.png"
+                src="/icons/herafi-192.png"
                 alt="حِرَفي"
                 style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: '50%' }}
               />

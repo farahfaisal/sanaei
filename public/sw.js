@@ -7,11 +7,11 @@
 //  - Pages: network-first, cached copy only when offline.
 // Bumping CACHE_NAME deletes every older cache on activation.
 
-const CACHE_NAME = 'herafi-static-v2';
+const CACHE_NAME = 'herafi-static-v3';
 const STATIC_ASSETS = [
   '/assets/images/app_logo.png',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
+  '/icons/herafi-192.png',
+  '/icons/herafi-512.png',
   '/favicon.ico',
 ];
 
@@ -92,8 +92,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'حِرَفي';
   const options = {
     body: data.body || '',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-192.png',
+    icon: '/icons/herafi-192.png',
+    badge: '/icons/herafi-192.png',
     dir: 'rtl',
     lang: 'ar',
     tag: data.tag || 'herafi-notification',

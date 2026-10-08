@@ -15,7 +15,7 @@ export default function ScreenError({ error, reset }: { error: Error & { digest?
       dir="rtl"
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/icons/icon-192.png" alt="حِرَفي" width={64} height={64} style={{ borderRadius: 18 }} />
+      <img src="/icons/herafi-192.png" alt="حِرَفي" width={64} height={64} style={{ borderRadius: 18 }} />
       <div>
         <h1 className="text-lg font-bold mb-1" style={{ color: 'var(--foreground, #111827)' }}>
           تعذّر عرض هذه الشاشة

@@ -46,7 +46,7 @@ export function Spinner({ size = 32, color = BRAND, logo, className = '' }: Spin
       {showLogo && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src="/icons/icon-192.png"
+          src="/icons/herafi-192.png"
           alt=""
           width={mark}
           height={mark}

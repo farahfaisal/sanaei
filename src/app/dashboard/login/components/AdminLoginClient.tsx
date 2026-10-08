@@ -84,7 +84,7 @@ export default function AdminLoginClient() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
           <div className="w-20 h-20 rounded-2xl bg-white flex items-center justify-center mb-4 shadow-lg shadow-emerald-950/50">
-            <img src="/icons/icon-192.png" alt="شعار حِرَفي" className="w-16 h-16 object-contain" />
+            <img src="/icons/herafi-192.png" alt="شعار حِرَفي" className="w-16 h-16 object-contain" />
           </div>
           <h1 className="text-xl font-bold text-white">لوحة تحكم حِرَفي</h1>
           <p className="text-sm text-gray-400 mt-1">دخول المشرفين فقط</p>
