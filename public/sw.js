@@ -103,6 +103,9 @@ self.addEventListener('push', (event) => {
     },
     actions: data.actions || [],
     requireInteraction: false,
+    renotify: true,          // alert again when a newer update replaces the same tag
+    vibrate: [100, 50, 100],
+    timestamp: Date.now(),
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
