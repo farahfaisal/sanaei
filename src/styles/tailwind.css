@@ -607,3 +607,33 @@
     opacity: 1;
   }
 }
+/* ── حِرَفي loader: one arc that draws and turns ───────────────── */
+.herafi-spinner > svg {
+  animation: herafi-turn 1.1s linear infinite;
+}
+.herafi-spinner-arc {
+  stroke-dasharray: 26 100;
+  transform-origin: center;
+  transform: rotate(-90deg);
+  animation: herafi-draw 1.6s cubic-bezier(0.45, 0, 0.25, 1) infinite;
+}
+.herafi-spinner-mark {
+  position: relative;
+  animation: herafi-appear 0.35s ease-out both;
+}
+@keyframes herafi-turn {
+  to { transform: rotate(360deg); }
+}
+@keyframes herafi-draw {
+  0%   { stroke-dasharray: 6 100;  stroke-dashoffset: 0; }
+  50%  { stroke-dasharray: 62 100; stroke-dashoffset: -14; }
+  100% { stroke-dasharray: 6 100;  stroke-dashoffset: -94; }
+}
+@keyframes herafi-appear {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .herafi-spinner > svg { animation-duration: 2.4s; }
+  .herafi-spinner-arc { animation: none; stroke-dasharray: 30 100; }
+}

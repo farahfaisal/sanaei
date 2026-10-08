@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Icon from '@/components/ui/AppIcon';
 import { useRouter } from 'next/navigation';
+import { rtChannelName } from '@/lib/supabase/realtime';
 
 interface ActivityEvent {
   id: string;
@@ -193,7 +194,7 @@ export default function ActivityFeedTab() {
   const setupRealtime = () => {
     // New orders
     const ordersChannel = supabase
-      .channel('activity-orders')
+      .channel(rtChannelName('activity-orders'))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, async (payload) => {
         const order = payload.new as any;
         const newEvent: ActivityEvent = {
@@ -230,7 +231,7 @@ export default function ActivityFeedTab() {
 
     // New messages
     const messagesChannel = supabase
-      .channel('activity-messages')
+      .channel(rtChannelName('activity-messages'))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new as any;
         const newEvent: ActivityEvent = {
@@ -249,7 +250,7 @@ export default function ActivityFeedTab() {
 
     // New reviews
     const reviewsChannel = supabase
-      .channel('activity-reviews')
+      .channel(rtChannelName('activity-reviews'))
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reviews' }, (payload) => {
         const review = payload.new as any;
         const newEvent: ActivityEvent = {

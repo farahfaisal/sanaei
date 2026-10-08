@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomTabBar from '@/components/BottomTabBar';
 import ServiceRequestForm from './ServiceRequestForm';
+import { Spinner } from '@/components/ui/Loader';
 
 // ── Brand palette (matches app's primary green) ──────────────────────────────
 const BRAND = {
@@ -191,7 +192,7 @@ function CustomerOrdersList() {
       <div className="px-4 pb-24 space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+            <Spinner size={40} />
             <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل الطلبات...</p>
           </div>
         ) : displayedOrders.length === 0 ? (
@@ -403,7 +404,7 @@ function CraftsmanOrdersList() {
       <div className="px-4 pb-24 space-y-3">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+            <Spinner size={40} />
             <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل الطلبات...</p>
           </div>
         ) : displayedOrders.length === 0 ? (
@@ -569,7 +570,7 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+          <Spinner size={48} />
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل تفاصيل الطلب...</p>
         </div>
       </div>

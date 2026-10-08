@@ -7,6 +7,8 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { getOrCreateConversation } from '@/lib/supabase/chat';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface Message {
   id: string;
@@ -178,7 +180,7 @@ export default function ChatClient() {
     if (!conversation?.id || !user) return;
 
     const channel = supabase
-      .channel(`chat:${conversation.id}`)
+      .channel(rtChannelName(`chat:${conversation.id}`))
       // New messages
       .on('postgres_changes', {
         event: 'INSERT',
@@ -248,7 +250,7 @@ export default function ChatClient() {
     const orderId = conversation.order_id;
 
     const orderChannel = supabase
-      .channel(`order-live:${orderId}`)
+      .channel(rtChannelName(`order-live:${orderId}`))
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -515,7 +517,7 @@ export default function ChatClient() {
     return (
       <div className="flex items-center justify-center" style={{ height: '100dvh', background: '#e5ddd5' }} dir="rtl">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-3" style={{ borderColor: '#075E54', borderTopColor: 'transparent' }} />
+          <Spinner size={48} className="mx-auto mb-3" />
           <p className="text-sm text-gray-600">جاري تحميل المحادثة...</p>
         </div>
       </div>

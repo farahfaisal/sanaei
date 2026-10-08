@@ -7,6 +7,7 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { getOrCreateConversation } from '@/lib/supabase/chat';
 import { useAuth } from '@/contexts/AuthContext';
+import { Spinner } from '@/components/ui/Loader';
 
 const BRAND = {
   primary: '#2a724d',
@@ -247,7 +248,7 @@ export default function RequestSummaryClient() {
   if (isLoading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }}>
-        <div className="w-8 h-8 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary }} />
+        <Spinner size={32} />
       </div>
     );
   }

@@ -8,6 +8,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import BottomTabBar from '@/components/BottomTabBar';
 import RatingModal from './RatingModal';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 const BRAND = {
   primary: '#2a724d',
@@ -164,7 +166,7 @@ export default function OrderLiveStatusClient() {
     if (!orderId || !user) return;
 
     const channel = supabase
-      .channel(`order-live-${orderId}`)
+      .channel(rtChannelName(`order-live-${orderId}`))
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
@@ -178,7 +180,7 @@ export default function OrderLiveStatusClient() {
   if (loading) {
     return (
       <div className="screen-container flex flex-col items-center justify-center gap-4" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
         <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>جاري تحميل حالة الطلب...</p>
       </div>
     );

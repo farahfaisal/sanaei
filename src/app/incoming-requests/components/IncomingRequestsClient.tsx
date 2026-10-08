@@ -7,6 +7,8 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface IncomingOrder {
   id: string;
@@ -101,7 +103,7 @@ export default function IncomingRequestsClient() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`market-jobs-${user.id}`)
+      .channel(rtChannelName(`market-jobs-${user.id}`))
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
@@ -143,7 +145,7 @@ export default function IncomingRequestsClient() {
     if (!craftsmanProfileId) return;
 
     const channel = supabase
-      .channel(`incoming-orders-${craftsmanProfileId}`)
+      .channel(rtChannelName(`incoming-orders-${craftsmanProfileId}`))
       .on(
         'postgres_changes',
         {
@@ -251,7 +253,7 @@ export default function IncomingRequestsClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }
@@ -612,7 +614,7 @@ function MarketList({ jobs, loading, actionLoading, onRefresh, onClaim, formatTi
       <div className="p-3 pb-28 flex flex-col gap-3" style={{ minHeight: '300px' }}>
         {loading && jobs.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="w-10 h-10 border-4 rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
+            <Spinner size={40} />
           </div>
         ) : jobs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-4">

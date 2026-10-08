@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Icon from '@/components/ui/AppIcon';
+import { Spinner } from '@/components/ui/Loader';
 
 export default function TermsTab() {
   const supabase = createClient();
@@ -133,7 +134,7 @@ export default function TermsTab() {
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
             <div className="flex flex-col items-center gap-3">
-              <span className="w-8 h-8 border-2 border-emerald-600/30 border-t-emerald-500 rounded-full animate-spin" />
+              <Spinner size={32} color="#10b981" />
               <span className="text-sm text-gray-500">جاري التحميل...</span>
             </div>
           </div>

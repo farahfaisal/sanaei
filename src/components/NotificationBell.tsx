@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Icon from '@/components/ui/AppIcon';
 import { subscribeToPush, isPushSubscribed, getNotificationPermission } from '@/lib/pushNotifications';
+import { rtChannelName } from '@/lib/supabase/realtime';
 
 interface Notification {
   id: string;
@@ -38,7 +39,7 @@ export default function NotificationBell() {
 
     // Real-time subscription
     const channel = supabase
-      .channel(`notifications:${user.id}`)
+      .channel(rtChannelName(`notifications:${user.id}`))
       .on(
         'postgres_changes',
         {

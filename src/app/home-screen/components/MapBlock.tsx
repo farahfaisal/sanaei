@@ -56,8 +56,11 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
   // Init map
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
+    let alive = true;
 
     import('leaflet').then((L) => {
+      // The screen may have been left before Leaflet finished loading.
+      if (!alive) return;
       delete (L.Icon.Default.prototype as any)._getIconUrl;
       L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -84,10 +87,12 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
     });
 
     return () => {
+      alive = false;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
+      setMapReady(false);
     };
   }, [mapKey]);
 
@@ -96,6 +101,7 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
     if (!mapReady || !mapInstanceRef.current) return;
 
     import('leaflet').then((L) => {
+      if (!mapInstanceRef.current) return;
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
 
@@ -136,7 +142,7 @@ export default function MapBlock({ craftsmen }: MapBlockProps) {
           <div style="font-family:'Cairo',sans-serif;direction:rtl;min-width:160px;padding:4px;">
             <strong style="font-size:13px;color:#111;">${craftsman.full_name}</strong>
             ${craftsman.specialty ? `<p style="font-size:11px;color:#555;margin:2px 0;">${craftsman.specialty}</p>` : ''}
-            <p style="font-size:11px;color:#555;margin:2px 0;">⭐ ${craftsman.rating.toFixed(1)}</p>
+            <p style="font-size:11px;color:#555;margin:2px 0;">⭐ ${Number(craftsman.rating || 0).toFixed(1)}</p>
             ${distText}
             <p style="font-size:11px;color:${isBusy ? '#D97706' : isOnline ? '#059669' : '#9ca3af'};margin:4px 0;font-weight:600;">${statusLabel}</p>
             <a href="/craftsman-profile?id=${craftsman.id}" style="display:block;margin-top:8px;padding:6px;background:${LOGO_GREEN};color:white;border-radius:8px;font-size:11px;font-weight:600;text-align:center;text-decoration:none;">عرض الملف</a>

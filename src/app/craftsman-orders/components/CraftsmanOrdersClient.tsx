@@ -7,6 +7,8 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface Order {
   id: string;
@@ -67,7 +69,7 @@ export default function CraftsmanOrdersClient() {
       craftsmanProfileId = cp.id;
 
       const channel = supabase
-        .channel(`craftsman-orders-realtime-${cp.id}`)
+        .channel(rtChannelName(`craftsman-orders-realtime-${cp.id}`))
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'orders', filter: `craftsman_id=eq.${cp.id}` },
@@ -137,7 +139,7 @@ export default function CraftsmanOrdersClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }

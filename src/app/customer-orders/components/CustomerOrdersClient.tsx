@@ -7,6 +7,8 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface Order {
   id: string;
@@ -52,7 +54,7 @@ export default function CustomerOrdersClient() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`customer-orders-realtime-${user.id}`)
+      .channel(rtChannelName(`customer-orders-realtime-${user.id}`))
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
@@ -102,7 +104,7 @@ export default function CustomerOrdersClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }
