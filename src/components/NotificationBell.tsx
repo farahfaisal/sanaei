@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Icon from '@/components/ui/AppIcon';
 import { subscribeToPush, isPushSubscribed, getNotificationPermission } from '@/lib/pushNotifications';
+import { isNativeApp, nativePushPermission, registerNativePush } from '@/lib/nativeApp';
+import { rtChannelName } from '@/lib/supabase/realtime';
 
 interface Notification {
   id: string;
@@ -12,11 +15,13 @@ interface Notification {
   body: string;
   type: string;
   order_id: string | null;
+  url?: string | null;
   is_read: boolean;
   created_at: string;
 }
 
 export default function NotificationBell() {
+  const router = useRouter();
   const { user } = useAuth();
   const supabase = createClient();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -35,7 +40,7 @@ export default function NotificationBell() {
 
     // Real-time subscription
     const channel = supabase
-      .channel(`notifications:${user.id}`)
+      .channel(rtChannelName(`notifications:${user.id}`))
       .on(
         'postgres_changes',
         {
@@ -78,6 +83,12 @@ export default function NotificationBell() {
   };
 
   const checkPushStatus = async () => {
+    if (isNativeApp()) {
+      const native = await nativePushPermission();
+      setPushDenied(native === 'denied');
+      setPushEnabled(native === 'granted');
+      return;
+    }
     const permission = getNotificationPermission();
     if (permission === 'denied') {
       setPushDenied(true);
@@ -92,6 +103,13 @@ export default function NotificationBell() {
   const handleEnablePush = async () => {
     if (!user) return;
     setPushLoading(true);
+    if (isNativeApp()) {
+      const ok = await registerNativePush();
+      setPushEnabled(ok);
+      if (!ok) setPushDenied((await nativePushPermission()) === 'denied');
+      setPushLoading(false);
+      return;
+    }
     const ok = await subscribeToPush(user.id);
     setPushEnabled(ok);
     if (!ok) {
@@ -131,6 +149,20 @@ export default function NotificationBell() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'new_order': return '🔔';
+      case 'order_assigned': return '📋';
+      case 'order_accepted':
+      case 'quote_accepted': return '✅';
+      case 'order_paid': return '💳';
+      case 'order_in_progress': return '🔧';
+      case 'order_progress': return '🚗';
+      case 'order_completed': return '🎉';
+      case 'order_cancelled':
+      case 'quote_rejected': return '❌';
+      case 'quote_received': return '💰';
+      case 'quote_modification': return '🔄';
+      case 'broadcast': return '📣';
+      case 'open_job': return '📢';
+      case 'order_claimed': return '🙌';
       case 'order_status': return '📦';
       default: return '💬';
     }
@@ -199,7 +231,10 @@ export default function NotificationBell() {
               notifications.map((notif) => (
                 <button
                   key={notif.id}
-                  onClick={() => markRead(notif.id)}
+                  onClick={() => {
+                    void markRead(notif.id);
+                    if (notif.url) { setOpen(false); router.push(notif.url); }
+                  }}
                   className={`w-full text-right flex items-start gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
                     !notif.is_read ? 'bg-green-50/60' : ''
                   }`}

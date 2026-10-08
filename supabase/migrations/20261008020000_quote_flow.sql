@@ -130,7 +130,7 @@ BEGIN
 
     IF v_order.conversation_id IS NOT NULL THEN
         INSERT INTO messages (conversation_id, sender_id, content, message_type)
-        VALUES (v_order.conversation_id, auth.uid(), v_message, 'text');
+        VALUES (v_order.conversation_id, auth.uid(), v_message, 'system');
     END IF;
 
     RETURN v_quote;

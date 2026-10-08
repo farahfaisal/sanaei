@@ -77,8 +77,9 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
+// Only the admin dashboard needs a server-side check. Running this on every
+// page made each navigation wait for a round-trip to Supabase first; the app's
+// screens check the session in the browser instead.
 export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
+  matcher: ['/dashboard', '/dashboard/:path*'],
 };

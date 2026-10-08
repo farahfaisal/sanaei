@@ -172,18 +172,12 @@ export async function registerFCM(userId: string): Promise<boolean> {
 // Send FCM notification via Edge Function (server-side trigger)
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** @deprecated Pushes are sent by the database; kept as a no-op for compatibility. */
 export async function sendFCMToUser(
-  userId: string,
-  title: string,
-  body: string,
-  options?: { url?: string; orderId?: string }
+  _userId: string,
+  _title: string,
+  _body: string,
+  _options?: { url?: string; orderId?: string }
 ): Promise<void> {
-  try {
-    const supabase = createClient();
-    await supabase.functions.invoke('send-push-notification', {
-      body: { userId, title, body, channel: 'fcm', ...options },
-    });
-  } catch {
-    // ignore
-  }
+  return;
 }

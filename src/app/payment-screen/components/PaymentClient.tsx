@@ -6,7 +6,6 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { sendPushToUser } from '@/lib/pushNotifications';
 
 type PaymentMethod = 'card' | 'cash' | 'apple';
 
@@ -159,24 +158,7 @@ export default function PaymentClient() {
           setOrderId(finalOrderId);
         }
 
-        // Send push notification to craftsman
-        const craftsmanProfileId = serviceData?.craftsman_profiles?.id;
-        if (craftsmanProfileId) {
-          const { data: craftsmanProfile } = await supabase
-            .from('craftsman_profiles')
-            .select('user_id')
-            .eq('id', craftsmanProfileId)
-            .maybeSingle();
-
-          if (craftsmanProfile?.user_id) {
-            sendPushToUser(
-              craftsmanProfile.user_id,
-              'طلب جديد 🔔',
-              `لديك طلب جديد بانتظارك`,
-              { url: '/craftsman-profile', orderId: finalOrderId }
-            );
-          }
-        }
+        // The craftsman is notified by the database (new order / payment).
       } else {
         await new Promise((r) => setTimeout(r, 1500));
       }

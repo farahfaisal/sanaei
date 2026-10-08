@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { ADMIN_LOGIN_PATH, isAdminRole } from '@/lib/auth/admin';
+import { Spinner } from '@/components/ui/Loader';
 
 /**
  * Second line of defence behind the middleware: renders the dashboard only for
@@ -27,7 +28,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   if (!allowed) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center" role="status" aria-label="جاري التحقق">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+        <Spinner size={32} color="#10b981" />
       </div>
     );
   }

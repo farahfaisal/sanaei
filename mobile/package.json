@@ -1,0 +1,31 @@
+{
+  "name": "herafi-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "تطبيق حِرَفي لأندرويد وآيفون (Capacitor) — يفتح الموقع المنشور ويضيف الإشعارات الأصلية",
+  "scripts": {
+    "setup:android": "npx cap add android && npm run assets && npm run patch && npx cap sync android",
+    "setup:ios": "npx cap add ios && npm run assets && npm run patch && npx cap sync ios",
+    "assets": "npx capacitor-assets generate --assetPath assets --iconBackgroundColor \"#ffffff\" --splashBackgroundColor \"#ffffff\" --splashBackgroundColorDark \"#0f1f17\"",
+    "patch": "node scripts/patch-native.mjs",
+    "sync": "npx cap sync",
+    "open:android": "npx cap open android",
+    "open:ios": "npx cap open ios",
+    "run:android": "npx cap run android"
+  },
+  "dependencies": {
+    "@capacitor-firebase/messaging": "^7.3.0",
+    "@capacitor/android": "^7.4.0",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.4.0",
+    "@capacitor/ios": "^7.4.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0",
+    "firebase": "^11.10.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.4.0",
+    "typescript": "^5.6.0"
+  }
+}

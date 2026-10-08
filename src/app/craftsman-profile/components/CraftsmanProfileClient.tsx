@@ -10,6 +10,8 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import RequestServiceModal from './RequestServiceModal';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Spinner } from '@/components/ui/Loader';
+import { unregisterNativePush } from '@/lib/nativeApp';
 
 interface CraftsmanData {
   id: string;
@@ -535,6 +537,7 @@ export default function CraftsmanProfileClient() {
   };
 
   const handleSignOut = async () => {
+    await unregisterNativePush();
     await supabase.auth.signOut();
     router.replace('/phone-login-otp-verification');
   };
@@ -582,7 +585,7 @@ export default function CraftsmanProfileClient() {
     return (
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <Spinner size={48} className="mx-auto mb-3" />
           <p className="text-sm text-gray-500">جاري التحميل...</p>
         </div>
       </div>
@@ -593,7 +596,7 @@ export default function CraftsmanProfileClient() {
     return (
       <div className="screen-container bg-gray-50 flex items-center justify-center" dir="rtl">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <Spinner size={48} className="mx-auto mb-3" />
           <p className="text-sm text-gray-500">جاري التحميل...</p>
         </div>
       </div>
@@ -982,7 +985,7 @@ export default function CraftsmanProfileClient() {
             />
           ) : showMap ? (
             <div className="h-[220px] bg-gray-100 rounded-xl flex items-center justify-center">
-              <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+              <Spinner size={32} />
             </div>
           ) : (
             <button

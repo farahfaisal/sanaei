@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import { useAuth } from '@/contexts/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+import { Spinner } from '@/components/ui/Loader';
 
 const SPECIALTIES = [
   { id: 'plumbing', label: 'سباكة', emoji: '🔧' },
@@ -572,7 +573,7 @@ export default function RegisterClient() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Spinner size={32} />
       </div>
     }>
       <RegisterForm />

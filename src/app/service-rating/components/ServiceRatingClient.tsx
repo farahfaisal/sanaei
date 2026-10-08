@@ -6,6 +6,7 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { Spinner } from '@/components/ui/Loader';
 
 const BRAND = {
   primary: '#2a724d',
@@ -172,7 +173,7 @@ export default function ServiceRatingClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }

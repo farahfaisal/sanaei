@@ -8,6 +8,8 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface CraftsmanProfile {
   id: string;
@@ -91,7 +93,7 @@ export default function CraftsmanAccountClient() {
   useEffect(() => {
     if (!craftsmanProfile?.id) return;
     const channel = supabase
-      .channel(`craftsman-profile-realtime-${craftsmanProfile.id}`)
+      .channel(rtChannelName(`craftsman-profile-realtime-${craftsmanProfile.id}`))
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'craftsman_profiles', filter: `id=eq.${craftsmanProfile.id}` },
@@ -202,7 +204,7 @@ export default function CraftsmanAccountClient() {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: '#f8faf9' }}>
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: `${BRAND.primary} transparent ${BRAND.primary} ${BRAND.primary}` }} />
+          <Spinner size={48} />
           <span className="text-sm font-medium" style={{ color: BRAND.primary }}>جاري التحميل...</span>
         </div>
       </div>
@@ -487,7 +489,7 @@ export default function CraftsmanAccountClient() {
 
             {loadingReviews ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: `${BRAND.primary} transparent ${BRAND.primary} ${BRAND.primary}` }} />
+                <Spinner size={32} />
               </div>
             ) : reviews.length === 0 ? (
               <div className="flex flex-col items-center py-12 gap-3">

@@ -7,6 +7,8 @@ import AppImage from '@/components/ui/AppImage';
 import BottomTabBar from '@/components/BottomTabBar';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface ConversationItem {
   id: string;
@@ -132,7 +134,7 @@ export default function ConversationsClient() {
     if (!user) return;
 
     const channel = supabase
-      .channel(`conversations-realtime:${user.id}`)
+      .channel(rtChannelName(`conversations-realtime:${user.id}`))
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
@@ -282,10 +284,7 @@ export default function ConversationsClient() {
       <div className="flex-1 overflow-y-auto">
         {loading ? (
           <div className="flex flex-col items-center justify-center h-64 gap-3">
-            <div
-              className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin"
-              style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }}
-            />
+            <Spinner size={40} />
             <p className="text-sm text-gray-500">جاري تحميل المحادثات...</p>
           </div>
         ) : filtered.length === 0 ? (

@@ -1,0 +1,10 @@
+node_modules/
+# Native projects are generated on your computer by `npm run setup:android` / `setup:ios`.
+# Remove these two lines if you prefer to commit them after the first build.
+android/
+ios/
+# Firebase config files are downloaded from the Firebase console, not committed.
+google-services.json
+GoogleService-Info.plist
+*.keystore
+*.jks

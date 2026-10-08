@@ -8,6 +8,8 @@ import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface Order {
   id: string;
@@ -131,7 +133,7 @@ export default function CustomerProfileClient() {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`customer-profile-orders-realtime-${user.id}`)
+      .channel(rtChannelName(`customer-profile-orders-realtime-${user.id}`))
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'orders', filter: `customer_id=eq.${user.id}` },
@@ -286,7 +288,7 @@ export default function CustomerProfileClient() {
   if (authLoading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }
@@ -562,7 +564,7 @@ export default function CustomerProfileClient() {
 
             {loadingOrders ? (
               <div className="flex justify-center py-12">
-                <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+                <Spinner size={32} />
               </div>
             ) : displayedOrders.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -720,7 +722,7 @@ export default function CustomerProfileClient() {
 
             {loadingAddresses ? (
               <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+                <Spinner size={32} />
               </div>
             ) : addresses.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -878,7 +880,7 @@ export default function CustomerProfileClient() {
 
             {loadingPayments ? (
               <div className="flex justify-center py-10">
-                <div className="w-8 h-8 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: BRAND.primary, borderTopColor: 'transparent' }} />
+                <Spinner size={32} />
               </div>
             ) : paymentMethods.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-14 text-center">

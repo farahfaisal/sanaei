@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { isNativeApp, registerNativePush, unregisterNativePush } from '@/lib/nativeApp';
+import { rtChannelName } from '@/lib/supabase/realtime';
 
 const AuthContext = createContext<any>({});
 
@@ -20,56 +22,70 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
+  // One listener drives everything. INITIAL_SESSION fires right away with the
+  // stored session, so there is no separate getSession() call (which used to
+  // fetch the profile twice on every app start).
+  //
+  // Supabase holds an internal lock while this callback runs; calling the
+  // client from inside it (e.g. to read the profile) can stall every request
+  // in the app. So the work is deferred with setTimeout.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    let lastUserId: string | null = null;
+    let deviceSetupFor: string | null = null;
 
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-        // Request notification permission and subscribe to Web Push
-        if (typeof window !== 'undefined' && 'Notification' in window) {
-          import('@/lib/pushNotifications').then(({ requestNotificationPermission, subscribeToPush }) => {
-            requestNotificationPermission().then((permission) => {
-              if (permission === 'granted') {
-                subscribeToPush(session.user.id);
-              }
-            });
-          });
-        }
-        // Request geolocation permission
-        if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-          navigator.geolocation.getCurrentPosition(
-            () => { /* permission granted, position available */ },
-            () => { /* permission denied or error, ignore silently */ },
-            { timeout: 10000, maximumAge: 60000 }
-          );
-        }
-        // Register FCM token for WebView (JS-Native bridge)
-        import('@/lib/fcm').then(({ isWebView, registerFCM }) => {
-          if (isWebView()) {
-            registerFCM(session.user.id);
-          }
-        });
-      } else {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      setSession(nextSession);
+      const nextUser = nextSession?.user ?? null;
+      // Keep the same object on token refreshes so screens don't reload their data.
+      setUser((prev: any) =>
+        prev && nextUser && prev.id === nextUser.id && event !== 'USER_UPDATED' ? prev : nextUser
+      );
+
+      if (!nextUser) {
+        lastUserId = null;
         setProfile(null);
         setLoading(false);
+        return;
+      }
+
+      // A token refresh for the same user needs no new profile fetch.
+      const userChanged = nextUser.id !== lastUserId;
+      lastUserId = nextUser.id;
+      if (userChanged || event === 'USER_UPDATED') {
+        setTimeout(() => { fetchProfile(nextUser.id); }, 0);
+      }
+
+      // Push / FCM registration once per signed-in user, after the UI is up.
+      if (deviceSetupFor !== nextUser.id) {
+        deviceSetupFor = nextUser.id;
+        setTimeout(() => setupDevice(nextUser.id), 1500);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const setupDevice = (userId: string) => {
+    if (typeof window === 'undefined') return;
+    // Inside the Android / iOS app: native push (shown by the phone even when
+    // the app is closed). Web Push doesn't work inside an app's WebView.
+    if (isNativeApp()) {
+      registerNativePush().catch(() => {});
+      return;
+    }
+    if ('Notification' in window) {
+      import('@/lib/pushNotifications').then(({ requestNotificationPermission, subscribeToPush }) => {
+        requestNotificationPermission().then((permission) => {
+          if (permission === 'granted') subscribeToPush(userId);
+        });
+      }).catch(() => {});
+    }
+    import('@/lib/fcm').then(({ isWebView, registerFCM }) => {
+      if (isWebView()) registerFCM(userId);
+    }).catch(() => {});
+  };
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -90,7 +106,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`profile-realtime-${user.id}`)
+      .channel(rtChannelName(`profile-realtime-${user.id}`))
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'user_profiles', filter: `id=eq.${user.id}` },
@@ -208,6 +224,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Sign Out
   const signOut = async () => {
+    // Stop this phone receiving the account's notifications after sign-out.
+    if (isNativeApp()) await unregisterNativePush();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);

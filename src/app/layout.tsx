@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import NativeAppBridge from '@/components/NativeAppBridge';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -19,7 +20,7 @@ export const metadata: Metadata = {
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon.png', type: 'image/png', sizes: '512x512' },
     ],
-    apple: [{ url: '/apple-icon.png', sizes: '180x180' }],
+    apple: [{ url: '/apple-icon.png?v=3', sizes: '180x180' }],
   },
 };
 
@@ -33,13 +34,13 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="/manifest.json?v=3" />
         <meta name="theme-color" content="#FFFFFF" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="حِرَفي" />
-        <link rel="apple-touch-icon" href="/apple-icon.png" />
+        <link rel="apple-touch-icon" href="/apple-icon.png?v=3" />
         <style dangerouslySetInnerHTML={{ __html: `
           html, body {
             margin: 0;
@@ -66,6 +67,7 @@ export default function RootLayout({
       <body style={{ fontFamily: "'Cairo', sans-serif" }}>
         <ThemeProvider>
           <AuthProvider>
+            <NativeAppBridge />
             {children}
           </AuthProvider>
         </ThemeProvider>

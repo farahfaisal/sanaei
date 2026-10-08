@@ -7,6 +7,8 @@ import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { rtChannelName } from '@/lib/supabase/realtime';
+import { Spinner } from '@/components/ui/Loader';
 
 interface IncomingOrder {
   id: string;
@@ -32,6 +34,30 @@ interface IncomingOrder {
   } | null;
 }
 
+interface MarketJob {
+  id: string;
+  created_at: string;
+  service_type: string | null;
+  category_name: string | null;
+  category_emoji: string | null;
+  description: string | null;
+  city: string | null;
+  urgency: string | null;
+  amount: number | null;
+  scheduled_at: string | null;
+  image_count: number | null;
+  customer_first_name: string | null;
+  is_match: boolean;
+}
+
+type Tab = 'direct' | 'market';
+
+const URGENCY_LABEL: Record<string, string> = {
+  urgent: 'عاجل',
+  normal: 'عادي',
+  scheduled: 'موعد محدد',
+};
+
 const BRAND_GRADIENT = 'linear-gradient(145deg, #2a724d 0%, #2d8a5a 50%, #2a724d 100%)';
 
 export default function IncomingRequestsClient() {
@@ -43,6 +69,69 @@ export default function IncomingRequestsClient() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [craftsmanProfileId, setCraftsmanProfileId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('direct');
+  const [marketJobs, setMarketJobs] = useState<MarketJob[]>([]);
+  const [marketLoading, setMarketLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  // Open the market tab when coming from an "open job" notification.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t === 'market') setTab('market');
+  }, []);
+
+  const loadMarketJobs = useCallback(async () => {
+    setMarketLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('list_open_jobs');
+      if (error) throw error;
+      setMarketJobs((data as MarketJob[]) || []);
+    } catch (err: any) {
+      setActionError(err?.message || 'تعذّر تحميل طلبات السوق');
+    } finally {
+      setMarketLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (authLoading || !user || profile?.role !== 'craftsman') return;
+    loadMarketJobs();
+  }, [user, authLoading, profile, loadMarketJobs]);
+
+  // A new open job arrives as a notification → refresh the market list.
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel(rtChannelName(`market-jobs-${user.id}`))
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}` },
+        (payload: any) => { if (payload?.new?.type === 'open_job') loadMarketJobs(); }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, loadMarketJobs]);
+
+  const handleClaim = async (orderId: string) => {
+    setActionError(null);
+    setActionLoading(orderId + '_claim');
+    try {
+      const { data: conversationId, error } = await supabase.rpc('claim_open_job', { p_order_id: orderId });
+      if (error) throw error;
+      setMarketJobs(prev => prev.filter(j => j.id !== orderId));
+      if (conversationId) {
+        router.push(`/chat?conversation_id=${conversationId}`);
+      } else {
+        router.push(`/order-details?id=${orderId}`);
+      }
+    } catch (err: any) {
+      setActionError(err?.message || 'تعذّر استلام الطلب');
+      loadMarketJobs();
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -56,7 +145,7 @@ export default function IncomingRequestsClient() {
     if (!craftsmanProfileId) return;
 
     const channel = supabase
-      .channel(`incoming-orders-${craftsmanProfileId}`)
+      .channel(rtChannelName(`incoming-orders-${craftsmanProfileId}`))
       .on(
         'postgres_changes',
         {
@@ -120,26 +209,34 @@ export default function IncomingRequestsClient() {
   }, [user]);
 
   const handleAccept = async (orderId: string) => {
+    setActionError(null);
     setActionLoading(orderId + '_accept');
     try {
-      await supabase
+      const { error } = await supabase
         .from('orders')
         .update({ status: 'accepted' })
         .eq('id', orderId);
+      if (error) throw error;
       setOrders(prev => prev.filter(o => o.id !== orderId));
       router.push(`/order-details?id=${orderId}`);
-    } catch { /* ignore */ } finally { setActionLoading(null); }
+    } catch (err: any) {
+      setActionError(err?.message || 'تعذّر قبول الطلب');
+    } finally { setActionLoading(null); }
   };
 
   const handleDecline = async (orderId: string) => {
+    setActionError(null);
     setActionLoading(orderId + '_decline');
     try {
-      await supabase
+      const { error } = await supabase
         .from('orders')
         .update({ status: 'cancelled' })
         .eq('id', orderId);
+      if (error) throw error;
       setOrders(prev => prev.filter(o => o.id !== orderId));
-    } catch { /* ignore */ } finally { setActionLoading(null); }
+    } catch (err: any) {
+      setActionError(err?.message || 'تعذّر رفض الطلب');
+    } finally { setActionLoading(null); }
   };
 
   const formatTimeAgo = (dateStr: string) => {
@@ -156,7 +253,7 @@ export default function IncomingRequestsClient() {
   if (authLoading || loading) {
     return (
       <div className="screen-container flex items-center justify-center" style={{ background: 'var(--background)' }} dir="rtl">
-        <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: '#2a724d', borderTopColor: 'transparent' }} />
+        <Spinner size={48} />
       </div>
     );
   }
@@ -193,7 +290,9 @@ export default function IncomingRequestsClient() {
           >
             <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#4ade80' }} />
             <span className="text-white text-sm font-semibold">
-              {orders.length} طلب جديد ينتظر ردك
+              {tab === 'direct'
+                ? `${orders.length} طلب جديد ينتظر ردك`
+                : `${marketJobs.length} طلب مفتوح في السوق`}
             </span>
           </div>
         </div>
@@ -204,6 +303,59 @@ export default function IncomingRequestsClient() {
         className="relative -mt-5 mx-3 rounded-2xl overflow-hidden"
         style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
       >
+        {/* Tabs */}
+        <div className="flex p-1.5 gap-1.5" style={{ borderBottom: '1px solid var(--border)' }}>
+          {([
+            { key: 'direct', label: 'طلبات لي', count: orders.length },
+            { key: 'market', label: 'طلبات السوق', count: marketJobs.length },
+          ] as { key: Tab; label: string; count: number }[]).map(t => (
+            <button
+              key={t.key}
+              onClick={() => { setTab(t.key); setActionError(null); if (t.key === 'market') loadMarketJobs(); }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-bold transition-all"
+              style={tab === t.key
+                ? { background: '#2a724d', color: '#fff' }
+                : { background: 'transparent', color: 'var(--muted-foreground)' }}
+            >
+              {t.label}
+              {t.count > 0 && (
+                <span
+                  className="min-w-[20px] h-5 px-1.5 rounded-full text-xs flex items-center justify-center"
+                  style={tab === t.key
+                    ? { background: 'rgba(255,255,255,0.25)', color: '#fff' }
+                    : { background: 'var(--muted)', color: 'var(--foreground)' }}
+                >
+                  {t.count}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        {actionError && (
+          <div
+            className="mx-3 mt-3 px-3 py-2.5 rounded-xl text-sm flex items-start gap-2"
+            style={{ background: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.25)', color: '#dc2626' }}
+          >
+            <Icon name="ExclamationTriangleIcon" size={16} className="flex-shrink-0 mt-0.5" />
+            <span className="flex-1">{actionError}</span>
+            <button onClick={() => setActionError(null)} aria-label="إغلاق">
+              <Icon name="XMarkIcon" size={14} />
+            </button>
+          </div>
+        )}
+
+        {tab === 'market' ? (
+          <MarketList
+            jobs={marketJobs}
+            loading={marketLoading}
+            actionLoading={actionLoading}
+            onRefresh={loadMarketJobs}
+            onClaim={handleClaim}
+            formatTimeAgo={formatTimeAgo}
+          />
+        ) : (
+        <>
         {/* Section header */}
         <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center gap-2">
@@ -421,9 +573,183 @@ export default function IncomingRequestsClient() {
             })
           )}
         </div>
+        </>
+        )}
       </div>
 
       <BottomTabBar activeTab="orders" />
     </div>
+  );
+}
+
+interface MarketListProps {
+  jobs: MarketJob[];
+  loading: boolean;
+  actionLoading: string | null;
+  onRefresh: () => void;
+  onClaim: (orderId: string) => void;
+  formatTimeAgo: (dateStr: string) => string;
+}
+
+function MarketList({ jobs, loading, actionLoading, onRefresh, onClaim, formatTimeAgo }: MarketListProps) {
+  return (
+    <>
+      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#0891b2' }} />
+          <span className="font-bold text-sm" style={{ color: 'var(--foreground)' }}>
+            أول من يستلم الطلب يحصل عليه
+          </span>
+        </div>
+        <button
+          onClick={onRefresh}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+          style={{ background: 'var(--muted)', color: 'var(--muted-foreground)' }}
+        >
+          <Icon name="ArrowPathIcon" size={12} />
+          تحديث
+        </button>
+      </div>
+
+      <div className="p-3 pb-28 flex flex-col gap-3" style={{ minHeight: '300px' }}>
+        {loading && jobs.length === 0 ? (
+          <div className="flex items-center justify-center py-16">
+            <Spinner size={40} />
+          </div>
+        ) : jobs.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'var(--muted)' }}>
+              <Icon name="MegaphoneIcon" size={36} style={{ color: 'var(--muted-foreground)' }} />
+            </div>
+            <div className="text-center">
+              <p className="font-bold text-base mb-1" style={{ color: 'var(--foreground)' }}>
+                لا توجد طلبات مفتوحة الآن
+              </p>
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>
+                سيصلك إشعار فور نشر عميل طلباً يناسب تخصصك
+              </p>
+            </div>
+          </div>
+        ) : (
+          jobs.map(job => {
+            const isClaiming = actionLoading === job.id + '_claim';
+            const title = job.service_type || job.category_name || 'خدمة عامة';
+            const urgency = job.urgency ? (URGENCY_LABEL[job.urgency] || job.urgency) : null;
+            const isUrgent = job.urgency === 'urgent';
+            return (
+              <div
+                key={job.id}
+                className="rounded-2xl overflow-hidden"
+                style={{
+                  background: 'var(--background)',
+                  border: job.is_match ? '1.5px solid rgba(42,114,77,0.45)' : '1.5px solid var(--border)',
+                  boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+                }}
+              >
+                <div
+                  className="flex items-center justify-between px-4 py-1.5"
+                  style={{ background: 'rgba(8,145,178,0.07)', borderBottom: '1px solid rgba(8,145,178,0.12)' }}
+                >
+                  <div className="flex items-center gap-1.5">
+                    {job.is_match ? (
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: '#2a724d', color: '#fff' }}>
+                        مناسب لتخصصك
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold" style={{ color: '#0891b2' }}>طلب مفتوح</span>
+                    )}
+                    {urgency && (
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={isUrgent
+                          ? { background: 'rgba(220,38,38,0.12)', color: '#dc2626' }
+                          : { background: 'var(--muted)', color: 'var(--muted-foreground)' }}
+                      >
+                        {urgency}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>
+                    {formatTimeAgo(job.created_at)}
+                  </span>
+                </div>
+
+                <div className="p-4 flex flex-col gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl flex-shrink-0" style={{ background: 'var(--muted)' }}>
+                      {job.category_emoji || '🔧'}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-base truncate" style={{ color: 'var(--foreground)' }}>{title}</p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>
+                        {job.customer_first_name ? `العميل: ${job.customer_first_name}` : 'عميل'}
+                        {job.category_name && job.category_name !== title ? ` · ${job.category_name}` : ''}
+                      </p>
+                    </div>
+                    {job.amount != null && Number(job.amount) > 0 && (
+                      <div
+                        className="flex flex-col items-end flex-shrink-0 px-3 py-1.5 rounded-xl"
+                        style={{ background: 'rgba(42,114,77,0.1)', border: '1px solid rgba(42,114,77,0.2)' }}
+                      >
+                        <span className="text-xs font-semibold" style={{ color: '#2a724d' }}>الميزانية</span>
+                        <span className="text-base font-bold" style={{ color: '#2a724d' }}>
+                          {Number(job.amount).toLocaleString('ar-SA')} ر.س
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {job.description && (
+                    <p
+                      className="text-sm leading-relaxed px-3 py-2.5 rounded-xl"
+                      style={{ background: 'var(--muted)', color: 'var(--foreground)' }}
+                    >
+                      {job.description}
+                    </p>
+                  )}
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm" style={{ color: 'var(--foreground)' }}>
+                    {job.city && (
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="MapPinIcon" size={14} style={{ color: '#ef4444' }} />
+                        {job.city}
+                      </span>
+                    )}
+                    {job.scheduled_at && (
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="CalendarDaysIcon" size={14} style={{ color: '#0891b2' }} />
+                        {new Date(job.scheduled_at).toLocaleDateString('ar-SA', { weekday: 'short', day: 'numeric', month: 'short' })}
+                      </span>
+                    )}
+                    {!!job.image_count && job.image_count > 0 && (
+                      <span className="flex items-center gap-1.5">
+                        <Icon name="PhotoIcon" size={14} style={{ color: 'var(--muted-foreground)' }} />
+                        {job.image_count} صور
+                      </span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => onClaim(job.id)}
+                    disabled={!!actionLoading}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 disabled:opacity-50"
+                    style={{ background: '#2a724d', color: '#fff', boxShadow: '0 4px 14px rgba(42,114,77,0.35)' }}
+                  >
+                    {isClaiming ? (
+                      <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: '#fff', borderTopColor: 'transparent' }} />
+                    ) : (
+                      <>
+                        <Icon name="HandRaisedIcon" size={16} />
+                        استلام الطلب وإرسال عرض سعر
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </>
   );
 }
