@@ -82,7 +82,23 @@ export default function SearchClient() {
 
   useEffect(() => {
     loadData();
+    // Filters passed from the home screen ("عرض الكل"): ?q= ?sort= ?category=
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get('q');
+    const sort = params.get('sort');
+    if (q) setSearchQuery(q);
+    if (sort && SORT_OPTIONS.some((o) => o.value === sort)) setSortBy(sort);
+    if (params.get('online') === '1') setOnlineOnly(true);
   }, []);
+
+  // ?category= may be a category id or slug; resolve it once categories load.
+  useEffect(() => {
+    if (!categories.length) return;
+    const wanted = new URLSearchParams(window.location.search).get('category');
+    if (!wanted) return;
+    const match = categories.find((c) => c.id === wanted || c.slug === wanted);
+    if (match) setSelectedCategory(match.id);
+  }, [categories]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -127,7 +143,10 @@ export default function SearchClient() {
         const cat = categories.find((c2) => c2.id === selectedCategory);
         if (cat) {
           const spec = (c.specialty || '').toLowerCase();
-          if (!spec.includes(cat.name.toLowerCase()) && !spec.includes(cat.slug.toLowerCase())) return false;
+          const name = cat.name.toLowerCase();
+          // Rough Arabic stem so «كهرباء» also finds «كهربائي», «سباكة» finds «سباك».
+          const stem = name.length > 3 ? name.slice(0, -1) : name;
+          if (!spec.includes(name) && !spec.includes(stem) && !(cat.slug && spec.includes(cat.slug.toLowerCase()))) return false;
         }
       }
 

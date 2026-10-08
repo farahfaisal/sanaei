@@ -217,8 +217,16 @@ export default function HomeScreenClient() {
         if (!name.includes(q) && !spec.includes(q)) return false;
       }
       // Category filter
+      // Category chip (stores the category id; match on its name, with a rough
+      // Arabic stem so «كهرباء» also finds «كهربائي»)
       if (activeCategory) {
-        if (!c.specialty?.includes(activeCategory)) return false;
+        const cat = categories.find((x) => x.id === activeCategory);
+        if (cat) {
+          const spec = (c.specialty || '').toLowerCase();
+          const name = cat.name.toLowerCase();
+          const stem = name.length > 3 ? name.slice(0, -1) : name;
+          if (!spec.includes(name) && !spec.includes(stem) && !(cat.slug && spec.includes(cat.slug.toLowerCase()))) return false;
+        }
       }
       // Specialty filter from filter panel
       if (selectedSpecialty) {
@@ -501,7 +509,7 @@ export default function HomeScreenClient() {
         {/* Nearby Craftsmen */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-primary text-sm font-semibold">عرض الكل</button>
+            <Link href="/search?sort=online" className="text-primary text-sm font-semibold">عرض الكل</Link>
             <h2 className="text-base font-bold text-gray-900">أفضل الحرفيين بالقرب منك</h2>
           </div>
 
@@ -636,7 +644,7 @@ export default function HomeScreenClient() {
         {/* ── CATEGORIES ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
+            <Link href="/search" className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</Link>
             <h2 className="text-base font-bold text-gray-800">تصفح الخدمات</h2>
           </div>
 
@@ -778,7 +786,13 @@ export default function HomeScreenClient() {
         {/* ── TOP CRAFTSMEN ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
+            <Link
+              href={`/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+              className="text-xs font-semibold"
+              style={{ color: PRIMARY }}
+            >
+              عرض الكل
+            </Link>
             <h2 className="text-base font-bold text-gray-800">
               {searchQuery || activeFiltersCount > 0 ? `نتائج البحث (${filteredCraftsmen.length})` : 'أفضل الحِرَفيين'}
             </h2>
