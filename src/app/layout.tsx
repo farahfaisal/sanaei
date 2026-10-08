@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from 'next';
 import '../styles/tailwind.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
+import NativeAppBridge from '@/components/NativeAppBridge';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -66,6 +67,7 @@ export default function RootLayout({
       <body style={{ fontFamily: "'Cairo', sans-serif" }}>
         <ThemeProvider>
           <AuthProvider>
+            <NativeAppBridge />
             {children}
           </AuthProvider>
         </ThemeProvider>

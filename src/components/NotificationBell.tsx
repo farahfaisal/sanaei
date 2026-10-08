@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import Icon from '@/components/ui/AppIcon';
 import { subscribeToPush, isPushSubscribed, getNotificationPermission } from '@/lib/pushNotifications';
+import { isNativeApp, nativePushPermission, registerNativePush } from '@/lib/nativeApp';
 import { rtChannelName } from '@/lib/supabase/realtime';
 
 interface Notification {
@@ -82,6 +83,12 @@ export default function NotificationBell() {
   };
 
   const checkPushStatus = async () => {
+    if (isNativeApp()) {
+      const native = await nativePushPermission();
+      setPushDenied(native === 'denied');
+      setPushEnabled(native === 'granted');
+      return;
+    }
     const permission = getNotificationPermission();
     if (permission === 'denied') {
       setPushDenied(true);
@@ -96,6 +103,13 @@ export default function NotificationBell() {
   const handleEnablePush = async () => {
     if (!user) return;
     setPushLoading(true);
+    if (isNativeApp()) {
+      const ok = await registerNativePush();
+      setPushEnabled(ok);
+      if (!ok) setPushDenied((await nativePushPermission()) === 'denied');
+      setPushLoading(false);
+      return;
+    }
     const ok = await subscribeToPush(user.id);
     setPushEnabled(ok);
     if (!ok) {
@@ -147,6 +161,8 @@ export default function NotificationBell() {
       case 'quote_received': return '💰';
       case 'quote_modification': return '🔄';
       case 'broadcast': return '📣';
+      case 'open_job': return '📢';
+      case 'order_claimed': return '🙌';
       case 'order_status': return '📦';
       default: return '💬';
     }

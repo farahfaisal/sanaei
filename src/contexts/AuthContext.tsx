@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { isNativeApp, registerNativePush, unregisterNativePush } from '@/lib/nativeApp';
 import { rtChannelName } from '@/lib/supabase/realtime';
 
 const AuthContext = createContext<any>({});
@@ -68,6 +69,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setupDevice = (userId: string) => {
     if (typeof window === 'undefined') return;
+    // Inside the Android / iOS app: native push (shown by the phone even when
+    // the app is closed). Web Push doesn't work inside an app's WebView.
+    if (isNativeApp()) {
+      registerNativePush().catch(() => {});
+      return;
+    }
     if ('Notification' in window) {
       import('@/lib/pushNotifications').then(({ requestNotificationPermission, subscribeToPush }) => {
         requestNotificationPermission().then((permission) => {
@@ -217,6 +224,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Sign Out
   const signOut = async () => {
+    // Stop this phone receiving the account's notifications after sign-out.
+    if (isNativeApp()) await unregisterNativePush();
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
     setProfile(null);

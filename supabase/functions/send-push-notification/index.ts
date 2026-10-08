@@ -98,12 +98,19 @@ async function sendFCMNotification(
           sound: "default",
           // Keep this id: the Android app creates the notification channel with it.
           channel_id: "sanaei_notifications",
-          click_action: "FLUTTER_NOTIFICATION_CLICK",
+          // Heads-up banner. No click_action: a tap opens the app, and the app
+          // reads data.url to open the right screen.
+          notification_priority: "PRIORITY_HIGH",
+          default_vibrate_timings: true,
           ...(tag ? { tag } : {}),
         },
       },
       apns: {
-        headers: tag ? { "apns-collapse-id": tag.slice(0, 64) } : {},
+        headers: {
+          "apns-priority": "10",
+          "apns-push-type": "alert",
+          ...(tag ? { "apns-collapse-id": tag.slice(0, 64) } : {}),
+        },
         payload: {
           aps: {
             sound: "default",

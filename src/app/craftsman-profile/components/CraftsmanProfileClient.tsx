@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import RequestServiceModal from './RequestServiceModal';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Spinner } from '@/components/ui/Loader';
+import { unregisterNativePush } from '@/lib/nativeApp';
 
 interface CraftsmanData {
   id: string;
@@ -536,6 +537,7 @@ export default function CraftsmanProfileClient() {
   };
 
   const handleSignOut = async () => {
+    await unregisterNativePush();
     await supabase.auth.signOut();
     router.replace('/phone-login-otp-verification');
   };
