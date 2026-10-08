@@ -94,8 +94,12 @@ export default function CreateJobClient() {
         scheduledAt: urgency === 'scheduled' ? scheduledAt : undefined,
       });
 
-      if (!result) {
-        setError('حدث خطأ أثناء إنشاء الطلب. حاول مجدداً.');
+      if (!result || 'error' in result) {
+        setError(
+          result && 'error' in result
+            ? `تعذّر إنشاء الطلب: ${result.error}`
+            : 'حدث خطأ أثناء إنشاء الطلب. حاول مجدداً.'
+        );
       } else {
         setCreatedJobId(result.id);
         setSuccess(true);
