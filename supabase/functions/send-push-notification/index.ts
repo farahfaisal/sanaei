@@ -86,7 +86,7 @@ async function sendFCMNotification(
   projectId: string,
   accessToken: string,
   tag?: string
-): Promise<{ success: boolean; expired: boolean }> {
+): Promise<{ success: boolean; expired: boolean; error?: string }> {
   const message = {
     message: {
       token: fcmToken,
@@ -137,12 +137,15 @@ async function sendFCMNotification(
 
   const errBody = await res.json().catch(() => ({}));
   const errCode = errBody?.error?.details?.[0]?.errorCode || "";
+  const errMessage: string = errBody?.error?.message || `HTTP ${res.status}`;
+  // Only drop the token when Firebase says the token itself is dead — not for
+  // other errors (a payload problem must not wipe every phone's token).
   const expired =
     errCode === "UNREGISTERED" ||
-    errCode === "INVALID_ARGUMENT" ||
-    res.status === 404;
+    res.status === 404 ||
+    (errCode === "INVALID_ARGUMENT" && /registration token/i.test(errMessage));
 
-  return { success: false, expired };
+  return { success: false, expired, error: `${errCode || res.status}: ${errMessage}` };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -367,6 +370,7 @@ Deno.serve(async (req: Request) => {
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY") || "";
 
     let totalSent = 0;
+    const fcmErrors: string[] = [];
 
     // ── FCM path (WebView / native apps) ──────────────────────────────────────
     if (fcmServiceAccountJson && fcmProjectId) {
@@ -386,8 +390,12 @@ Deno.serve(async (req: Request) => {
         let accessToken: string;
         try {
           accessToken = await getGoogleAccessToken(fcmServiceAccountJson);
-        } catch {
+        } catch (e) {
           accessToken = "";
+          fcmErrors.push(`Google sign-in failed (check FCM_SERVICE_ACCOUNT_JSON): ${String(e)}`);
+        }
+        if (!accessToken && fcmErrors.length === 0) {
+          fcmErrors.push("Google sign-in failed (check FCM_SERVICE_ACCOUNT_JSON)");
         }
 
         if (accessToken) {
@@ -407,12 +415,13 @@ Deno.serve(async (req: Request) => {
               fcmProjectId,
               accessToken,
               tag || undefined
-            ).catch(() => ({ success: false, expired: false }));
+            ).catch((e) => ({ success: false, expired: false, error: String(e) }));
 
             if (result.success) {
               totalSent++;
-            } else if (result.expired) {
-              expiredFcmIds.push(row.id);
+            } else {
+              if (result.expired) expiredFcmIds.push(row.id);
+              if (result.error) fcmErrors.push(result.error);
             }
           }
 
@@ -496,7 +505,11 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    return new Response(JSON.stringify({ sent: totalSent }), {
+    return new Response(JSON.stringify({
+      sent: totalSent,
+      fcmConfigured: !!(fcmServiceAccountJson && fcmProjectId),
+      ...(fcmErrors.length ? { fcmErrors: fcmErrors.slice(0, 3) } : {}),
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
