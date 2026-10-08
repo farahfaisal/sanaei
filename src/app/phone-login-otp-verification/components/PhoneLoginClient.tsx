@@ -268,8 +268,7 @@ export default function PhoneLoginClient() {
               </div>
               <h2 className="text-xl font-bold text-gray-900 mb-2">تحقق من رقم جوالك</h2>
               <p className="text-sm text-gray-500 mb-1">
-                أدخل الرمز المرسل إلى{' '}
-                <span className="font-semibold text-gray-800 font-tabular">{maskedPhone}</span>
+                أدخل أي رمز مكون من 6 أرقام للمتابعة
               </p>
               <button
                 onClick={() => setStep('phone')}

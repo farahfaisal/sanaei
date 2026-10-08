@@ -122,8 +122,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Phone-based Sign In — Step 1: skip real SMS, just proceed
   const sendOtp = async (phone: string) => {
-    // OTP bypass: no real SMS sent — any code will be accepted
-    return {};
+    // BYPASS: Never call Supabase phone provider — no SMS sent.
+    // Any OTP code entered by the user will be accepted in verifyOtp.
+    return { success: true };
   };
 
   // Phone OTP Sign In - Step 2: accept any OTP code (bypass verification)
