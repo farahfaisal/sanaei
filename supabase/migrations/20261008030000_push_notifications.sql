@@ -12,6 +12,7 @@
 -- One-time setup (see the instructions that come with this file):
 --   select vault.create_secret('https://<project>.supabase.co', 'project_url');
 --   select vault.create_secret('<service_role key>', 'service_role_key');
+--   (optional) select vault.create_secret('<function name>', 'push_function_name');
 -- Until those secrets exist, notifications are still saved in-app; pushes are skipped.
 -- ============================================================
 
@@ -36,17 +37,20 @@ AS $$
 DECLARE
     v_project_url TEXT;
     v_service_key TEXT;
+    v_function TEXT;
 BEGIN
     IF p_user_id IS NULL THEN RETURN; END IF;
 
     SELECT decrypted_secret INTO v_project_url FROM vault.decrypted_secrets WHERE name = 'project_url' LIMIT 1;
     SELECT decrypted_secret INTO v_service_key FROM vault.decrypted_secrets WHERE name = 'service_role_key' LIMIT 1;
+    -- Optional: the Edge Function's name if it was deployed under another name.
+    SELECT decrypted_secret INTO v_function FROM vault.decrypted_secrets WHERE name = 'push_function_name' LIMIT 1;
     IF v_project_url IS NULL OR v_service_key IS NULL THEN
         RETURN; -- push not configured yet; the in-app notification still exists
     END IF;
 
     PERFORM net.http_post(
-        url := rtrim(v_project_url, '/') || '/functions/v1/send-push-notification',
+        url := rtrim(v_project_url, '/') || '/functions/v1/' || COALESCE(NULLIF(trim(v_function), ''), 'send-push-notification'),
         headers := jsonb_build_object(
             'Content-Type', 'application/json',
             'Authorization', 'Bearer ' || v_service_key
