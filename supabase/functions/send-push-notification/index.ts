@@ -273,6 +273,53 @@ async function sendWebPush(
 // Web Push — END
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Auth: accept only the project's service_role key
+// ─────────────────────────────────────────────────────────────────────────────
+
+function decodeJwtPart(part: string): Record<string, unknown> | null {
+  try {
+    const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(b64 + "=".repeat((4 - (b64.length % 4)) % 4)));
+  } catch {
+    return null;
+  }
+}
+
+async function verifyHs256(token: string, secret: string): Promise<boolean> {
+  const [h, p, sig] = token.split(".");
+  if (!h || !p || !sig) return false;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  const sigBytes = Uint8Array.from(atob(sig.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (sig.length % 4)) % 4)), (c) => c.charCodeAt(0));
+  return crypto.subtle.verify("HMAC", key, sigBytes, new TextEncoder().encode(`${h}.${p}`));
+}
+
+/**
+ * True when the request carries this project's service_role key.
+ * 1. Exact match with the key Supabase injects into the function, or
+ * 2. A service_role JWT for this project. Its signature is checked with
+ *    SUPABASE_JWT_SECRET when available; otherwise we rely on the platform's
+ *    "Verify JWT" check (keep it ON for this function).
+ */
+async function isServiceRoleRequest(bearer: string): Promise<boolean> {
+  if (!bearer) return false;
+  const envKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  if (envKey && bearer === envKey) return true;
+
+  const parts = bearer.split(".");
+  if (parts.length !== 3) return false;
+  const payload = decodeJwtPart(parts[1]);
+  if (!payload || payload.role !== "service_role") return false;
+
+  const projectRef = (Deno.env.get("SUPABASE_URL") || "").match(/https:\/\/([^.]+)\./)?.[1];
+  if (projectRef && payload.ref && payload.ref !== projectRef) return false;
+  if (typeof payload.exp === "number" && payload.exp * 1000 < Date.now()) return false;
+
+  const jwtSecret = Deno.env.get("SUPABASE_JWT_SECRET") || Deno.env.get("JWT_SECRET") || "";
+  if (jwtSecret) return verifyHs256(bearer, jwtSecret);
+  return true;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main handler
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -282,9 +329,8 @@ Deno.serve(async (req: Request) => {
   }
 
   // Only the database (service role) may send pushes.
-  const serviceRoleKeyEnv = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
   const bearer = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
-  if (!serviceRoleKeyEnv || bearer !== serviceRoleKeyEnv) {
+  if (!(await isServiceRoleRequest(bearer))) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {
       status: 401,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
