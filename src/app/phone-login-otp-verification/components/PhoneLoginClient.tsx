@@ -254,30 +254,6 @@ export default function PhoneLoginClient() {
               {isLoading ? 'جاري الإرسال...' : 'إرسال رمز التحقق'}
             </button>
 
-            {/* Demo accounts */}
-            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-5 h-5 rounded-full bg-yellow-500 flex items-center justify-center flex-shrink-0">
-                  <span className="text-white text-xs font-bold">!</span>
-                </div>
-                <span className="text-xs font-semibold text-gray-700">أرقام تجريبية</span>
-              </div>
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-500 font-tabular">+970599000001</span>
-                  <span className="text-xs text-gray-500">زبون: </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-primary font-tabular font-semibold">+970599000002</span>
-                  <span className="text-xs text-gray-500">حِرَفي: </span>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-gray-200">
-                  <span className="text-xs font-bold text-primary font-tabular">123456</span>
-                  <span className="text-xs text-gray-500">رمز التحقق: </span>
-                </div>
-              </div>
-            </div>
-
             <p className="text-center text-xs text-gray-400 mt-4 flex items-center justify-center gap-1">
               <Icon name="LockClosedIcon" size={12} className="text-gray-400" />
               الدخول برقم جوالك ورمز التحقق فقط — بدون كلمات مرور
