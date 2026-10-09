@@ -217,8 +217,16 @@ export default function HomeScreenClient() {
         if (!name.includes(q) && !spec.includes(q)) return false;
       }
       // Category filter
+      // Category chip (stores the category id; match on its name, with a rough
+      // Arabic stem so «كهرباء» also finds «كهربائي»)
       if (activeCategory) {
-        if (!c.specialty?.includes(activeCategory)) return false;
+        const cat = categories.find((x) => x.id === activeCategory);
+        if (cat) {
+          const spec = (c.specialty || '').toLowerCase();
+          const name = cat.name.toLowerCase();
+          const stem = name.length > 3 ? name.slice(0, -1) : name;
+          if (!spec.includes(name) && !spec.includes(stem) && !(cat.slug && spec.includes(cat.slug.toLowerCase()))) return false;
+        }
       }
       // Specialty filter from filter panel
       if (selectedSpecialty) {
@@ -481,6 +489,40 @@ export default function HomeScreenClient() {
                 الكل
               </button>
             </div>
+            <div className="relative w-20 h-20 flex-shrink-0 mr-3">
+              <div className="w-full h-full rounded-xl overflow-hidden">
+                <AppImage
+                  src="https://img.rocket.new/generatedImages/rocket_gen_img_1122596dd-1785829864899.png"
+                  alt="فني تكييف يعمل على وحدة تكييف"
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="absolute -top-2 -right-2 w-9 h-9 bg-yellow-500 rounded-full flex items-center justify-center shadow-md">
+                <span className="text-white text-xs font-black">20%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Nearby Craftsmen */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <Link href="/search?sort=online" className="text-primary text-sm font-semibold">عرض الكل</Link>
+            <h2 className="text-base font-bold text-gray-900">أفضل الحرفيين بالقرب منك</h2>
+          </div>
+
+          {isLoading ? (
+            <div className="flex flex-col gap-3">
+              {[1,2,3].map((i) => (
+                <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : filteredCraftsmen.length === 0 ? (
+            <div className="text-center py-8 text-gray-400 text-sm">
+              لا يوجد حرفيون متاحون حالياً
+            </div>
           </div>
 
           {/* Distance Radius */}
@@ -602,7 +644,7 @@ export default function HomeScreenClient() {
         {/* ── CATEGORIES ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
+            <Link href="/search" className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</Link>
             <h2 className="text-base font-bold text-gray-800">تصفح الخدمات</h2>
           </div>
 
@@ -744,7 +786,13 @@ export default function HomeScreenClient() {
         {/* ── TOP CRAFTSMEN ── */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <button className="text-xs font-semibold" style={{ color: PRIMARY }}>عرض الكل</button>
+            <Link
+              href={`/search${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+              className="text-xs font-semibold"
+              style={{ color: PRIMARY }}
+            >
+              عرض الكل
+            </Link>
             <h2 className="text-base font-bold text-gray-800">
               {searchQuery || activeFiltersCount > 0 ? `نتائج البحث (${filteredCraftsmen.length})` : 'أفضل الحِرَفيين'}
             </h2>

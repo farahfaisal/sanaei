@@ -33,14 +33,20 @@ export default function BroadcastTab() {
         p_body: message.trim(),
         p_role: null,
       });
-      if (rpcErr) throw new Error(rpcErr.message);
+      if (rpcErr) {
+        const detail = [rpcErr.message, rpcErr.details, rpcErr.hint, rpcErr.code && `(${rpcErr.code})`]
+          .filter(Boolean)
+          .join(' — ');
+        throw new Error(detail || 'تعذّر الإرسال');
+      }
 
       const sent = typeof count === 'number' ? count : 0;
       setResult({ sent, total: sent, failed: 0 });
       setTitle('');
       setMessage('');
     } catch (err: any) {
-      setError(err?.message || 'حدث خطأ أثناء الإرسال');
+      console.error('broadcast_notification failed:', err);
+      setError(err?.message || String(err) || 'حدث خطأ أثناء الإرسال');
     } finally {
       setIsSending(false);
     }

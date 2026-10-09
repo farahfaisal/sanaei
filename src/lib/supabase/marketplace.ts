@@ -136,7 +136,7 @@ export async function createJob(payload: CreateJobPayload): Promise<{ id: string
 export async function createOpenJob(
   customerId: string,
   payload: CreateOpenJobPayload
-): Promise<{ id: string } | null> {
+): Promise<{ id: string } | { error: string } | null> {
   const supabase = createClient();
 
   const { data, error } = await supabase
@@ -164,8 +164,9 @@ export async function createOpenJob(
     .single();
 
   if (error) {
-    console.error('createOpenJob error:', error.message);
-    return null;
+    console.error('createOpenJob error:', error);
+    // Surface the database's reason so it can be seen (and reported) on screen.
+    return { error: [error.message, error.details, error.code && `(${error.code})`].filter(Boolean).join(' — ') };
   }
 
   return { id: data.id };
