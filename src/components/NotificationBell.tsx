@@ -150,14 +150,12 @@ export default function NotificationBell() {
     switch (type) {
       case 'new_order': return '🔔';
       case 'order_assigned': return '📋';
-      case 'order_accepted':
-      case 'quote_accepted': return '✅';
+      case 'order_accepted': case'quote_accepted': return '✅';
       case 'order_paid': return '💳';
       case 'order_in_progress': return '🔧';
       case 'order_progress': return '🚗';
       case 'order_completed': return '🎉';
-      case 'order_cancelled':
-      case 'quote_rejected': return '❌';
+      case 'order_cancelled': case'quote_rejected': return '❌';
       case 'quote_received': return '💰';
       case 'quote_modification': return '🔄';
       case 'broadcast': return '📣';

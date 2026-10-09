@@ -1083,107 +1083,107 @@ export default function CraftsmanProfileClient() {
                       <p className="text-white text-xs font-medium truncate">{item.label}</p>
                     </div>
                   )}
-                </>
-              )}
-
-              {/* Reviews Tab */}
-              {activeTab === 'reviews' && (
-                <>
-                  {reviews.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
-                      <span className="text-3xl mb-2">⭐</span>
-                      <p className="text-sm">لا توجد تقييمات بعد</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {/* Rating Summary */}
-                      <div className="flex items-center gap-4 p-3 bg-primary/10 rounded-xl border border-primary/20 mb-4">
-                        <div className="text-center">
-                          <p className="text-3xl font-bold text-primary font-tabular">{craftsman?.rating ?? 0}</p>
-                          <div className="flex gap-0.5 justify-center mt-1">
-                            {[1, 2, 3, 4, 5].map((i) => (
-                              <Icon
-                                key={i}
-                                name="StarIcon"
-                                size={12}
-                                variant="solid"
-                                className={i <= Math.round(Number(craftsman?.rating ?? 0)) ? 'text-yellow-500' : 'text-gray-200'}
-                              />
-                            ))}
-                          </div>
-                          <p className="text-xs text-gray-400 mt-0.5">{craftsman?.total_reviews} تقييم</p>
-                        </div>
-                        <div className="flex-1 space-y-1">
-                          {[5, 4, 3, 2, 1].map((star) => {
-                            const count = reviews.filter((r) => r.rating === star).length;
-                            const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
-                            return (
-                              <div key={star} className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500 w-3 font-tabular">{star}</span>
-                                <Icon name="StarIcon" size={10} variant="solid" className="text-yellow-400 flex-shrink-0" />
-                                <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                  <div
-                                    className="h-full bg-yellow-400 rounded-full transition-all"
-                                    style={{ width: `${pct}%` }}
-                                  />
-                                </div>
-                                <span className="text-xs text-gray-400 w-4 font-tabular">{count}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Individual Reviews */}
-                      {reviews.map((review) => (
-                        <div key={review.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                          <div className="flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                              {review.customer?.avatar_url ? (
-                                <AppImage
-                                  src={review.customer.avatar_url}
-                                  alt={`صورة ${review.customer.full_name}`}
-                                  width={36}
-                                  height={36}
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <Icon name="UserCircleIcon" size={22} className="text-gray-400" />
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <p className="text-sm font-bold text-gray-900 truncate">
-                                  {review.customer?.full_name || 'عميل'}
-                                </p>
-                                <span className="text-xs text-gray-400 flex-shrink-0 mr-2">
-                                  {new Date(review.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </span>
-                              </div>
-                              <div className="flex gap-0.5 mb-1.5">
-                                {[1, 2, 3, 4, 5].map((i) => (
-                                  <Icon
-                                    key={i}
-                                    name="StarIcon"
-                                    size={12}
-                                    variant="solid"
-                                    className={i <= review.rating ? 'text-yellow-500' : 'text-gray-200'}
-                                  />
-                                ))}
-                              </div>
-                              {review.comment && (
-                                <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              )}
+                </div>
+              ))}
             </div>
           </div>
+        )}
+
+        {/* Reviews Tab */}
+        {activeTab === 'reviews' && (
+          <>
+            {reviews.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                <span className="text-3xl mb-2">⭐</span>
+                <p className="text-sm">لا توجد تقييمات بعد</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Rating Summary */}
+                <div className="flex items-center gap-4 p-3 bg-primary/10 rounded-xl border border-primary/20 mb-4">
+                  <div className="text-center">
+                    <p className="text-3xl font-bold text-primary font-tabular">{craftsman?.rating ?? 0}</p>
+                    <div className="flex gap-0.5 justify-center mt-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Icon
+                          key={i}
+                          name="StarIcon"
+                          size={12}
+                          variant="solid"
+                          className={i <= Math.round(Number(craftsman?.rating ?? 0)) ? 'text-yellow-500' : 'text-gray-200'}
+                        />
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-0.5">{craftsman?.total_reviews} تقييم</p>
+                  </div>
+                  <div className="flex-1 space-y-1">
+                    {[5, 4, 3, 2, 1].map((star) => {
+                      const count = reviews.filter((r) => r.rating === star).length;
+                      const pct = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                      return (
+                        <div key={star} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 w-3 font-tabular">{star}</span>
+                          <Icon name="StarIcon" size={10} variant="solid" className="text-yellow-400 flex-shrink-0" />
+                          <div className="flex-1 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-yellow-400 rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-400 w-4 font-tabular">{count}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Individual Reviews */}
+                {reviews.map((review) => (
+                  <div key={review.id} className="border-b border-gray-50 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
+                        {review.customer?.avatar_url ? (
+                          <AppImage
+                            src={review.customer.avatar_url}
+                            alt={`صورة ${review.customer.full_name}`}
+                            width={36}
+                            height={36}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Icon name="UserCircleIcon" size={22} className="text-gray-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="text-sm font-bold text-gray-900 truncate">
+                            {review.customer?.full_name || 'عميل'}
+                          </p>
+                          <span className="text-xs text-gray-400 flex-shrink-0 mr-2">
+                            {new Date(review.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                          </span>
+                        </div>
+                        <div className="flex gap-0.5 mb-1.5">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <Icon
+                              key={i}
+                              name="StarIcon"
+                              size={12}
+                              variant="solid"
+                              className={i <= review.rating ? 'text-yellow-500' : 'text-gray-200'}
+                            />
+                          ))}
+                        </div>
+                        {review.comment && (
+                          <p className="text-sm text-gray-600 leading-relaxed">{review.comment}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
 
         {/* Achievements */}
