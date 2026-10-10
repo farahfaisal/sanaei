@@ -551,7 +551,7 @@ export default function ChatClient() {
           <div className="rounded-2xl p-4 text-center" style={{ background: '#dcf8c6', border: '1px solid #b7e4a0' }}>
             <p className="text-sm text-gray-600 mb-1">المبلغ المطلوب</p>
             <p className="text-3xl font-black" style={{ color: '#075E54' }}>
-              {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ر.س
+              {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ₪
             </p>
             <p className="text-xs text-gray-500 mt-1">سيتم الاحتفاظ بالمبلغ لدى الإدارة حتى إتمام الخدمة</p>
           </div>
@@ -658,7 +658,7 @@ export default function ChatClient() {
           <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid #25D366' }}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-bold" style={{ color: '#075E54' }}>💰 عرض سعر جديد</p>
-              <p className="text-lg font-black" style={{ color: '#075E54' }}>{activeQuote.amount.toLocaleString('ar-SA')} ر.س</p>
+              <p className="text-lg font-black" style={{ color: '#075E54' }}>{activeQuote.amount.toLocaleString('ar-SA')} ₪</p>
             </div>
             {activeQuote.description && <p className="text-xs text-gray-500 mb-2">{activeQuote.description}</p>}
             {showModificationInput === activeQuote.id ? (
@@ -685,7 +685,7 @@ export default function ChatClient() {
           <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid #ffc107' }}>
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-yellow-700">⏳ عرض السعر بانتظار رد الزبون</p>
-              <p className="text-sm font-black text-yellow-800">{activeQuote.amount.toLocaleString('ar-SA')} ر.س</p>
+              <p className="text-sm font-black text-yellow-800">{activeQuote.amount.toLocaleString('ar-SA')} ₪</p>
             </div>
             {activeQuote.description && <p className="text-xs text-yellow-600 mt-1">{activeQuote.description}</p>}
           </div>
@@ -706,7 +706,7 @@ export default function ChatClient() {
         {isCustomer && chatStep === 'chat' && conversation.order?.status === 'accepted' && conversation.order?.payment_status !== 'paid' && (
           <div className="mx-3 mt-2 rounded-xl p-3 flex items-center gap-3" style={{ background: '#dcf8c6', border: '1px solid #25D366' }}>
             <p className="flex-1 text-xs font-semibold" style={{ color: '#075E54' }}>
-              تم قبول العرض{acceptedQuote ? ` (${Number(acceptedQuote.amount).toLocaleString('ar-SA')} ر.س)` : ''} — أكمل الدفع لبدء الخدمة
+              تم قبول العرض{acceptedQuote ? ` (${Number(acceptedQuote.amount).toLocaleString('ar-SA')} ₪)` : ''} — أكمل الدفع لبدء الخدمة
             </p>
             <button onClick={() => setChatStep('payment_method')} className="px-4 py-2 rounded-xl text-xs font-bold text-white flex-shrink-0" style={{ background: '#075E54' }}>
               ادفع الآن
@@ -861,7 +861,7 @@ export default function ChatClient() {
             <div className="relative">
               <input type="number" placeholder="المبلغ" value={quoteAmount} onChange={(e) => setQuoteAmount(e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none bg-gray-50 pl-14" style={{ direction: 'rtl' }} />
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">ر.س</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-semibold">₪</span>
             </div>
             <textarea rows={2} placeholder="وصف العرض (اختياري)" value={quoteDescription} onChange={(e) => setQuoteDescription(e.target.value)}
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none bg-gray-50 resize-none" />

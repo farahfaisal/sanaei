@@ -454,7 +454,7 @@ export default function IncomingRequestsClient() {
                         >
                           <span className="text-xs font-semibold" style={{ color: '#2a724d' }}>المبلغ</span>
                           <span className="text-base font-bold" style={{ color: '#2a724d' }}>
-                            {order.amount.toLocaleString('ar-SA')} ر.س
+                            {order.amount.toLocaleString('ar-SA')} ₪
                           </span>
                         </div>
                       )}
@@ -693,7 +693,7 @@ function MarketList({ jobs, loading, actionLoading, onRefresh, onClaim, formatTi
                       >
                         <span className="text-xs font-semibold" style={{ color: '#2a724d' }}>الميزانية</span>
                         <span className="text-base font-bold" style={{ color: '#2a724d' }}>
-                          {Number(job.amount).toLocaleString('ar-SA')} ر.س
+                          {Number(job.amount).toLocaleString('ar-SA')} ₪
                         </span>
                       </div>
                     )}

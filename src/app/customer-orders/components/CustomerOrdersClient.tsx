@@ -251,7 +251,7 @@ export default function CustomerOrdersClient() {
                     </span>
                     {order.amount != null && (
                       <span className="text-sm font-bold" style={{ color: '#2a724d' }}>
-                        {order.amount.toLocaleString('ar-SA')} ر.س
+                        {order.amount.toLocaleString('ar-SA')} ₪
                       </span>
                     )}
                     {order.amount == null && (

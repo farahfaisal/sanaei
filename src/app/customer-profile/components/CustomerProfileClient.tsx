@@ -594,7 +594,19 @@ export default function CustomerProfileClient() {
                   const date          = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
 
                   return (
-                    <div key={order.id} className="rounded-2xl overflow-hidden" style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}>
+                    <div
+                      key={order.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => router.push(
+                        ['pending', 'accepted', 'in_progress'].includes(order.status)
+                          ? `/order-live-status?id=${order.id}`
+                          : `/order-details?order_id=${order.id}`
+                      )}
+                      onKeyDown={(e) => { if (e.key === 'Enter') (e.currentTarget as HTMLElement).click(); }}
+                      className="rounded-2xl overflow-hidden cursor-pointer transition-transform active:scale-[0.98]"
+                      style={{ background: 'var(--card)', border: '1.5px solid var(--border)' }}
+                    >
                       <div className="h-1 w-full" style={{ background: statusInfo.dot }} />
                       <div className="p-4">
                         <div className="flex items-start justify-between mb-2.5">

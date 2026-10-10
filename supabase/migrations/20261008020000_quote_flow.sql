@@ -61,7 +61,7 @@ BEGIN
         VALUES (
             v_order.conversation_id,
             auth.uid(),
-            '💰 عرض سعر: ' || to_char(v_quote.amount, 'FM999G999G990D00') || ' ر.س'
+            '💰 عرض سعر: ' || to_char(v_quote.amount, 'FM999G999G990D00') || ' ₪'
                 || COALESCE(E'\n' || v_quote.description, ''),
             'quote'
         );
@@ -121,7 +121,7 @@ BEGIN
 
     IF p_action = 'accepted' THEN
         UPDATE orders SET amount = v_quote.amount, status = 'accepted' WHERE id = v_order.id;
-        v_message := '✅ تم قبول عرض السعر: ' || to_char(v_quote.amount, 'FM999G999G990D00') || ' ر.س';
+        v_message := '✅ تم قبول عرض السعر: ' || to_char(v_quote.amount, 'FM999G999G990D00') || ' ₪';
     ELSIF p_action = 'rejected' THEN
         v_message := '❌ تم رفض عرض السعر';
     ELSE

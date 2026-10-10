@@ -335,7 +335,7 @@ BEGIN
     SELECT name INTO v_service FROM craftsman_services WHERE id = NEW.service_id;
     v_craftsman_name := COALESCE(v_craftsman_name, 'الحرفي');
     v_customer_name := COALESCE(v_customer_name, 'زبون');
-    v_amount := CASE WHEN NEW.amount IS NOT NULL THEN to_char(NEW.amount, 'FM999G999G990D00') || ' ر.س' END;
+    v_amount := CASE WHEN NEW.amount IS NOT NULL THEN to_char(NEW.amount, 'FM999G999G990D00') || ' ₪' END;
 
     -- New request → craftsman
     IF TG_OP = 'INSERT' THEN

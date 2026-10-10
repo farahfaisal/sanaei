@@ -355,7 +355,7 @@ export default function ServiceRatingClient() {
             >
               <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>قيمة الخدمة</span>
               <span className="text-sm font-bold" style={{ color: BRAND.primary }}>
-                {order.amount.toLocaleString('ar-SA')} ر.س
+                {order.amount.toLocaleString('ar-SA')} ₪
               </span>
             </div>
           )}

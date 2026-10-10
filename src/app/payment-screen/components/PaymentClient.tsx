@@ -191,7 +191,7 @@ export default function PaymentClient() {
           <div className="bg-primary/10 rounded-2xl p-4 mb-8 text-right border border-primary/20">
             <div className="flex justify-between items-center">
               <span className="text-xl font-black text-primary font-tabular">
-                {amount} ر.س
+                {amount} ₪
               </span>
               <span className="text-sm text-gray-500">المبلغ المدفوع</span>
             </div>
@@ -265,7 +265,7 @@ export default function PaymentClient() {
                 <p className="text-xs text-gray-400 mb-0.5">المطلوب دفعه</p>
                 <div className="flex items-baseline gap-1">
                   <span className="text-2xl font-black text-gray-900 font-tabular">{amount}</span>
-                  <span className="text-sm text-gray-500">ر.س</span>
+                  <span className="text-sm text-gray-500">₪</span>
                 </div>
               </div>
             </div>

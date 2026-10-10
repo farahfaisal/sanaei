@@ -257,7 +257,7 @@ function CustomerOrdersList() {
                       <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{createdDate}</p>
                       {order.amount && order.amount > 0 && (
                         <p className="text-sm font-black" style={{ color: BRAND.primary }}>
-                          {order.amount.toLocaleString()} ر.س
+                          {order.amount.toLocaleString()} ₪
                         </p>
                       )}
                     </div>
@@ -316,6 +316,14 @@ function CraftsmanOrdersList() {
     if (!user) return;
     setIsLoading(true);
     try {
+      // orders.craftsman_id points to the craftsman profile, not the user id.
+      const { data: cp } = await supabase
+        .from('craftsman_profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (!cp?.id) { setOrders([]); return; }
+
       const { data } = await supabase
         .from('orders')
         .select(`
@@ -323,9 +331,9 @@ function CraftsmanOrdersList() {
           payment_method, payment_status, notes,
           created_at, updated_at, scheduled_at,
           service:service_id(id, name, emoji, base_price, price_label, description),
-          customer:customer_id(user_profiles(full_name, phone))
+          customer:customer_id(full_name, phone)
         `)
-        .eq('craftsman_id', user.id)
+        .eq('craftsman_id', cp.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
@@ -424,7 +432,7 @@ function CraftsmanOrdersList() {
             const statusInfo = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const service = Array.isArray(order.service) ? order.service[0] : order.service;
             const customer = Array.isArray(order.customer) ? order.customer[0] : order.customer;
-            const customerName = (customer as any)?.user_profiles?.full_name || 'زبون';
+            const customerName = (customer as any)?.full_name || (customer as any)?.user_profiles?.full_name || 'زبون';
             const serviceName = service?.name || 'خدمة صيانة';
             const serviceEmoji = service?.emoji || '🔧';
             const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
@@ -466,7 +474,7 @@ function CraftsmanOrdersList() {
                       <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{createdDate}</p>
                       {order.amount && order.amount > 0 && (
                         <p className="text-sm font-black" style={{ color: BRAND.primary }}>
-                          {order.amount.toLocaleString()} ر.س
+                          {order.amount.toLocaleString()} ₪
                         </p>
                       )}
                     </div>
@@ -918,7 +926,7 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
                 <div className="mb-3">
                   <p className="text-xs text-white opacity-60 mb-0.5">المبلغ الإجمالي</p>
                   <p className="text-3xl font-black text-white">
-                    {amount > 0 ? `${amount.toLocaleString()} ر.س` : 'لم يُحدد'}
+                    {amount > 0 ? `${amount.toLocaleString()} ₪` : 'لم يُحدد'}
                   </p>
                 </div>
 
@@ -938,9 +946,9 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
             {/* Payment breakdown rows */}
             <div className="space-y-2">
               {[
-                { label: 'تكلفة الخدمة',  value: amount > 0 ? `${amount.toLocaleString()} ر.س` : '—' },
-                { label: 'رسوم الخدمة',   value: '0.00 ر.س' },
-                { label: 'الإجمالي',       value: amount > 0 ? `${amount.toLocaleString()} ر.س` : '—', bold: true },
+                { label: 'تكلفة الخدمة',  value: amount > 0 ? `${amount.toLocaleString()} ₪` : '—' },
+                { label: 'رسوم الخدمة',   value: '0.00 ₪' },
+                { label: 'الإجمالي',       value: amount > 0 ? `${amount.toLocaleString()} ₪` : '—', bold: true },
               ].map((row) => (
                 <div
                   key={row.label}
@@ -1009,7 +1017,8 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
 // ── Main export — routes between list and detail ──────────────────────────────
 export default function OrderDetailsClient() {
   const searchParams = useSearchParams();
-  const orderId = searchParams?.get('order_id');
+  const orderId = searchParams?.get('order_id') || searchParams?.get('id') || searchParams?.get('orderId');
+  const { profile } = useAuth();
   const craftsmanId = searchParams?.get('craftsman_id');
   const serviceId = searchParams?.get('service_id') || undefined;
   const craftsmanUserId = searchParams?.get('craftsman_user_id') || undefined;
@@ -1028,5 +1037,5 @@ export default function OrderDetailsClient() {
     return <SingleOrderDetail orderId={orderId} />;
   }
 
-  return <CraftsmanOrdersList />;
+  return profile?.role === 'customer' ? <CustomerOrdersList /> : <CraftsmanOrdersList />;
 }

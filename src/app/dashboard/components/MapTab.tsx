@@ -362,7 +362,7 @@ export default function MapTab() {
                         {STATUS_LABELS[order.status] || order.status}
                       </span>
                       {order.amount && (
-                        <span className="text-emerald-300 text-xs font-semibold">{order.amount} ر.س</span>
+                        <span className="text-emerald-300 text-xs font-semibold">{order.amount} ₪</span>
                       )}
                     </div>
                     <p className="text-white text-xs font-medium truncate">{order.description || 'طلب خدمة'}</p>
@@ -399,7 +399,7 @@ export default function MapTab() {
                         معلق
                       </span>
                       {order.amount && (
-                        <span className="text-emerald-300 text-xs font-semibold">{order.amount} ر.س</span>
+                        <span className="text-emerald-300 text-xs font-semibold">{order.amount} ₪</span>
                       )}
                     </div>
                     <p className="text-white text-xs font-medium truncate">{order.description || 'طلب خدمة'}</p>
