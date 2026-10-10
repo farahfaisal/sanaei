@@ -78,14 +78,22 @@ interface PreviousWork {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { registerUser } = useAuth();
+  const { registerUser, user, profile } = useAuth();
   const supabase = createClient();
 
-  const phone = searchParams.get('phone') || '';
-  const role = (searchParams.get('role') as 'customer' | 'craftsman') || 'customer';
+  // Signed in already but the account is missing its details (name, specialty…):
+  // the same form completes it instead of creating a new account.
+  const isCompleting = !!user;
+  const phone = (isCompleting ? profile?.phone : searchParams.get('phone')) || '';
+  const role: 'customer' | 'craftsman' = isCompleting
+    ? (profile?.role === 'craftsman' ? 'craftsman' : 'customer')
+    : ((searchParams.get('role') as 'customer' | 'craftsman') || 'customer');
 
   // Common fields
   const [fullName, setFullName] = useState('');
+  useEffect(() => {
+    if (isCompleting && profile?.full_name && !fullName) setFullName(profile.full_name);
+  }, [isCompleting, profile?.full_name]);
   const [city, setCity] = useState('رام الله');
   const [neighborhood, setNeighborhood] = useState('');
   const [street, setStreet] = useState('');
@@ -147,59 +155,57 @@ function RegisterForm() {
       const addressParts = [street.trim(), neighborhood.trim(), city.trim()].filter(Boolean);
       const location = addressParts.join('، ');
 
-      // Register user (creates auth + user_profiles)
-      const signInData = await registerUser(phone, fullName.trim(), role, location);
+      // New visitor: create the account first. Signed-in user: just complete it.
+      if (!isCompleting) {
+        await registerUser(phone, fullName.trim(), role, location);
+      }
 
-      // If craftsman, create craftsman_profiles + services + portfolio
-      if (role === 'craftsman' && signInData?.user) {
-        const userId = signInData.user.id;
-        const finalSpecialty = specialty === 'other' ? customSpecialty.trim() : specialty;
-        const finalLocation = serviceArea || city.trim();
+      // Save name, area and (for craftsmen) specialty + services in one step.
+      // The specialty is saved in Arabic so searches by service name find it.
+      const specialtyLabel =
+        specialty === 'other'
+          ? customSpecialty.trim()
+          : SPECIALTIES.find((s) => s.id === specialty)?.label || specialty;
 
-        // Create craftsman_profiles record
-        const { data: craftsmanProfile, error: cpError } = await supabase
-          .from('craftsman_profiles')
-          .insert({
-            user_id: userId,
-            specialty: finalSpecialty,
-            bio: bio.trim() || null,
-            location: finalLocation,
-            service_radius_km: parseInt(serviceRadius) || 10,
-            experience_years: parseInt(experienceYears) || 0,
-          })
-          .select('id')
-          .single();
+      const { error: completeError } = await supabase.rpc('complete_my_profile', {
+        p_full_name: fullName.trim(),
+        p_location: location,
+        p_specialty: role === 'craftsman' ? specialtyLabel : null,
+        p_bio: role === 'craftsman' ? bio.trim() || null : null,
+        p_experience_years: role === 'craftsman' ? parseInt(experienceYears) || 0 : null,
+        p_service_area: role === 'craftsman' ? serviceArea || city.trim() : null,
+        p_service_radius_km: role === 'craftsman' ? parseInt(serviceRadius) || 10 : null,
+        p_category_id: role === 'craftsman' ? selectedCategoryId || null : null,
+        p_services: role === 'craftsman' ? services.filter((x) => x.trim()) : null,
+      });
+      if (completeError) throw completeError;
 
-        if (cpError) throw cpError;
-
-        const craftsmanId = craftsmanProfile.id;
-
-        // Insert services
-        const validServices = services.filter((s) => s.trim());
-        if (validServices.length > 0) {
-          const serviceRows = validServices.map((name) => ({
-            craftsman_id: craftsmanId,
-            name: name.trim(),
-            category_id: selectedCategoryId || null,
-            emoji: '🔧',
-          }));
-          await supabase.from('craftsman_services').insert(serviceRows);
-        }
-
-        // Insert portfolio items (previous work as text descriptions)
+      // Previous works (text only for now)
+      if (role === 'craftsman') {
         const validWorks = previousWorks.filter((w) => w.label.trim());
-        if (validWorks.length > 0) {
-          const portfolioRows = validWorks.map((w) => ({
-            craftsman_id: craftsmanId,
-            image_url: 'https://via.placeholder.com/400x300?text=عمل+سابق',
-            label: w.label.trim(),
-            description: w.description.trim() || null,
-          }));
-          await supabase.from('portfolio_items').insert(portfolioRows);
+        const { data: authData } = await supabase.auth.getUser();
+        if (validWorks.length > 0 && authData.user) {
+          const { data: cp } = await supabase
+            .from('craftsman_profiles')
+            .select('id')
+            .eq('user_id', authData.user.id)
+            .maybeSingle();
+          if (cp?.id) {
+            await supabase.from('portfolio_items').insert(
+              validWorks.map((w) => ({
+                craftsman_id: cp.id,
+                image_url: 'https://via.placeholder.com/400x300?text=عمل+سابق',
+                label: w.label.trim(),
+                description: w.description.trim() || null,
+              }))
+            );
+          }
         }
       }
 
-      router.replace('/home-screen');
+      // Let the rest of the app see the completed profile.
+      window.dispatchEvent(new Event('herafi:profile-updated'));
+      router.replace(role === 'craftsman' ? '/order-details' : '/home-screen');
     } catch (err: any) {
       setError(err?.message || 'حدث خطأ أثناء إنشاء الحساب، يرجى المحاولة مجدداً');
     } finally {
@@ -224,7 +230,7 @@ function RegisterForm() {
         >
           <Icon name="ChevronRightIcon" size={20} className="text-gray-700" />
         </button>
-        <h1 className="text-lg font-bold text-gray-900">إنشاء حساب جديد</h1>
+        <h1 className="text-lg font-bold text-gray-900">{isCompleting ? 'إكمال الحساب' : 'إنشاء حساب جديد'}</h1>
       </div>
 
       <div className="flex-1 px-5 pt-2 pb-6 flex flex-col overflow-y-auto">
@@ -233,10 +239,20 @@ function RegisterForm() {
           <div className="w-20 h-20 rounded-2xl bg-primary/10 border-2 border-primary/30 flex items-center justify-center mx-auto mb-4">
             <span className="text-4xl">{roleEmoji}</span>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">أهلاً بك!</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">
+            {isCompleting ? 'أكمل معلومات حسابك' : 'أهلاً بك!'}
+          </h2>
           <p className="text-sm text-gray-500">
-            رقمك غير مسجل، أنشئ حسابك كـ{' '}
-            <span className="font-semibold text-primary">{roleLabel}</span>
+            {isCompleting ? (
+              role === 'craftsman'
+                ? 'أضف اسمك وتخصصك لتظهر للزبائن في قائمة الحرفيين'
+                : 'أضف اسمك وعنوانك لتتمكن من طلب الخدمات'
+            ) : (
+              <>
+                رقمك غير مسجل، أنشئ حسابك كـ{' '}
+                <span className="font-semibold text-primary">{roleLabel}</span>
+              </>
+            )}
           </p>
         </div>
 

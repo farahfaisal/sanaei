@@ -102,6 +102,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
+  // Reload the profile after the app saves it (e.g. the "complete your account" form).
+  useEffect(() => {
+    if (!user) return;
+    const reload = () => { fetchProfile(user.id); };
+    window.addEventListener('herafi:profile-updated', reload);
+    return () => window.removeEventListener('herafi:profile-updated', reload);
+  }, [user, fetchProfile]);
+
   // Real-time profile sync
   useEffect(() => {
     if (!user) return;

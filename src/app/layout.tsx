@@ -4,6 +4,7 @@ import '../styles/tailwind.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import NativeAppBridge from '@/components/NativeAppBridge';
+import ProfileCompletionGate from '@/components/ProfileCompletionGate';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -68,6 +69,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <NativeAppBridge />
+            <ProfileCompletionGate />
             {children}
           </AuthProvider>
         </ThemeProvider>
