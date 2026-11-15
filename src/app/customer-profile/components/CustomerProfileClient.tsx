@@ -473,15 +473,23 @@ export default function CustomerProfileClient() {
         </div>
       </div>
 
-      {/* ── QUICK ACTION ── */}
-      <div className="px-4 mb-5">
+      {/* ── QUICK ACTIONS ── */}
+      <div className="px-4 mb-5 flex gap-3">
         <button
           onClick={() => router.push('/home-screen')}
-          className="w-full py-3.5 rounded-2xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+          className="flex-1 py-3.5 rounded-2xl text-sm font-bold text-white flex items-center justify-center gap-2 transition-opacity active:opacity-80"
           style={{ background: BRAND.gradient }}
         >
           <Icon name="MagnifyingGlassIcon" size={16} className="text-white" />
-          تصفح الحِرَفيين وطلب خدمة
+          تصفح الحِرَفيين
+        </button>
+        <button
+          onClick={() => router.push('/profile-management')}
+          className="flex-1 py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+          style={{ background: 'var(--card)', border: `1.5px solid ${BRAND.primary}`, color: BRAND.primary }}
+        >
+          <Icon name="PencilSquareIcon" size={16} style={{ color: BRAND.primary }} />
+          تعديل الملف
         </button>
       </div>
 

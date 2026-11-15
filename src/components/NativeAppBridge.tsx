@@ -9,7 +9,7 @@ export default function NativeAppBridge() {
   const router = useRouter();
 
   useEffect(() => {
-    startNativeApp((url) => router.push(url)).catch(() => {});
+    startNativeApp((url) => router?.push(url))?.catch(() => {});
   }, [router]);
 
   return null;

@@ -28,6 +28,8 @@ const nextConfig = {
 
   webpack(config, { dev }) {
 if (dev) {
+    // Avoid stale persistent-cache module factories ("reading 'call'") after large merges.
+    config.cache = false;
     config.module.rules.push({
       test: /\.(jsx|tsx)$/,
       exclude: [/node_modules/],

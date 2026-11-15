@@ -587,6 +587,16 @@ export default function CraftsmanAccountClient() {
               </div>
             </div>
 
+            {/* Edit profile */}
+            <button
+              onClick={() => router.push('/profile-management')}
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-2xl font-semibold text-sm transition-all mb-3"
+              style={{ background: BRAND.light, color: BRAND.primary, border: `1.5px solid ${BRAND.primary}` }}
+            >
+              <Icon name="PencilSquareIcon" size={18} style={{ color: BRAND.primary }} />
+              تعديل الملف الشخصي
+            </button>
+
             {/* Sign out */}
             <button
               onClick={handleSignOut}

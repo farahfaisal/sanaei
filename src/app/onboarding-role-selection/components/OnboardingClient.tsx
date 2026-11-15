@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import Image from 'next/image';
 import SplashScreen from '@/components/SplashScreen';
+import Link from 'next/link';
 
 type Role = 'customer' | 'craftsman' | null;
 
@@ -160,9 +161,9 @@ export default function OnboardingClient() {
           الشروط والأحكام
         </span>{' '}
         و{' '}
-        <span className="text-primary font-semibold cursor-pointer">
+        <Link href="/privacy-policy" className="text-primary font-semibold cursor-pointer">
           سياسة الخصوصية
-        </span>
+        </Link>
       </p>
     </div>
   );
