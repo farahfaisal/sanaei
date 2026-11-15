@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * Bridge to the حِرَفي Android / iOS app (Capacitor).
  *

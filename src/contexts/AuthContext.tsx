@@ -4,8 +4,6 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { createClient } from '@/lib/supabase/client';
 import { isNativeApp, registerNativePush, unregisterNativePush } from '@/lib/nativeApp';
 import { rtChannelName } from '@/lib/supabase/realtime';
-import { requestNotificationPermission, subscribeToPush } from '@/lib/pushNotifications';
-import { isWebView, registerFCM } from '@/lib/fcm';
 
 const AuthContext = createContext<any>({});
 
@@ -78,17 +76,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
     if ('Notification' in window) {
-      requestNotificationPermission()
-        .then((permission) => {
+      import('@/lib/pushNotifications').then(({ requestNotificationPermission, subscribeToPush }) => {
+        requestNotificationPermission().then((permission) => {
           if (permission === 'granted') subscribeToPush(userId);
-        })
-        .catch(() => {});
+        });
+      }).catch(() => {});
     }
-    try {
+    import('@/lib/fcm').then(({ isWebView, registerFCM }) => {
       if (isWebView()) registerFCM(userId);
-    } catch {
-      /* ignore */
-    }
+    }).catch(() => {});
   };
 
   const fetchProfile = useCallback(async (userId: string) => {
