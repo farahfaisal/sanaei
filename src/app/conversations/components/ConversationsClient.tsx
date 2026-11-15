@@ -39,7 +39,7 @@ function timeAgo(dateStr: string | null): string {
   if (diffMins < 60) return `${diffMins} د`;
   if (diffHours < 24) return `${diffHours} س`;
   if (diffDays < 7) return `${diffDays} ي`;
-  return date.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString('ar-PS', { day: 'numeric', month: 'short' });
 }
 
 const ORDER_STATUS_BADGE: Record<string, { label: string; color: string }> = {

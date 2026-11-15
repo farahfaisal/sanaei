@@ -38,7 +38,7 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const DEFAULT_CENTER = { lat: 24.7136, lng: 46.6753, zoom: 12 };
+const DEFAULT_CENTER = { lat: 31.9038, lng: 35.2034, zoom: 13 };
 
 export default function MapBlock({ craftsmen }: MapBlockProps) {
   const mapRef = useRef<HTMLDivElement>(null);

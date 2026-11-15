@@ -64,7 +64,7 @@ export default function BookingSuccessScreen({
   const formatDate = (date: string, time: string) => {
     if (!date) return 'سيتم التحديد لاحقاً';
     const d = new Date(`${date}T${time || '09:00'}:00`);
-    return d.toLocaleDateString('ar-SA', {
+    return d.toLocaleDateString('ar-PS', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

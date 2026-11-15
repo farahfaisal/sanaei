@@ -218,7 +218,7 @@ function CustomerOrdersList() {
             const craftsmanName = craftsmanProfiles?.full_name || 'الحرفي';
             const serviceName = (service as any)?.name || 'خدمة صيانة';
             const serviceEmoji = (service as any)?.emoji || '🔧';
-            const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+            const createdDate = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short' });
             const isActive = ['pending', 'accepted', 'in_progress'].includes(order.status);
 
             return (
@@ -435,7 +435,7 @@ function CraftsmanOrdersList() {
             const customerName = (customer as any)?.full_name || (customer as any)?.user_profiles?.full_name || 'زبون';
             const serviceName = service?.name || 'خدمة صيانة';
             const serviceEmoji = service?.emoji || '🔧';
-            const createdDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+            const createdDate = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short' });
 
             return (
               <button
@@ -565,10 +565,10 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
   const payStatusInfo = PAYMENT_STATUS_LABELS[order?.payment_status || ''] || { label: '—', color: '#6B7280' };
 
   const createdDate = order?.created_at
-    ? new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' })
+    ? new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'long', year: 'numeric' })
     : '';
   const createdTime = order?.created_at
-    ? new Date(order.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+    ? new Date(order.created_at).toLocaleTimeString('ar-PS', { hour: '2-digit', minute: '2-digit' })
     : '';
 
   const shortId = `#${orderId.slice(0, 8).toUpperCase()}`;
@@ -865,7 +865,7 @@ function SingleOrderDetail({ orderId }: { orderId: string }) {
                 <div>
                   <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>الموعد المحدد</p>
                   <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                    {new Date(order.scheduled_at).toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    {new Date(order.scheduled_at).toLocaleDateString('ar-PS', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 </div>
               </div>

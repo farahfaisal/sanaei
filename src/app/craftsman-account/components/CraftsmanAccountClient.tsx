@@ -413,7 +413,7 @@ export default function CraftsmanAccountClient() {
                 {[
                   { label: 'الاسم الكامل', value: editName, setter: setEditName, placeholder: 'أدخل اسمك الكامل' },
                   { label: 'التخصص', value: editSpecialty, setter: setEditSpecialty, placeholder: 'مثال: سباكة، كهرباء، نجارة' },
-                  { label: 'المنطقة', value: editLocation, setter: setEditLocation, placeholder: 'مثال: الرياض، جدة' },
+                  { label: 'المنطقة', value: editLocation, setter: setEditLocation, placeholder: 'مثال: رام الله، البيرة' },
                   { label: 'سنوات الخبرة', value: editExperience, setter: setEditExperience, placeholder: '0', type: 'number' },
                 ].map((field) => (
                   <div key={field.label}>
