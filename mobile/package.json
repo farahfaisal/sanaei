@@ -6,7 +6,6 @@
   "scripts": {
     "setup:android": "npx cap add android && npm run assets && npm run patch && npx cap sync android",
     "setup:ios": "npx cap add ios && npm run assets && npm run patch && npx cap sync ios",
-    "assets": "npx capacitor-assets generate --assetPath assets --iconBackgroundColor \"#ffffff\" --splashBackgroundColor \"#ffffff\" --splashBackgroundColorDark \"#0f1f17\"",
     "patch": "node scripts/patch-native.mjs",
     "sync": "npx cap sync",
     "open:android": "npx cap open android",
