@@ -187,50 +187,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return data;
   };
 
-  // Register a new user: creates auth account with phone-derived email and a random password
-  // (users sign in with OTP only, so the password is never shown or reused), then saves profile
-  const registerUser = async (phone: string, fullName: string, role: 'customer' | 'craftsman', location?: string) => {
-    const normalizedPhone = phone.replace(/\D/g, '');
-    const email = `${normalizedPhone}@sanaei.app`;
-    const password = crypto.randomUUID();
-
-    // Create auth user
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, role },
-      },
-    });
-
-    if (error) throw error;
-    if (!data?.user) throw new Error('فشل إنشاء الحساب');
-
-    // Sign in immediately after registration (signUp may not auto-sign-in without email confirmation)
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (signInError) throw signInError;
-    if (!signInData?.user) throw new Error('فشل تسجيل الدخول بعد إنشاء الحساب');
-
-    // Save profile to user_profiles table AFTER sign-in so auth.uid() is set for RLS
-    // Use signInData.user.id (active session) and upsert to handle trigger-created rows
-    const { error: profileError } = await supabase
-      .from('user_profiles')
-      .upsert({
-        id: signInData.user.id,
-        phone,
-        full_name: fullName,
-        role: role as any,
-        ...(location ? { location } : {}),
-      }, { onConflict: 'id' });
-
-    if (profileError) throw profileError;
-
-    return signInData;
-  };
-
   // Sign Out
   const signOut = async () => {
     // Stop this phone receiving the account's notifications after sign-out.
@@ -252,19 +208,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return data;
   };
 
-  // Legacy email methods (kept for compatibility)
-  const signUp = async (email: string, password: string, metadata = {}) => {
-    const { data, error } = await supabase.auth.signUp({ email, password, options: { data: metadata } });
-    if (error) throw error;
-    return data;
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
-  };
-
   const getCurrentUser = async () => {
     const { data: { user }, error } = await supabase.auth.getUser();
     if (error) throw error;
@@ -280,10 +223,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loading,
     sendOtp,
     verifyOtp,
-    registerUser,
     signOut,
-    signUp,
-    signIn,
     getCurrentUser,
     isEmailVerified,
     getUserProfile,

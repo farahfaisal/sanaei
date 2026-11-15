@@ -78,7 +78,7 @@ interface PreviousWork {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { registerUser, user, profile } = useAuth();
+  const { user, profile } = useAuth();
   const supabase = createClient();
 
   // Signed in already but the account is missing its details (name, specialty…):
@@ -155,9 +155,10 @@ function RegisterForm() {
       const addressParts = [street.trim(), neighborhood.trim(), city.trim()].filter(Boolean);
       const location = addressParts.join('، ');
 
-      // New visitor: create the account first. Signed-in user: just complete it.
+      // New visitors must verify their phone with OTP first (see the login page),
+      // which creates and signs in the account. Only a signed-in user can complete the profile.
       if (!isCompleting) {
-        await registerUser(phone, fullName.trim(), role, location);
+        throw new Error('يرجى تأكيد رقم جوالك أولاً');
       }
 
       // Save name, area and (for craftsmen) specialty + services in one step.
