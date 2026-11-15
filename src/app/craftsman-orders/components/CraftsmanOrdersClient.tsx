@@ -254,7 +254,15 @@ export default function CraftsmanOrdersClient() {
               return (
                 <div
                   key={order.id}
-                  className="rounded-2xl p-4 flex flex-col gap-3"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    // Buttons and phone links inside the card keep their own action.
+                    if ((e.target as HTMLElement).closest('button, a')) return;
+                    router.push(`/order-details?order_id=${order.id}`);
+                  }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') router.push(`/order-details?order_id=${order.id}`); }}
+                  className="rounded-2xl p-4 flex flex-col gap-3 cursor-pointer transition-transform active:scale-[0.99]"
                   style={{ background: 'var(--background)', border: '1.5px solid var(--border)' }}
                 >
                   {/* Header row */}
@@ -311,7 +319,7 @@ export default function CraftsmanOrdersClient() {
                     </span>
                     {order.amount != null && (
                       <span className="font-bold text-sm" style={{ color: '#2a724d' }}>
-                        {order.amount.toLocaleString('ar-SA')} ر.س
+                        {order.amount.toLocaleString('ar-SA')} ₪
                       </span>
                     )}
                   </div>

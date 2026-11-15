@@ -84,7 +84,7 @@ export default function OrderLiveStatusClient() {
   const supabase = createClient();
   const { user, loading: authLoading } = useAuth();
 
-  const orderId = searchParams.get('id');
+  const orderId = searchParams.get('id') || searchParams.get('orderId') || searchParams.get('order_id');
 
   const [order, setOrder] = useState<OrderData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -462,7 +462,7 @@ export default function OrderLiveStatusClient() {
             <div className="flex gap-2.5">
               <Icon name="BanknotesIcon" size={16} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--muted-foreground)' }} />
               <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                {order.amount.toLocaleString('ar-SA')} ر.س
+                {order.amount.toLocaleString('ar-SA')} ₪
               </p>
             </div>
           )}

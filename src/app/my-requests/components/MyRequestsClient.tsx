@@ -200,7 +200,7 @@ export default function MyRequestsClient() {
           <div className="relative px-4 mt-3">
             <div className="rounded-2xl px-4 py-2.5 flex items-center justify-between" style={{ background: 'rgba(255,255,255,0.12)' }}>
               <span className="text-white/70 text-sm">إجمالي ما أنفقته</span>
-              <span className="text-white font-bold text-base">{totalSpent.toLocaleString('ar-SA')} ر.س</span>
+              <span className="text-white font-bold text-base">{totalSpent.toLocaleString('ar-SA')} ₪</span>
             </div>
           </div>
         )}
@@ -325,7 +325,7 @@ export default function MyRequestsClient() {
                       </span>
                       {req.amount != null ? (
                         <span className="text-sm font-bold" style={{ color: PRIMARY }}>
-                          {req.amount.toLocaleString('ar-SA')} ر.س
+                          {req.amount.toLocaleString('ar-SA')} ₪
                         </span>
                       ) : (
                         <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>السعر غير محدد</span>

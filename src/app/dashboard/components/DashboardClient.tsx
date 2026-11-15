@@ -149,7 +149,7 @@ export default function DashboardClient() {
     },
     {
       label: 'إجمالي الإيرادات',
-      value: `${stats.totalRevenue.toLocaleString('ar-SA')} ر.س`,
+      value: `${stats.totalRevenue.toLocaleString('ar-SA')} ₪`,
       sub: 'من المحافظ',
       icon: 'BanknotesIcon',
       color: 'from-teal-400 to-cyan-600',

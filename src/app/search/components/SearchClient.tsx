@@ -413,7 +413,7 @@ export default function SearchClient() {
           <div>
             <p className="text-xs font-bold text-gray-700 mb-2 flex items-center gap-1">
               <Icon name="BanknotesIcon" size={13} style={{ color: LOGO_GREEN }} />
-              نطاق السعر (ريال)
+              نطاق السعر (شيكل)
             </p>
             <div className="flex items-center gap-2">
               <input

@@ -228,7 +228,7 @@ export default function RequestServiceModal({
                         <p className="text-xs font-semibold text-gray-900 truncate">{s.name}</p>
                         {(s.price_label || s.base_price) && (
                           <p className="text-xs text-primary">
-                            {s.price_label || `${s.base_price} ر.س`}
+                            {s.price_label || `${s.base_price} ₪`}
                           </p>
                         )}
                       </div>
