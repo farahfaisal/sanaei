@@ -32,7 +32,7 @@ export default function MapComponent({ craftsmen, onCraftsmanSelect, onAssignOrd
       // Initialize map only once
       if (!mapInstanceRef.current) {
         mapInstanceRef.current = L.map(mapRef.current, {
-          center: [24.7136, 46.6753], // Riyadh center
+          center: [31.9038, 35.2034], // Ramallah center
           zoom: 11,
           zoomControl: true,
         });

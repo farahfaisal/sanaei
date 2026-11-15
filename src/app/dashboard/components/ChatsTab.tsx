@@ -243,7 +243,7 @@ export default function ChatsTab() {
                       </div>
                       <p className="text-xs text-gray-400 truncate">{conv.last_message || 'لا توجد رسائل'}</p>
                       {conv.order?.amount && (
-                        <p className="text-xs text-emerald-400 mt-0.5">{conv.order.amount.toLocaleString('ar-SA')} ₪</p>
+                        <p className="text-xs text-emerald-400 mt-0.5">{conv.order.amount.toLocaleString('ar-PS')} ₪</p>
                       )}
                     </div>
                   </div>
@@ -299,7 +299,7 @@ export default function ChatsTab() {
                 </span>
                 {selectedConv.order.amount && (
                   <span className="text-gray-400">
-                    المبلغ: <span className="text-emerald-400 font-semibold">{selectedConv.order.amount.toLocaleString('ar-SA')} ₪</span>
+                    المبلغ: <span className="text-emerald-400 font-semibold">{selectedConv.order.amount.toLocaleString('ar-PS')} ₪</span>
                   </span>
                 )}
                 <span className="text-gray-400">
@@ -360,7 +360,7 @@ export default function ChatsTab() {
                           )}
                         </div>
                         <p className="text-xs text-gray-600 px-1">
-                          {new Date(msg.created_at).toLocaleString('ar-SA', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
+                          {new Date(msg.created_at).toLocaleString('ar-PS', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })}
                         </p>
                       </div>
                     </div>

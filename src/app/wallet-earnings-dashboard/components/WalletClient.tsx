@@ -35,7 +35,7 @@ const EARNING_TABS: { id: EarningTab; label: string }[] = [
 ];
 
 function formatAmount(n: number) {
-  return n.toLocaleString('ar-SA');
+  return n.toLocaleString('ar-PS');
 }
 
 function formatTime(dateStr: string) {

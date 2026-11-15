@@ -454,7 +454,7 @@ export default function IncomingRequestsClient() {
                         >
                           <span className="text-xs font-semibold" style={{ color: '#2a724d' }}>المبلغ</span>
                           <span className="text-base font-bold" style={{ color: '#2a724d' }}>
-                            {order.amount.toLocaleString('ar-SA')} ₪
+                            {order.amount.toLocaleString('ar-PS')} ₪
                           </span>
                         </div>
                       )}
@@ -515,7 +515,7 @@ export default function IncomingRequestsClient() {
                             <Icon name="CalendarDaysIcon" size={13} style={{ color: '#0891b2' }} />
                           </div>
                           <p className="text-sm" style={{ color: 'var(--foreground)' }}>
-                            {new Date(order.scheduled_at).toLocaleDateString('ar-SA', {
+                            {new Date(order.scheduled_at).toLocaleDateString('ar-PS', {
                               weekday: 'long',
                               day: 'numeric',
                               month: 'long',
@@ -693,7 +693,7 @@ function MarketList({ jobs, loading, actionLoading, onRefresh, onClaim, formatTi
                       >
                         <span className="text-xs font-semibold" style={{ color: '#2a724d' }}>الميزانية</span>
                         <span className="text-base font-bold" style={{ color: '#2a724d' }}>
-                          {Number(job.amount).toLocaleString('ar-SA')} ₪
+                          {Number(job.amount).toLocaleString('ar-PS')} ₪
                         </span>
                       </div>
                     )}
@@ -718,7 +718,7 @@ function MarketList({ jobs, loading, actionLoading, onRefresh, onClaim, formatTi
                     {job.scheduled_at && (
                       <span className="flex items-center gap-1.5">
                         <Icon name="CalendarDaysIcon" size={14} style={{ color: '#0891b2' }} />
-                        {new Date(job.scheduled_at).toLocaleDateString('ar-SA', { weekday: 'short', day: 'numeric', month: 'short' })}
+                        {new Date(job.scheduled_at).toLocaleDateString('ar-PS', { weekday: 'short', day: 'numeric', month: 'short' })}
                       </span>
                     )}
                     {!!job.image_count && job.image_count > 0 && (

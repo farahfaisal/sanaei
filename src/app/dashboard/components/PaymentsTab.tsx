@@ -110,7 +110,7 @@ export default function PaymentsTab() {
             <div>
               <p className="text-xs text-gray-400">{card.label}</p>
               <p className="text-base font-black text-white">
-                {isLoading ? '...' : card.isCount ? card.value : `${card.value.toLocaleString('ar-SA')} ₪`}
+                {isLoading ? '...' : card.isCount ? card.value : `${card.value.toLocaleString('ar-PS')} ₪`}
               </p>
             </div>
           </div>
@@ -192,15 +192,15 @@ export default function PaymentsTab() {
                     <td className="px-4 py-3">
                       <span className={`text-xs font-bold ${tx.transaction_type === 'income' ? 'text-emerald-400' : tx.transaction_type === 'withdrawal' ? 'text-red-400' : 'text-gray-300'}`}>
                         {tx.transaction_type === 'income' ? '+' : tx.transaction_type === 'withdrawal' ? '-' : ''}
-                        {tx.amount.toLocaleString('ar-SA')} ₪
+                        {tx.amount.toLocaleString('ar-PS')} ₪
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs max-w-40 truncate">{tx.label}</td>
                     <td className="px-4 py-3 text-gray-300 text-xs">
-                      {tx.wallets?.balance !== undefined ? `${tx.wallets.balance.toLocaleString('ar-SA')} ₪` : '—'}
+                      {tx.wallets?.balance !== undefined ? `${tx.wallets.balance.toLocaleString('ar-PS')} ₪` : '—'}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {new Date(tx.created_at).toLocaleDateString('ar-SA')}
+                      {new Date(tx.created_at).toLocaleDateString('ar-PS')}
                     </td>
                   </tr>
                 ))

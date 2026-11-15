@@ -302,7 +302,7 @@ export default function CustomerProfileClient() {
   const location  = profile?.location || '';
   const avatarUrl = profile?.avatar_url || null;
   const joinDate  = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'long' })
+    ? new Date(user.created_at).toLocaleDateString('ar-PS', { year: 'numeric', month: 'long' })
     : '';
   const totalSpent = orders
     .filter(o => o.status === 'completed' && o.amount)
@@ -599,7 +599,7 @@ export default function CustomerProfileClient() {
                   const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', dot: '#9CA3AF' };
                   const craftsmanName = order.craftsman?.user_profiles?.full_name || 'حرفي';
                   const specialty     = order.craftsman?.specialty || '';
-                  const date          = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
+                  const date          = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short', year: 'numeric' });
 
                   return (
                     <div

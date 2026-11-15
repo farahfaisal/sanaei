@@ -65,11 +65,11 @@ function formatRelativeTime(dateStr: string): string {
   if (hrs < 24) return `منذ ${hrs} ساعة`;
   const days = Math.floor(hrs / 24);
   if (days < 7) return `منذ ${days} يوم`;
-  return new Date(dateStr).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' });
+  return new Date(dateStr).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short' });
 }
 
 function formatAbsoluteTime(dateStr: string): string {
-  return new Date(dateStr).toLocaleString('ar-SA', {
+  return new Date(dateStr).toLocaleString('ar-PS', {
     day: 'numeric',
     month: 'short',
     hour: '2-digit',
@@ -364,7 +364,7 @@ export default function ActivityFeedTab() {
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           {event.meta?.amount && (
                             <span className="text-xs bg-emerald-900/50 text-emerald-300 border border-emerald-800/50 px-2 py-0.5 rounded-lg font-semibold">
-                              {Number(event.meta.amount).toLocaleString('ar-SA')} ₪
+                              {Number(event.meta.amount).toLocaleString('ar-PS')} ₪
                             </span>
                           )}
                           {event.meta?.status && (

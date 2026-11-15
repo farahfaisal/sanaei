@@ -184,7 +184,7 @@ export default function ServiceRatingClient() {
   const craftsmanAvatar = (order.craftsman?.user_profiles as any)?.avatar_url ?? null;
   const craftsmanSpecialty = order.craftsman?.specialty ?? '';
   const serviceLabel = order.service ? `${order.service.emoji} ${order.service.name}` : 'خدمة';
-  const orderDate = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' });
+  const orderDate = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'long', year: 'numeric' });
 
   // ── Success Screen ──
   if (submitState === 'success') {
@@ -355,7 +355,7 @@ export default function ServiceRatingClient() {
             >
               <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>قيمة الخدمة</span>
               <span className="text-sm font-bold" style={{ color: BRAND.primary }}>
-                {order.amount.toLocaleString('ar-SA')} ₪
+                {order.amount.toLocaleString('ar-PS')} ₪
               </span>
             </div>
           )}

@@ -201,7 +201,7 @@ export default function CustomerOrdersClient() {
               const craftsmanName = craftsmanProfile?.full_name || 'حرفي';
               const craftsmanSpecialty = order.craftsman?.specialty || '';
               const craftsmanAvatar = (craftsmanProfile as any)?.avatar_url || null;
-              const date = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
+              const date = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short', year: 'numeric' });
 
               return (
                 <div
@@ -251,7 +251,7 @@ export default function CustomerOrdersClient() {
                     </span>
                     {order.amount != null && (
                       <span className="text-sm font-bold" style={{ color: '#2a724d' }}>
-                        {order.amount.toLocaleString('ar-SA')} ₪
+                        {order.amount.toLocaleString('ar-PS')} ₪
                       </span>
                     )}
                     {order.amount == null && (

@@ -62,7 +62,7 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-red-900/50 text-red-300 border-red-800/50',
 };
 
-// Parse location string like "24.7136,46.6753" or "Riyadh" into lat/lng
+// Parse location string like "31.9038,35.2034" or "Ramallah" into lat/lng
 function parseLocation(location: string | null): { lat: number; lng: number } | null {
   if (!location) return null;
   const parts = location.split(',');
@@ -74,15 +74,15 @@ function parseLocation(location: string | null): { lat: number; lng: number } | 
   return null;
 }
 
-// Fallback: generate a random position near Riyadh for craftsmen without coordinates
+// Fallback: generate a random position near Ramallah for craftsmen without coordinates
 function generateFallbackPosition(seed: string): { lat: number; lng: number } {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = ((hash << 5) - hash) + seed.charCodeAt(i);
     hash |= 0;
   }
-  const lat = 24.6 + (Math.abs(hash % 1000) / 1000) * 0.4;
-  const lng = 46.5 + (Math.abs((hash >> 8) % 1000) / 1000) * 0.4;
+  const lat = 31.87 + (Math.abs(hash % 1000) / 1000) * 0.08;
+  const lng = 35.18 + (Math.abs((hash >> 8) % 1000) / 1000) * 0.08;
   return { lat, lng };
 }
 

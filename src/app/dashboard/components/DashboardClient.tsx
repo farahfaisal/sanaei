@@ -149,7 +149,7 @@ export default function DashboardClient() {
     },
     {
       label: 'إجمالي الإيرادات',
-      value: `${stats.totalRevenue.toLocaleString('ar-SA')} ₪`,
+      value: `${stats.totalRevenue.toLocaleString('ar-PS')} ₪`,
       sub: 'من المحافظ',
       icon: 'BanknotesIcon',
       color: 'from-teal-400 to-cyan-600',
@@ -281,7 +281,7 @@ export default function DashboardClient() {
                         {isLoading ? (
                           <span className="inline-block w-12 h-5 bg-gray-700 rounded animate-pulse" />
                         ) : (
-                          card.isText ? card.value : Number(card.value).toLocaleString('ar-SA')
+                          card.isText ? card.value : Number(card.value).toLocaleString('ar-PS')
                         )}
                       </p>
                       <p className="text-xs text-gray-500 mt-0.5">{card.sub}</p>
@@ -326,7 +326,7 @@ export default function DashboardClient() {
                       <div className={`w-2 h-2 rounded-full ${row.bg} flex-shrink-0`} />
                       <span className="text-sm text-gray-400 flex-1">{row.label}</span>
                       <span className={`text-sm font-bold ${row.color}`}>
-                        {isLoading ? '...' : row.value.toLocaleString('ar-SA')}
+                        {isLoading ? '...' : row.value.toLocaleString('ar-PS')}
                       </span>
                     </div>
                   ))}

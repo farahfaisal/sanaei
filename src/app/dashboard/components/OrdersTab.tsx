@@ -178,7 +178,7 @@ export default function OrdersTab() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-emerald-300 text-xs font-semibold">
-                        {order.amount ? `${order.amount.toLocaleString('ar-SA')} ₪` : '—'}
+                        {order.amount ? `${order.amount.toLocaleString('ar-PS')} ₪` : '—'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -195,7 +195,7 @@ export default function OrdersTab() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {new Date(order.created_at).toLocaleDateString('ar-SA')}
+                      {new Date(order.created_at).toLocaleDateString('ar-PS')}
                     </td>
                     <td className="px-4 py-3">
                       <select

@@ -1160,7 +1160,7 @@ export default function CraftsmanProfileClient() {
                             {review.customer?.full_name || 'عميل'}
                           </p>
                           <span className="text-xs text-gray-400 flex-shrink-0 mr-2">
-                            {new Date(review.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
+                            {new Date(review.created_at).toLocaleDateString('ar-PS', { year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
                         </div>
                         <div className="flex gap-0.5 mb-1.5">
@@ -1273,7 +1273,7 @@ export default function CraftsmanProfileClient() {
                   type="text"
                   value={editForm.location}
                   onChange={(e) => setEditForm((f) => ({ ...f, location: e.target.value }))}
-                  placeholder="مثال: الرياض، حي النزهة"
+                  placeholder="مثال: رام الله، حي المصيون"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 focus:outline-none focus:border-primary focus:bg-white transition-colors text-right"
                   disabled={editSaving}
                 />
