@@ -39,73 +39,16 @@ interface Location {
 
 const REGIONS: Region[] = [
   {
-    id: 'riyadh',
-    name: 'الرياض',
-    lat: 24.7136,
-    lng: 46.6753,
-    zoom: 12,
+    id: 'ramallah',
+    name: 'رام الله',
+    lat: 31.9038,
+    lng: 35.2034,
+    zoom: 13,
     locations: [
-      { id: 'riyadh-center', name: 'وسط الرياض', lat: 24.6877, lng: 46.7219 },
-      { id: 'olaya', name: 'العليا', lat: 24.6941, lng: 46.6862 },
-      { id: 'malaz', name: 'الملز', lat: 24.6800, lng: 46.7300 },
-      { id: 'naseem', name: 'النسيم', lat: 24.7100, lng: 46.8000 },
-      { id: 'north-riyadh', name: 'شمال الرياض', lat: 24.8000, lng: 46.6500 },
-      { id: 'south-riyadh', name: 'جنوب الرياض', lat: 24.5800, lng: 46.7500 },
-    ],
-  },
-  {
-    id: 'jeddah',
-    name: 'جدة',
-    lat: 21.4858,
-    lng: 39.1925,
-    zoom: 12,
-    locations: [
-      { id: 'jeddah-center', name: 'وسط جدة', lat: 21.4858, lng: 39.1925 },
-      { id: 'corniche', name: 'الكورنيش', lat: 21.5433, lng: 39.1728 },
-      { id: 'balad', name: 'البلد', lat: 21.4900, lng: 39.1870 },
-    ],
-  },
-  {
-    id: 'mecca',
-    name: 'مكة المكرمة',
-    lat: 21.3891,
-    lng: 39.8579,
-    zoom: 12,
-    locations: [
-      { id: 'mecca-center', name: 'وسط مكة', lat: 21.3891, lng: 39.8579 },
-      { id: 'aziziyah', name: 'العزيزية', lat: 21.3700, lng: 39.8800 },
-    ],
-  },
-  {
-    id: 'medina',
-    name: 'المدينة المنورة',
-    lat: 24.5247,
-    lng: 39.5692,
-    zoom: 12,
-    locations: [
-      { id: 'medina-center', name: 'وسط المدينة', lat: 24.5247, lng: 39.5692 },
-      { id: 'quba', name: 'قباء', lat: 24.4400, lng: 39.6100 },
-    ],
-  },
-  {
-    id: 'dammam',
-    name: 'الدمام',
-    lat: 26.4207,
-    lng: 50.0888,
-    zoom: 12,
-    locations: [
-      { id: 'dammam-center', name: 'وسط الدمام', lat: 26.4207, lng: 50.0888 },
-      { id: 'khobar', name: 'الخبر', lat: 26.2172, lng: 50.1971 },
-    ],
-  },
-  {
-    id: 'taif',
-    name: 'الطائف',
-    lat: 21.2703,
-    lng: 40.4158,
-    zoom: 12,
-    locations: [
-      { id: 'taif-center', name: 'وسط الطائف', lat: 21.2703, lng: 40.4158 },
+      { id: 'ramallah-center', name: 'وسط رام الله', lat: 31.9038, lng: 35.2034 },
+      { id: 'masyoun', name: 'المصيون', lat: 31.9040, lng: 35.1990 },
+      { id: 'tira', name: 'الطيرة', lat: 31.9120, lng: 35.1930 },
+      { id: 'bireh', name: 'البيرة', lat: 31.9050, lng: 35.2200 },
     ],
   },
 ];

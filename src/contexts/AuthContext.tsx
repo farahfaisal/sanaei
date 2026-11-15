@@ -202,11 +202,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return finalSignIn;
   };
 
-  // Register a new user: creates auth account with phone-derived email + password 123456, then saves profile
+  // Register a new user: creates auth account with phone-derived email and a random password
+  // (users sign in with OTP only, so the password is never shown or reused), then saves profile
   const registerUser = async (phone: string, fullName: string, role: 'customer' | 'craftsman', location?: string) => {
     const normalizedPhone = phone.replace(/\D/g, '');
     const email = `${normalizedPhone}@sanaei.app`;
-    const password = '123456';
+    const password = crypto.randomUUID();
 
     // Create auth user
     const { data, error } = await supabase.auth.signUp({

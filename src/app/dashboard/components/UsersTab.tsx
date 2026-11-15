@@ -196,7 +196,7 @@ export default function UsersTab() {
                       </button>
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">
-                      {new Date(user.created_at).toLocaleDateString('ar-SA')}
+                      {new Date(user.created_at).toLocaleDateString('ar-PS')}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">

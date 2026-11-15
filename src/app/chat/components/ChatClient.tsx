@@ -70,7 +70,7 @@ const PROGRESS_STEPS: { step: ProgressStep; action: string; done: string; icon: 
 
 // WhatsApp-style double tick SVG
 const DoubleTick = ({ read, readAt }: { read: boolean; readAt?: string | null }) => (
-  <span title={read && readAt ? `قُرئت ${new Date(readAt).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}` : ''}>
+  <span title={read && readAt ? `قُرئت ${new Date(readAt).toLocaleTimeString('ar-PS', { hour: '2-digit', minute: '2-digit' })}` : ''}>
     <svg width="16" height="11" viewBox="0 0 16 11" className="inline-block ml-1">
       <path d="M11.071.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-1.085 0l-2.5-2.614a.75.75 0 1 1 1.085-1.037l1.957 2.047 4.957-5.181a.75.75 0 0 1 1.06-.025z" fill={read ? '#53bdeb' : '#8696a0'} />
       <path d="M14.571.653a.75.75 0 0 1 .025 1.06l-5.5 5.75a.75.75 0 0 1-.542.234.75.75 0 0 1-.025-1.06l5.5-5.75a.75.75 0 0 1 1.06-.025l.025.025-.543-.234z" fill={read ? '#53bdeb' : '#8696a0'} />
@@ -506,7 +506,7 @@ export default function ChatClient() {
 
   // Group messages by date
   const groupedMessages = messages.reduce((acc: { date: string; msgs: Message[] }[], msg) => {
-    const date = new Date(msg.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'long', year: 'numeric' });
+    const date = new Date(msg.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'long', year: 'numeric' });
     const last = acc[acc.length - 1];
     if (last && last.date === date) { last.msgs.push(msg); }
     else { acc.push({ date, msgs: [msg] }); }
@@ -551,7 +551,7 @@ export default function ChatClient() {
           <div className="rounded-2xl p-4 text-center" style={{ background: '#dcf8c6', border: '1px solid #b7e4a0' }}>
             <p className="text-sm text-gray-600 mb-1">المبلغ المطلوب</p>
             <p className="text-3xl font-black" style={{ color: '#075E54' }}>
-              {acceptedQuote?.amount?.toLocaleString('ar-SA') || conversation.order?.amount?.toLocaleString('ar-SA') || '—'} ₪
+              {acceptedQuote?.amount?.toLocaleString('ar-PS') || conversation.order?.amount?.toLocaleString('ar-PS') || '—'} ₪
             </p>
             <p className="text-xs text-gray-500 mt-1">سيتم الاحتفاظ بالمبلغ لدى الإدارة حتى إتمام الخدمة</p>
           </div>
@@ -658,7 +658,7 @@ export default function ChatClient() {
           <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.92)', border: '1px solid #25D366' }}>
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm font-bold" style={{ color: '#075E54' }}>💰 عرض سعر جديد</p>
-              <p className="text-lg font-black" style={{ color: '#075E54' }}>{activeQuote.amount.toLocaleString('ar-SA')} ₪</p>
+              <p className="text-lg font-black" style={{ color: '#075E54' }}>{activeQuote.amount.toLocaleString('ar-PS')} ₪</p>
             </div>
             {activeQuote.description && <p className="text-xs text-gray-500 mb-2">{activeQuote.description}</p>}
             {showModificationInput === activeQuote.id ? (
@@ -685,7 +685,7 @@ export default function ChatClient() {
           <div className="mx-3 mt-2 rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.85)', border: '1px solid #ffc107' }}>
             <div className="flex items-center justify-between">
               <p className="text-xs font-bold text-yellow-700">⏳ عرض السعر بانتظار رد الزبون</p>
-              <p className="text-sm font-black text-yellow-800">{activeQuote.amount.toLocaleString('ar-SA')} ₪</p>
+              <p className="text-sm font-black text-yellow-800">{activeQuote.amount.toLocaleString('ar-PS')} ₪</p>
             </div>
             {activeQuote.description && <p className="text-xs text-yellow-600 mt-1">{activeQuote.description}</p>}
           </div>
@@ -706,7 +706,7 @@ export default function ChatClient() {
         {isCustomer && chatStep === 'chat' && conversation.order?.status === 'accepted' && conversation.order?.payment_status !== 'paid' && (
           <div className="mx-3 mt-2 rounded-xl p-3 flex items-center gap-3" style={{ background: '#dcf8c6', border: '1px solid #25D366' }}>
             <p className="flex-1 text-xs font-semibold" style={{ color: '#075E54' }}>
-              تم قبول العرض{acceptedQuote ? ` (${Number(acceptedQuote.amount).toLocaleString('ar-SA')} ₪)` : ''} — أكمل الدفع لبدء الخدمة
+              تم قبول العرض{acceptedQuote ? ` (${Number(acceptedQuote.amount).toLocaleString('ar-PS')} ₪)` : ''} — أكمل الدفع لبدء الخدمة
             </p>
             <button onClick={() => setChatStep('payment_method')} className="px-4 py-2 rounded-xl text-xs font-bold text-white flex-shrink-0" style={{ background: '#075E54' }}>
               ادفع الآن
@@ -771,7 +771,7 @@ export default function ChatClient() {
               const isFile = msg.message_type === 'file';
               const isImage = msg.message_type === 'image';
               const isSystem = msg.message_type === 'system';
-              const timeStr = new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+              const timeStr = new Date(msg.created_at).toLocaleTimeString('ar-PS', { hour: '2-digit', minute: '2-digit' });
 
               // Render system messages as centered pill
               if (isSystem) {
@@ -822,7 +822,7 @@ export default function ChatClient() {
                     <div className={`flex items-center gap-0.5 mt-0.5 ${isOwn ? 'justify-start' : 'justify-end'}`}>
                       {isOwn && msg.is_read && msg.read_at && (
                         <span className="text-xs mr-1" style={{ color: '#8696a0', fontSize: '10px' }}>
-                          {new Date(msg.read_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(msg.read_at).toLocaleTimeString('ar-PS', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                       )}
                       <span className="text-xs" style={{ color: '#8696a0', fontSize: '11px' }}>{timeStr}</span>

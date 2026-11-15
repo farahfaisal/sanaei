@@ -246,9 +246,9 @@ export default function CraftsmanOrdersClient() {
             displayedOrders.map(order => {
               const statusInfo = STATUS_LABELS[order.status] || { label: order.status, color: '#6B7280', bg: 'rgba(107,114,128,0.12)', dot: '#9CA3AF' };
               const customerName = order.customer?.full_name || 'عميل';
-              const date = new Date(order.created_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric' });
+              const date = new Date(order.created_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short', year: 'numeric' });
               const scheduledDate = order.scheduled_at
-                ? new Date(order.scheduled_at).toLocaleDateString('ar-SA', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                ? new Date(order.scheduled_at).toLocaleDateString('ar-PS', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
                 : null;
 
               return (
@@ -319,7 +319,7 @@ export default function CraftsmanOrdersClient() {
                     </span>
                     {order.amount != null && (
                       <span className="font-bold text-sm" style={{ color: '#2a724d' }}>
-                        {order.amount.toLocaleString('ar-SA')} ₪
+                        {order.amount.toLocaleString('ar-PS')} ₪
                       </span>
                     )}
                   </div>

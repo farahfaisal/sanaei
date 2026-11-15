@@ -124,8 +124,8 @@ export default function HomeScreenClient() {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => {
-          // Default to Riyadh center if denied
-          setUserLocation({ lat: 24.7136, lng: 46.6753 });
+          // Default to Ramallah center if denied
+          setUserLocation({ lat: 31.9038, lng: 35.2034 });
         }
       );
     }
@@ -351,7 +351,7 @@ export default function HomeScreenClient() {
             
             <Icon name="MapPinIcon" size={13} style={{ color: 'rgba(255,255,255,0.8)' }} />
             <span className="text-xs font-medium" style={{ color: 'rgba(255,255,255,0.85)' }}>
-              {profile?.location || 'الرياض، المملكة العربية السعودية'}
+              {profile?.location || 'رام الله، فلسطين'}
             </span>
           </div>
         </div>

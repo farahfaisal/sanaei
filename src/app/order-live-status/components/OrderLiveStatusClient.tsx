@@ -70,12 +70,12 @@ interface OrderData {
 
 function formatTime(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true });
+  return d.toLocaleTimeString('ar-PS', { hour: '2-digit', minute: '2-digit', hour12: true });
 }
 
 function formatDate(dateStr: string) {
   const d = new Date(dateStr);
-  return d.toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  return d.toLocaleDateString('ar-PS', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function OrderLiveStatusClient() {
@@ -462,7 +462,7 @@ export default function OrderLiveStatusClient() {
             <div className="flex gap-2.5">
               <Icon name="BanknotesIcon" size={16} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--muted-foreground)' }} />
               <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>
-                {order.amount.toLocaleString('ar-SA')} ₪
+                {order.amount.toLocaleString('ar-PS')} ₪
               </p>
             </div>
           )}

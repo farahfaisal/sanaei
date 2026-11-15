@@ -77,7 +77,7 @@ function buildChartData(activeTab: EarningTab, transactions: Transaction[]) {
       })
       .reduce((sum, t) => sum + t.amount, 0);
     return {
-      label: monthDate.toLocaleDateString('ar-SA', { month: 'short' }),
+      label: monthDate.toLocaleDateString('ar-PS', { month: 'short' }),
       value,
     };
   });
