@@ -1083,12 +1083,14 @@ export default function CraftsmanProfileClient() {
                       <p className="text-white text-xs font-medium truncate">{item.label}</p>
                     </div>
                   )}
-                </>
-              )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-              {/* Reviews Tab */}
-              {activeTab === 'reviews' && (
-                <>
+        {activeTab === 'reviews' && (
+          <div className="bg-white rounded-2xl p-4">
                   {reviews.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-8 text-gray-400">
                       <span className="text-3xl mb-2">⭐</span>
@@ -1180,11 +1182,8 @@ export default function CraftsmanProfileClient() {
                       ))}
                     </div>
                   )}
-                </>
-              )}
-            </div>
-          </div>
-        )}
+              </div>
+            )}
 
         {/* Achievements */}
         <div className="bg-white rounded-2xl p-4">
