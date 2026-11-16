@@ -71,10 +71,11 @@ export default function PhoneLoginClient() {
     };
   }, [step]);
 
-  const fullPhone = `${selectedCountry.code}${phone}`;
+  const localPhone = phone.replace(/\D/g, '').replace(/^0+/, '');
+  const fullPhone = `${selectedCountry.code}${localPhone}`;
 
   const handleSendOtp = async () => {
-    if (!phone || phone.length < 9) {
+    if (localPhone.length < 8) {
       setError('يرجى إدخال رقم جوال صحيح');
       return;
     }
