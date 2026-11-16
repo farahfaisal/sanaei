@@ -201,7 +201,7 @@ export default function PhoneLoginClient() {
                     setPhone(e.target.value.replace(/\D/g, ''));
                     setError('');
                   }}
-                  placeholder="0599 XXX XXX"
+                  placeholder="599 XXX XXX"
                   className="flex-1 py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
                   dir="ltr"
                   style={{ textAlign: 'left' }}
