@@ -26,7 +26,7 @@ export default function SplashScreen() {
       } else {
         router?.replace('/onboarding-role-selection');
       }
-    }, 2800);
+    }, 1200);
 
     return () => clearTimeout(timer);
   }, [router, user, profile, loading]);
