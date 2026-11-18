@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Icon from '@/components/ui/AppIcon';
 import Image from 'next/image';
-import SplashScreen from '@/components/SplashScreen';
 import Link from 'next/link';
 
 type Role = 'customer' | 'craftsman' | null;
@@ -20,7 +19,6 @@ export default function OnboardingClient() {
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
-      <SplashScreen />
       {/* Logo area */}
       <div className="flex flex-col items-center pt-12 pb-6 px-6">
         {/* Logo (includes app name and tagline) */}

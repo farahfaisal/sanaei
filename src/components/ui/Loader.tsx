@@ -66,7 +66,7 @@ export function PageLoader({ label, dark = false }: { label?: string; dark?: boo
       style={{ background: dark ? '#030712' : 'var(--background, #fff)' }}
       dir="rtl"
     >
-      <Spinner size={64} logo color={dark ? '#10b981' : BRAND} />
+      <Spinner size={48} logo={false} color={dark ? '#10b981' : BRAND} />
       {label && (
         <p className="text-sm" style={{ color: dark ? '#9ca3af' : 'var(--muted-foreground, #6b7280)' }}>
           {label}
