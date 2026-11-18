@@ -7,7 +7,7 @@
 //  - Pages: network-first, cached copy only when offline.
 // Bumping CACHE_NAME deletes every older cache on activation.
 
-const CACHE_NAME = 'herafi-static-v3';
+const CACHE_NAME = 'herafi-static-v4';
 const STATIC_ASSETS = [
   '/assets/images/app_logo.png',
   '/icons/herafi-192.png',

@@ -70,10 +70,11 @@ export default function PhoneLoginClient() {
     };
   }, [step]);
 
-  const fullPhone = `${selectedCountry.code}${phone}`;
+  const localPhone = phone.replace(/\D/g, '').replace(/^0+/, '');
+  const fullPhone = `${selectedCountry.code}${localPhone}`;
 
   const handleSendOtp = async () => {
-    if (!phone || phone.length < 9) {
+    if (localPhone.length < 8) {
       setError('يرجى إدخال رقم جوال صحيح');
       return;
     }
@@ -199,7 +200,7 @@ export default function PhoneLoginClient() {
                     setPhone(e.target.value.replace(/\D/g, ''));
                     setError('');
                   }}
-                  placeholder="0599 XXX XXX"
+                  placeholder="رقم الجوال"
                   className="flex-1 py-3.5 px-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:border-primary"
                   dir="ltr"
                   style={{ textAlign: 'left' }}

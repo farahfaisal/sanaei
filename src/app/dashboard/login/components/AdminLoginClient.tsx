@@ -111,7 +111,7 @@ export default function AdminLoginClient() {
               value={email}
               onChange={(e) => { setEmail(e.target.value); setError(''); }}
               className="w-full px-4 py-3 rounded-xl bg-gray-800 border border-gray-700 text-white text-left placeholder:text-gray-500 focus:outline-none focus:border-emerald-500"
-              placeholder="admin@example.com"
+              placeholder="البريد الإلكتروني"
             />
           </div>
 
