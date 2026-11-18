@@ -1,5 +1,7 @@
 'use client';
 
+import { parseLocation, calcDistance } from '@/lib/location';
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useRouter } from 'next/navigation';
@@ -50,35 +52,6 @@ interface PromotionalOffer {
   bg_color_to: string;
 }
 
-function parseLocation(location: string | null): {lat: number;lng: number;} | null {
-  if (!location) return null;
-  const parts = location.split(',');
-  if (parts.length === 2) {
-    const lat = parseFloat(parts[0].trim());
-    const lng = parseFloat(parts[1].trim());
-    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
-  }
-  return null;
-}
-
-function generateFallbackPosition(seed: string): {lat: number;lng: number;} {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0;
-  }
-  const lat = 24.6 + Math.abs(hash % 1000) / 1000 * 0.4;
-  const lng = 46.5 + Math.abs((hash >> 8) % 1000) / 1000 * 0.4;
-  return { lat, lng };
-}
-
-function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLng = (lng2 - lng1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
 
 const PRIMARY = '#1a6b3c';
 const PRIMARY_LIGHT = '#2e8b57';
@@ -124,9 +97,10 @@ export default function HomeScreenClient() {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => {
-          // Default to Ramallah center if denied
+          // Denied or unavailable: measure from Ramallah centre, not a random point
           setUserLocation({ lat: 31.9038, lng: 35.2034 });
-        }
+        },
+        { timeout: 10000, maximumAge: 60000 }
       );
     }
   }, []);
@@ -198,13 +172,11 @@ export default function HomeScreenClient() {
 
   const craftsmenWithDistance = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
-    const parsed = parseLocation(locStr);
-    const fallback = generateFallbackPosition(c.id);
-    const pos = parsed ?? fallback;
-    const distance = userLocation
+    const pos = parseLocation(locStr);
+    const distance = userLocation && pos
       ? calcDistance(userLocation.lat, userLocation.lng, pos.lat, pos.lng)
       : null;
-    return { ...c, _lat: pos.lat, _lng: pos.lng, _distance: distance };
+    return { ...c, _lat: pos?.lat ?? null, _lng: pos?.lng ?? null, _distance: distance };
   }), [craftsmen, userLocation]);
 
   const filteredCraftsmen = useMemo(() => {
@@ -266,7 +238,7 @@ export default function HomeScreenClient() {
   const mapCraftsmen = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
     const parsed = parseLocation(locStr);
-    const fallback = generateFallbackPosition(c.id);
+    if (!parsed) return null; // no known location: do not place on the map
     return {
       id: c.id,
       full_name: c.user_profiles?.full_name || 'حرفي',
@@ -274,11 +246,11 @@ export default function HomeScreenClient() {
       is_online: c.is_online,
       is_verified: c.is_verified,
       rating: c.rating || 0,
-      lat: parsed?.lat ?? fallback.lat,
-      lng: parsed?.lng ?? fallback.lng,
+      lat: parsed.lat,
+      lng: parsed.lng,
       status: c.is_online ? 'available' as const : 'offline' as const
     };
-  }), [craftsmen]);
+  }).filter((c): c is NonNullable<typeof c> => c !== null), [craftsmen]);
 
   const activeFiltersCount = [
     searchQuery !== '',

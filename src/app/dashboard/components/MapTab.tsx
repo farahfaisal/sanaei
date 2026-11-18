@@ -1,5 +1,7 @@
 'use client';
 
+import { parseLocation } from '@/lib/location';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
@@ -62,30 +64,6 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: 'bg-red-900/50 text-red-300 border-red-800/50',
 };
 
-// Parse location string like "31.9038,35.2034" or "Ramallah" into lat/lng
-function parseLocation(location: string | null): { lat: number; lng: number } | null {
-  if (!location) return null;
-  const parts = location.split(',');
-  if (parts.length === 2) {
-    const lat = parseFloat(parts[0].trim());
-    const lng = parseFloat(parts[1].trim());
-    if (!isNaN(lat) && !isNaN(lng)) return { lat, lng };
-  }
-  return null;
-}
-
-// Fallback: generate a random position near Ramallah for craftsmen without coordinates
-function generateFallbackPosition(seed: string): { lat: number; lng: number } {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = ((hash << 5) - hash) + seed.charCodeAt(i);
-    hash |= 0;
-  }
-  const lat = 31.87 + (Math.abs(hash % 1000) / 1000) * 0.08;
-  const lng = 35.18 + (Math.abs((hash >> 8) % 1000) / 1000) * 0.08;
-  return { lat, lng };
-}
-
 export default function MapTab() {
   const supabase = createClient();
   const [craftsmen, setCraftsmen] = useState<CraftsmanMapData[]>([]);
@@ -136,7 +114,6 @@ export default function MapTab() {
       if (craftsmenRes.data) {
         const mapped: CraftsmanMapData[] = craftsmenRes.data.map((c: any) => {
           const parsed = parseLocation(c.location);
-          const fallback = generateFallbackPosition(c.id);
           return {
             id: c.id,
             user_id: c.user_id,
@@ -147,8 +124,8 @@ export default function MapTab() {
             is_verified: c.is_verified,
             rating: c.rating || 0,
             completed_jobs: c.completed_jobs || 0,
-            lat: parsed?.lat ?? fallback.lat,
-            lng: parsed?.lng ?? fallback.lng,
+            lat: parsed?.lat ?? null,
+            lng: parsed?.lng ?? null,
           };
         });
         setCraftsmen(mapped);
