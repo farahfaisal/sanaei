@@ -14,7 +14,7 @@ const COUNTRY_CODES = [
 ];
 
 function getRedirectPath(role: string): string {
-  if (role === 'craftsman') return '/order-details';
+  if (role === 'craftsman') return '/craftsman-orders';
   if (role === 'admin') return '/dashboard';
   return '/home-screen';
 }
