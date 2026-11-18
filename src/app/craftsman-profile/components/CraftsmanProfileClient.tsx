@@ -1,5 +1,6 @@
 'use client';
 
+import { captureCoords } from '@/lib/location';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -421,12 +422,16 @@ export default function CraftsmanProfileClient() {
       if (profileError) throw profileError;
 
       // Update craftsman_profiles
+      // Save the exact position too, so the craftsman can be placed on the map.
+      const coords = editForm.location.trim() ? await captureCoords() : null;
       const { error: craftsmanError } = await supabase
         .from('craftsman_profiles')
         .update({
           bio: editForm.bio.trim() || null,
           specialty: editForm.specialty.trim() || null,
           location: editForm.location.trim() || null,
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
           experience_years: Number(editForm.experience_years) || 0,
           updated_at: new Date().toISOString(),
         })

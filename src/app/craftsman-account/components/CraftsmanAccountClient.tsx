@@ -6,6 +6,7 @@ import BottomTabBar from '@/components/BottomTabBar';
 import Icon from '@/components/ui/AppIcon';
 import AppImage from '@/components/ui/AppImage';
 import { createClient } from '@/lib/supabase/client';
+import { captureCoords } from '@/lib/location';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { rtChannelName } from '@/lib/supabase/realtime';
@@ -154,11 +155,15 @@ export default function CraftsmanAccountClient() {
         .update({ full_name: editName.trim(), location: editLocation.trim() || null })
         .eq('id', user.id);
 
+      // Save the exact position too: the text alone cannot place the craftsman on the map.
+      const coords = editLocation.trim() ? await captureCoords() : null;
       await supabase.from('craftsman_profiles')
         .update({
           bio: editBio.trim() || null,
           specialty: editSpecialty.trim() || null,
           location: editLocation.trim() || null,
+          latitude: coords?.lat ?? null,
+          longitude: coords?.lng ?? null,
           experience_years: parseInt(editExperience) || 0,
         })
         .eq('id', craftsmanProfile.id);

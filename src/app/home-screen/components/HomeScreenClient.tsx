@@ -1,6 +1,6 @@
 'use client';
 
-import { parseLocation, calcDistance } from '@/lib/location';
+import { parseLocation, calcDistance, coordsOf } from '@/lib/location';
 
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
@@ -123,7 +123,7 @@ export default function HomeScreenClient() {
       supabase.from('service_categories').select('id, name, emoji, slug').eq('is_active', true).order('name'),
       supabase.
       from('craftsman_profiles').
-      select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, user_profiles(full_name, location)').
+      select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, avatar_url, location, latitude, longitude, user_profiles(full_name, location)').
       order('rating', { ascending: false }).
       limit(20),
       supabase.
@@ -139,7 +139,7 @@ export default function HomeScreenClient() {
       if (craftRes.error) {
         const fallbackRes = await supabase.
         from('craftsman_profiles').
-        select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, location, user_profiles(full_name, location)').
+        select('id, user_id, specialty, rating, completed_jobs, is_online, is_verified, location, latitude, longitude, user_profiles(full_name, location)').
         order('rating', { ascending: false });
         if (fallbackRes.data) {
           setCraftsmen(fallbackRes.data.map((c: any) => ({ ...c, avatar_url: null })) as any);
@@ -172,7 +172,7 @@ export default function HomeScreenClient() {
 
   const craftsmenWithDistance = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
-    const pos = parseLocation(locStr);
+    const pos = coordsOf(c) ?? parseLocation(locStr);
     const distance = userLocation && pos
       ? calcDistance(userLocation.lat, userLocation.lng, pos.lat, pos.lng)
       : null;
@@ -237,7 +237,7 @@ export default function HomeScreenClient() {
 
   const mapCraftsmen = useMemo(() => craftsmen.map((c) => {
     const locStr = c.location || c.user_profiles?.location || null;
-    const parsed = parseLocation(locStr);
+    const parsed = coordsOf(c) ?? parseLocation(locStr);
     if (!parsed) return null; // no known location: do not place on the map
     return {
       id: c.id,

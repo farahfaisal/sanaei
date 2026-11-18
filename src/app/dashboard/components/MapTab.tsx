@@ -1,6 +1,6 @@
 'use client';
 
-import { parseLocation } from '@/lib/location';
+import { parseLocation, coordsOf } from '@/lib/location';
 
 import React, { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
@@ -97,7 +97,7 @@ export default function MapTab() {
       const [craftsmenRes, ordersRes] = await Promise.all([
         supabase
           .from('craftsman_profiles')
-          .select('id, user_id, specialty, location, is_online, is_verified, rating, completed_jobs, user_profiles(full_name)')
+          .select('id, user_id, specialty, location, latitude, longitude, is_online, is_verified, rating, completed_jobs, user_profiles(full_name)')
           .order('created_at', { ascending: false }),
         supabase
           .from('orders')
@@ -113,7 +113,7 @@ export default function MapTab() {
 
       if (craftsmenRes.data) {
         const mapped: CraftsmanMapData[] = craftsmenRes.data.map((c: any) => {
-          const parsed = parseLocation(c.location);
+          const parsed = coordsOf(c) ?? parseLocation(c.location);
           return {
             id: c.id,
             user_id: c.user_id,

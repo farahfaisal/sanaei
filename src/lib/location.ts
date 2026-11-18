@@ -35,6 +35,12 @@ export function parseLocation(location: string | null | undefined): { lat: numbe
   return null;
 }
 
+// Exact coordinates saved on the profile, if any.
+export function coordsOf(row: { latitude?: number | null; longitude?: number | null } | null | undefined): { lat: number; lng: number } | null {
+  if (row?.latitude == null || row?.longitude == null) return null;
+  return { lat: Number(row.latitude), lng: Number(row.longitude) };
+}
+
 export function calcDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -43,4 +49,16 @@ export function calcDistance(lat1: number, lng1: number, lat2: number, lng2: num
     Math.sin(dLat / 2) ** 2 +
     Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Read the device position once. Resolves null if the user refuses or it times out.
+export function captureCoords(timeoutMs = 10000): Promise<{ lat: number; lng: number } | null> {
+  return new Promise((resolve) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (p) => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => resolve(null),
+      { timeout: timeoutMs, maximumAge: 60000 }
+    );
+  });
 }
