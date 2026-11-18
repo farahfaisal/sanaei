@@ -47,8 +47,10 @@ export default function PhoneLoginClient() {
 
   // Redirect if already logged in — based on actual profile role
   useEffect(() => {
-    if (!loading && user && profile) {
-      router.replace(getRedirectPath(profile.role));
+    if (loading) return;
+    if (user) {
+      // Already signed in: never ask for a new OTP. Same routing as the splash screen.
+      router.replace(profile ? getRedirectPath(profile.role) : '/home-screen');
     }
   }, [user, profile, loading, router]);
 
@@ -133,6 +135,11 @@ export default function PhoneLoginClient() {
 
   const circumference = 2 * Math.PI * 13;
   const dashOffset = circumference - (countdown / 42) * circumference;
+
+  // Signed-in users are being redirected: show a neutral screen, never the OTP form.
+  if (loading || user) {
+    return <div className="min-h-screen bg-white" aria-busy="true" />;
+  }
 
   return (
     <div className="screen-container flex flex-col min-h-screen bg-white" dir="rtl">
