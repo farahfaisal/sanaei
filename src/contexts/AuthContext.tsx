@@ -129,9 +129,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   // Phone-based Sign In — Step 1: send real OTP via SMS
-  const sendOtp = async (phone: string) => {
+  // The role travels with the OTP request. The on_auth_user_created trigger reads
+  // it when the account is created; without it every new account became a customer.
+  const sendOtp = async (phone: string, role: 'customer' | 'craftsman' = 'customer') => {
     const { data, error } = await supabase.auth.signInWithOtp({
       phone,
+      options: { data: { role, phone } },
     });
     if (error) throw error;
     return data;

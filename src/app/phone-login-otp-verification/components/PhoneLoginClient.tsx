@@ -83,7 +83,7 @@ export default function PhoneLoginClient() {
     setError('');
     setIsLoading(true);
     try {
-      await sendOtp(fullPhone);
+      await sendOtp(fullPhone, selectedRole);
       setStep('otp');
       setCountdown(42);
       setCanResend(false);
